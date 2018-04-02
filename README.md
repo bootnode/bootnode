@@ -70,13 +70,13 @@ The following tables lists the configurable parameters of the vault chart and th
 |-----------------------------------|-----------------------------------------------|---------------------------------------|
 | `imagePullPolicy`                 | Container pull policy                         | `IfNotPresent`                        |
 | `bootnode.image.repository`       | bootnode container image to use               | `ethereum/client-go`                  |
-| `bootnode.image.tag`              | bootnode container image tag to deploy        | `alltools-v1.7.3`                     |
+| `bootnode.image.tag`              | bootnode container image tag to deploy        | `alltools-v1.8.3`                     |
 | `ethstats.image.repository`       | ethstats container image to use               | `ethereumex/eth-stats-dashboard`      |
 | `ethstats.image.tag`              | ethstats container image tag to deploy        | `latest`                              |
 | `ethstats.webSocketSecret`        | ethstats secret for posting data              | `my-secret-for-connecting-to-ethstats`|
 | `ethstats.service.type`           | k8s service type for ethstats                 | `LoadBalancer`                        |
 | `geth.image.repository`           | geth container image to use                   | `ethereum/client-go`                  |
-| `geth.image.tag`                  | geth container image tag to deploy            | `v1.7.3`                              |
+| `geth.image.tag`                  | geth container image tag to deploy            | `v1.8.3`                              |
 | `geth.tx.replicaCount`            | geth transaction nodes replica count          | `2`                                   |
 | `geth.tx.service.type`            | k8s service type for geth transaction nodes   | `ClusterIP`                           |
 | `geth.miner.replicaCount`         | geth miner nodes replica count                | `3`                                   |
