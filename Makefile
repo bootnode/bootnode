@@ -48,4 +48,4 @@ add-gcr-key:
 
 # Get credentials for kubectl for current cluster
 get-credentials:
-	gcloud container clusters get-credentials blockchain-nodes --zone us-central1-a --project hanzo-$(env)
+	gcloud container clusters get-credentials ethereum --zone us-central1-a --project hanzo-ai
