@@ -1,0 +1,14 @@
+name: ethereum-cluster
+version: 0.1.0
+description: Ethereum network Helm chart for Kubernetes
+keywords:
+- ethereum
+- blockchain
+home: https://hanzo.ai
+sources:
+- https://github.com/hanzoai/ethereum-cluster
+maintainers:
+- name: zeekay
+  email: zach@hanzo.ai
+icon: https://www.ethereum.org/images/logos/ETHEREUM-LOGO_PORTRAIT_Black_small.png
+appVersion: v1.7.3

@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: geth-mainnet
+spec:
+  containers:
+    - name: geth-mainnet
+      image: gcr.io/hanzo-ai/geth:latest
+      command:
+        - /go-ethereum/build/bin/geth
+      args:
+        - --datadir=/ethereum
+        - --cache=1024
+        - --rpc
+        - --rpcaddr=0.0.0.0
+        - --rpcport=13264
+        - --syncmode=fast
+        - --rpccorsdomain="*"
+      volumeMounts:
+        - mountPath: '/ethereum'
+          name: geth-mainnet-pv
+  volumes:
+    - name: geth-mainnet-pv
+      persistentVolumeClaim:
+        claimName: geth-mainnet-pvc
