@@ -43,7 +43,7 @@ ssh:
 # Add secret for hanzo-ai gcr.io. This enables our cluster to pull images from
 # our shared image repo. This should only be run once after cluster creation.
 add-gcr-key:
-	kubectl create -f ../config/secret.yaml \
+	kubectl create -f config/secret.yaml
 	kubectl patch serviceaccount default -p '{"imagePullSecrets": [{"name": "gcr-secret"}]}'
 
 # Get credentials for kubectl for current cluster
