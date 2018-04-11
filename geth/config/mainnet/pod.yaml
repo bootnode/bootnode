@@ -10,7 +10,7 @@ spec:
         - /go-ethereum/build/bin/geth
       args:
         - --datadir=/ethereum
-        - --cache=1024
+        - --cache=4096
         - --rpc
         - --rpcaddr=0.0.0.0
         - --rpcport=13264
