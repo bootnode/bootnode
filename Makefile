@@ -33,7 +33,7 @@ delete:
 	gcloud compute disks delete --zone=us-central1-a geth-$(net)-disk
 
 status:
-	kubectl get pod geth-$(net) -o yaml
+	kubectl get pods -o yaml
 
 logs:
 	kubectl logs geth-$(net) -f
