@@ -8,11 +8,11 @@ spec:
       image: gcr.io/hanzo-ai/geth:latest
       resources:
         requests:
-          cpu: 1930m
-          memory: 5784712Ki
+          cpu: 1
+          memory: 5Gi
         limits:
-          cpu: 1930m
-          memory: 5784712Ki
+          cpu: 1
+          memory: 5Gi
       command:
         - /go-ethereum/build/bin/geth
       args:
