@@ -17,6 +17,7 @@ spec:
         - --syncmode=fast
         - --maxpeers=25
         - --rpccorsdomain="*"
+        - --testnet
       volumeMounts:
         - mountPath: '/ethereum'
           name: geth-testnet-pv
