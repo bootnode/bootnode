@@ -8,9 +8,7 @@ export KUBECONFIG=config/cluster.yaml
 all: deploy
 
 build:
-	docker build -t gcr.io/hanzo-ai/geth geth
-	docker tag gcr.io/hanzo-ai/geth gcr.io/hanzo-ai/geth:$(sha1)
-	gcloud docker -- push gcr.io/hanzo-ai/geth
+	gcloud container builds submit -t gcr.io/hanzo.ai/geth -t gcr.io/hanzo-ai/geth:$(sha1) geth
 
 deploy: build
 	kubectl set image deployment/geth-$(net) geth-$(net)=gcr.io/hanzo-ai/geth:$(sha1)
