@@ -1,9 +1,9 @@
-sha1 := $(shell git rev-parse --short=8 HEAD)
-env  := production
-net  := testnet
-cfg  := geth/config/$(net)
-
 export KUBECONFIG=config/cluster.yaml
+
+sha1 := $(shell git rev-parse --short=8 HEAD)
+geth := /go-ethereum/build/bin/geth --datadir=/ethereum
+net  ?= testnet
+cfg  := geth/config/$(net)
 
 all: deploy
 
@@ -23,6 +23,9 @@ create-volume:
 create-pod:
 	kubectl apply -f $(cfg)/pod.yaml
 
+delete-pod:
+	kubectl delete -f $(cfg)/pod.yaml
+
 delete:
 	kubectl delete -f $(cfg)/pod.yaml || echo not running
 	kubectl delete -f $(cfg)/pvc.yaml || echo not running
@@ -37,6 +40,15 @@ logs:
 
 ssh:
 	kubectl exec -it geth-$(net) -- /bin/bash
+
+attach:
+	kubectl exec -it geth-$(net) -- $(geth) attach
+
+nodeinfo:
+	kubectl exec -it geth-$(net) -- $(geth) attach --exec 'admin.nodeInfo'
+
+syncstatus:
+	kubectl exec -it geth-$(net) -- $(geth) attach --exec 'eth.syncing'
 
 # Add secret for hanzo-ai gcr.io. This enables our cluster to pull images from
 # our shared image repo. This should only be run once after cluster creation.

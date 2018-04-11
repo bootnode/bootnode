@@ -6,6 +6,13 @@ spec:
   containers:
     - name: geth-testnet
       image: gcr.io/hanzo-ai/geth:latest
+      resources:
+        requests:
+          cpu: 1930m
+          memory: 5784712Ki
+        limits:
+          cpu: 1930m
+          memory: 5784712Ki
       command:
         - /go-ethereum/build/bin/geth
       args:
