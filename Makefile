@@ -1,7 +1,7 @@
 sha1 := $(shell git rev-parse --short=8 HEAD)
 env  := production
 net  := testnet
-cfg  := config/$(net)
+cfg  := geth/config/$(net)
 
 export KUBECONFIG=config/cluster.yaml
 
