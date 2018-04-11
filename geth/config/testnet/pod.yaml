@@ -15,6 +15,7 @@ spec:
         - --rpcaddr=0.0.0.0
         - --rpcport=13264
         - --syncmode=fast
+        - --maxpeers=25
         - --rpccorsdomain="*"
       volumeMounts:
         - mountPath: '/ethereum'
