@@ -26,13 +26,12 @@ spec:
       volumeMounts:
         - mountPath: '/ethereum'
           name: geth-mainnet-pv
-      volumeMounts:
         - mountPath: '/data'
           name: geth-mainnet-data-pv
   volumes:
     - name: geth-mainnet-pv
       persistentVolumeClaim:
         claimName: geth-mainnet-pvc
-    - name: geth-mainnet-ssd-pv
+    - name: geth-mainnet-data-pv
       persistentVolumeClaim:
         claimName: geth-mainnet-data-pvc
