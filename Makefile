@@ -18,7 +18,7 @@ create: build create-volume create-pod
 create-volume:
 	kubectl apply -f $(cfg)/sc.yaml
 	kubectl apply -f $(cfg)/pvc.yaml
-	gcloud compute disks create --size=1000GB --zone=us-central1-a geth-$(net)-disk
+	gcloud compute disks create --size=4000GB --type=pd-ssd --zone=us-central1-a geth-$(net)-disk
 
 create-pod:
 	kubectl apply -f $(cfg)/pod.yaml
