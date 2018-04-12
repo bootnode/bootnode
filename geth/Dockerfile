@@ -8,6 +8,7 @@ RUN apt-get update && \
                        curl \
                        g++-multilib \
                        git \
+                       iputils-ping \
                        libc6-dev \
                        libtool \
                        m4 \

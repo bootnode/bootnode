@@ -8,7 +8,10 @@ cfg  := config/$(net)
 all: deploy
 
 build:
-	gcloud container builds submit -t gcr.io/hanzo.ai/geth -t gcr.io/hanzo-ai/geth:$(sha1) geth
+	gcloud container builds submit \
+		-t gcr.io/hanzo-ai/geth:$(sha1) \
+		-t gcr.io/hanzo-ai/geth:latest \
+		geth
 
 deploy: build
 	kubectl set image deployment/geth-$(net) geth-$(net)=gcr.io/hanzo-ai/geth:$(sha1)
