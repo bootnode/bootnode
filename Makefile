@@ -17,7 +17,7 @@ create: build create-volume create-pod
 
 create-volume:
 	kubectl apply -f $(cfg)/sc.yaml
-	kubectl apply -f $(cfg)/pvc.yaml
+	kubectl apply -f $(cfg)/pvc-ssd.yaml
 	gcloud compute disks create --size=4000GB --type=pd-ssd --zone=us-central1-a geth-$(net)-chaindata
 
 create-pod:
@@ -59,3 +59,7 @@ add-gcr-key:
 # Get credentials for kubectl for current cluster
 get-credentials:
 	gcloud container clusters get-credentials ethereum --zone us-central1-a --project hanzo-ai
+
+region-zone-defaults:
+	gcloud compute project-info add-metadata --metadata=google-compute-default-region=us-central1
+	gcloud compute project-info add-metadata --metadata=google-compute-default-zone=us-central1-a

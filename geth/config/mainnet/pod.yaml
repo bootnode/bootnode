@@ -3,18 +3,20 @@ kind: Pod
 metadata:
   name: geth-mainnet
 spec:
+  nodeSelector:
+    cloud.google.com/gke-nodepool: geth-default
   containers:
     - name: geth-mainnet
       image: gcr.io/hanzo-ai/geth:latest
       resources:
         requests:
-          cpu: 1
-          memory: 4Gi
+          cpu: 8
+          memory: 8Gi
       command:
         - /go-ethereum/build/bin/geth
       args:
         - --datadir=/ethereum
-        - --cache=2048
+        - --cache=4096
         - --rpc
         - --rpcaddr=0.0.0.0
         - --rpcport=13264
@@ -24,7 +26,13 @@ spec:
       volumeMounts:
         - mountPath: '/ethereum'
           name: geth-mainnet-pv
+      # volumeMounts:
+      #   - mountPath: '/ethereum-ssd'
+      #     name: geth-mainnet-ssd-pv
   volumes:
     - name: geth-mainnet-pv
       persistentVolumeClaim:
         claimName: geth-mainnet-pvc
+    # - name: geth-mainnet-ssd-pv
+    #   persistentVolumeClaim:
+    #     claimName: geth-mainnet-ssd-pvc
