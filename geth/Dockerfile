@@ -16,6 +16,7 @@ RUN apt-get update && \
                        pkg-config \
                        python \
                        python-software-properties \
+                       screen \
                        software-properties-common \
                        sysstat \
                        unzip \
