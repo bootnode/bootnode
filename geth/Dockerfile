@@ -17,6 +17,7 @@ RUN apt-get update && \
                        python-software-properties \
                        software-properties-common \
                        unzip \
+                       vim \
                        wget \
                        zlib1g-dev
 

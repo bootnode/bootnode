@@ -1,7 +1,7 @@
 export KUBECONFIG=config/cluster.yaml
 
 sha1 := $(shell git rev-parse --short=8 HEAD)
-geth := /go-ethereum/build/bin/geth --datadir=/ethereum
+geth := /go-ethereum/build/bin/geth --datadir=/data
 net  ?= testnet
 cfg  := config/$(net)
 

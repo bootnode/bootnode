@@ -18,7 +18,7 @@ spec:
       command:
         - /go-ethereum/build/bin/geth
       args:
-        - --datadir=/ethereum
+        - --datadir=/data
         - --cache=2048
         - --rpc
         - --rpcaddr=0.0.0.0
@@ -28,14 +28,14 @@ spec:
         - --rpccorsdomain="*"
         - --testnet
       volumeMounts:
-        - mountPath: '/ethereum'
-          name: geth-testnet-pv
+        # - mountPath: '/ethereum'
+        #   name: geth-testnet-pv
         - mountPath: '/data'
           name: geth-testnet-data-pv
   volumes:
-    - name: geth-testnet-pv
-      persistentVolumeClaim:
-        claimName: geth-testnet-pvc
+    # - name: geth-testnet-pv
+    #   persistentVolumeClaim:
+    #     claimName: geth-testnet-pvc
     - name: geth-testnet-data-pv
       persistentVolumeClaim:
         claimName: geth-testnet-data-pvc

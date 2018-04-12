@@ -15,7 +15,7 @@ spec:
       command:
         - /go-ethereum/build/bin/geth
       args:
-        - --datadir=/ethereum
+        - --datadir=/data
         - --cache=4096
         - --rpc
         - --rpcaddr=0.0.0.0
@@ -24,14 +24,14 @@ spec:
         - --maxpeers=25
         - --rpccorsdomain="*"
       volumeMounts:
-        - mountPath: '/ethereum'
-          name: geth-mainnet-pv
+        # - mountPath: '/ethereum'
+        #   name: geth-mainnet-pv
         - mountPath: '/data'
           name: geth-mainnet-data-pv
   volumes:
-    - name: geth-mainnet-pv
-      persistentVolumeClaim:
-        claimName: geth-mainnet-pvc
+    # - name: geth-mainnet-pv
+    #   persistentVolumeClaim:
+    #     claimName: geth-mainnet-pvc
     - name: geth-mainnet-data-pv
       persistentVolumeClaim:
         claimName: geth-mainnet-data-pvc
