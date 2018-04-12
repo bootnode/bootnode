@@ -25,14 +25,9 @@ spec:
         - --maxpeers=50
         - --rpccorsdomain="*"
       volumeMounts:
-        # - mountPath: '/ethereum'
-        #   name: geth-mainnet-pv
         - mountPath: '/data/geth/chaindata'
-          name: geth-mainnet-data-pv
+          name: geth-mainnet-pv
   volumes:
-    # - name: geth-mainnet-pv
-    #   persistentVolumeClaim:
-    #     claimName: geth-mainnet-pvc
     - name: geth-mainnet-data-pv
       persistentVolumeClaim:
-        claimName: geth-mainnet-data-pvc
+        claimName: geth-mainnet-pvc

@@ -23,7 +23,7 @@ create-disk:
 
 create-volume:
 	kubectl apply -f $(cfg)/sc.yaml
-	kubectl apply -f $(cfg)/pvc-ssd.yaml
+	kubectl apply -f $(cfg)/pvc.yaml
 
 create-pod:
 	kubectl apply -f $(cfg)/pod.yaml

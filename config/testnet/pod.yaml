@@ -30,11 +30,8 @@ spec:
         - --testnet
       volumeMounts:
         - mountPath: '/data/geth/chaindata'
-          name: geth-testnet-data-pv
+          name: geth-testnet-pv
   volumes:
-    # - name: geth-testnet-pv
-    #   persistentVolumeClaim:
-    #     claimName: geth-testnet-pvc
-    - name: geth-testnet-data-pv
+    - name: geth-testnet-pv
       persistentVolumeClaim:
-        claimName: geth-testnet-data-pvc
+        claimName: geth-testnet-pvc
