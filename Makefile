@@ -3,7 +3,7 @@ export KUBECONFIG=config/cluster.yaml
 sha1 := $(shell git rev-parse --short=8 HEAD)
 geth := /go-ethereum/build/bin/geth --datadir=/ethereum
 net  ?= testnet
-cfg  := geth/config/$(net)
+cfg  := config/$(net)
 
 all: deploy
 
@@ -15,10 +15,15 @@ deploy: build
 
 create: build create-volume create-pod
 
+# Setup a high-performance persistent disk. Use SSDs, and at least 500 GB of storage for adequate IO performance
+# Ensure proper flags for ext4:
+# 	mkfs.ext4 -m 0 -F -E lazy_itable_init=0,lazy_journal_init=0,discard /dev/sdb
+create-disk:
+	gcloud compute disks create --size=500GB --type=pd-ssd --zone=us-central1-a geth-$(net)-data
+
 create-volume:
 	kubectl apply -f $(cfg)/sc.yaml
 	kubectl apply -f $(cfg)/pvc-ssd.yaml
-	gcloud compute disks create --size=4000GB --type=pd-ssd --zone=us-central1-a geth-$(net)-chaindata
 
 create-pod:
 	kubectl apply -f $(cfg)/pod.yaml
@@ -60,6 +65,7 @@ add-gcr-key:
 get-credentials:
 	gcloud container clusters get-credentials ethereum --zone us-central1-a --project hanzo-ai
 
+# Default to whatever zone you launched your cluster in to reduce key strokes
 region-zone-defaults:
 	gcloud compute project-info add-metadata --metadata=google-compute-default-region=us-central1
 	gcloud compute project-info add-metadata --metadata=google-compute-default-zone=us-central1-a
