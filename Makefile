@@ -1,7 +1,7 @@
 export KUBECONFIG=config/cluster.yaml
 
 sha1 := $(shell git rev-parse --short=8 HEAD)
-geth := /go-ethereum/build/bin/geth --datadir=/data
+geth := /bin/geth --datadir=/data
 net  ?= testnet
 cfg  := config/$(net)
 
@@ -21,11 +21,11 @@ create: build create-volume create-pod
 # Setup a high-performance persistent disk. Use SSDs, and at least 500 GB of storage for adequate IO performance
 # Ensure proper flags for ext4:
 # 	mkfs.ext4 -m 0 -F -E lazy_itable_init=0,lazy_journal_init=0,discard /dev/sdb
-create-disk:
-	gcloud compute disks create --size=500GB --type=pd-ssd --zone=us-central1-a geth-$(net)-data
+# create-disk:
+# 	gcloud compute disks create --size=500GB --type=pd-ssd --zone=us-central1-a geth-$(net)-data
 
 create-volume:
-	kubectl apply -f $(cfg)/sc.yaml
+	kubectl apply -f config/sc.yaml
 	kubectl apply -f $(cfg)/pvc.yaml
 
 create-pod:

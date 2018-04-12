@@ -3,7 +3,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: geth-mainnet-pvc
 spec:
-  storageClassName: ssd-retain-sc
+  storageClassName: gce-ssd-sc
   accessModes:
     - ReadWriteOnce
     - ReadOnlyMany
