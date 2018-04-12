@@ -28,6 +28,6 @@ spec:
         - mountPath: '/data/geth/chaindata'
           name: geth-mainnet-pv
   volumes:
-    - name: geth-mainnet-data-pv
+    - name: geth-mainnet-pv
       persistentVolumeClaim:
         claimName: geth-mainnet-pvc
