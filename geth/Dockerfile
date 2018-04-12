@@ -16,6 +16,7 @@ RUN apt-get update && \
                        python \
                        python-software-properties \
                        software-properties-common \
+                       sysstat \
                        unzip \
                        vim \
                        wget \
