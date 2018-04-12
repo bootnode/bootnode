@@ -13,9 +13,10 @@ spec:
           cpu: 8
           memory: 8Gi
       command:
-        - /go-ethereum/build/bin/geth
+        - /bin/geth
       args:
         - --datadir=/data
+        - --ethash.dagdir=/data/geth/chaindata/dag
         - --cache=4096
         - --rpc
         - --rpcaddr=0.0.0.0
@@ -26,7 +27,7 @@ spec:
       volumeMounts:
         # - mountPath: '/ethereum'
         #   name: geth-mainnet-pv
-        - mountPath: '/data'
+        - mountPath: '/data/geth/chaindata'
           name: geth-mainnet-data-pv
   volumes:
     # - name: geth-mainnet-pv

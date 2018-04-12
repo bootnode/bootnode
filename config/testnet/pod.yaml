@@ -16,9 +16,10 @@ spec:
           cpu: 2
           memory: 6Gi
       command:
-        - /go-ethereum/build/bin/geth
+        - /bin/geth
       args:
         - --datadir=/data
+        - --ethash.dagdir=/data/geth/chaindata/dag
         - --cache=2048
         - --rpc
         - --rpcaddr=0.0.0.0
@@ -28,9 +29,7 @@ spec:
         - --rpccorsdomain="*"
         - --testnet
       volumeMounts:
-        # - mountPath: '/ethereum'
-        #   name: geth-testnet-pv
-        - mountPath: '/data'
+        - mountPath: '/data/geth/chaindata'
           name: geth-testnet-data-pv
   volumes:
     # - name: geth-testnet-pv
