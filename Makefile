@@ -58,7 +58,7 @@ ssh:
 	kubectl exec -it geth-$(net) -- /bin/bash
 
 attach:
-	kubectl exec -it geth-$(net)-01	-- $(geth) attach
+	kubectl exec -it geth-$(net) -- $(geth) attach
 
 nodeinfo:
 	kubectl exec -it geth-$(net) -- $(geth) attach --exec 'admin.nodeInfo'
