@@ -2,11 +2,12 @@ apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
   name: gce-ssd-sc
+allowVolumeExpansion: true
+reclaimPolicy: Retain
+mountOptions:
+  - discard
 provisioner: kubernetes.io/gce-pd
 parameters:
   type: pd-ssd
   zones: us-central1-a
   fsType: ext4
-reclaimPolicy: Retain
-mountOptions:
-  - discard
