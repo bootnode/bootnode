@@ -1,37 +1,42 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: geth-testnet
+  name: geth-testnet-000
 spec:
   nodeSelector:
     cloud.google.com/gke-nodepool: default-pool
   containers:
-    - name: geth-testnet
+    - name: geth-testnet-000
       image: gcr.io/hanzo-ai/geth:latest
       resources:
         requests:
           cpu: 1
-          memory: 4Gi
+          memory: 2Gi
         limits:
           cpu: 2
-          memory: 6Gi
+          memory: 4Gi
       command:
         - /bin/geth
       args:
         - --datadir=/data
         - --ethash.dagdir=/data/geth/chaindata/dag
-        - --cache=2048
+        - --cache=1024
         - --rpc
         - --rpcaddr=0.0.0.0
-        - --rpcport=13264
+        - --rpcport=8545
+        - --rpccorsdomain="*"
+        - --ws
+        - --wsaddr=0.0.0.0
+        - --wsport=8546
+        - --wsorigins="*"
         - --syncmode=fast
         - --maxpeers=25
-        - --rpccorsdomain="*"
         - --testnet
       volumeMounts:
         - mountPath: '/data/geth/chaindata'
-          name: geth-testnet-pv
+          name: geth-testnet-000-pv
   volumes:
-    - name: geth-testnet-pv
-      persistentVolumeClaim:
-        claimName: geth-testnet-pvc
+    - name: geth-testnet-000-pv
+      gcePersistentDisk:
+        pdName: geth-testnet-000-pd
+        fsType: ext4
