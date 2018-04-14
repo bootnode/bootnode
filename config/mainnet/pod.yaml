@@ -2,6 +2,7 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: geth-mainnet-000
+  network: mainnet
 spec:
   nodeSelector:
     cloud.google.com/gke-nodepool: geth-mainnet
