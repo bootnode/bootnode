@@ -1,4 +1,5 @@
 from kubernetes import client, config
+from kubernetes.stream import stream
 
 POD_NAMESPACE = 'default'
 
@@ -44,3 +45,20 @@ class Kubernetes(object):
 
     def last_pod(self, network=None):
         return max(self.list_pods(network), key=lambda x: x.number)
+
+    def pod_synced(self, pod_name):
+        command = [
+            '/bin/geth',
+            '--datadir=/data',
+            'attach',
+            '--exec',
+            'eth.syncing',
+        ]
+        res = stream(self.api.connect_get_namespaced_pod_exec, pod_name,
+                     POD_NAMESPACE, command=command, stdin=False, stderr=True,
+                     stdout=True, tty=False)
+
+        if res.lower() == 'false':
+            return True
+        else:
+            return False
