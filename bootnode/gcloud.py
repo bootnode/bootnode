@@ -33,6 +33,8 @@ class Disk(object):
         self.source_image    = None
         self.source_image_id = None
 
+        self.pod             = obj['labels']['pod-name']
+
         if 'sourceImage' in obj:
             self.source_image    = obj['sourceImage']
             self.source_image_id = obj['sourceImageId']
@@ -125,3 +127,10 @@ class Gcloud(object):
         }
         return self.api.disks().createSnapshot(project=project, zone=zone,
                                                disk=disk, body=body).execute()
+
+    def snapshot_pod(self, pod, project=None, zone=None):
+        if pod.syncing():
+            raise Exception('Pod not synced: ""' % pod.name)
+
+        name = "{0}-{1}-{2}".format(pod.client, pod.network, pod.block_number())
+        return self.snapshot_disk(pod.disk, name, pod_name=pod.name)

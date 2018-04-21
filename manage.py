@@ -78,11 +78,13 @@ if __name__ == '__main__':
     get_block_number.set_defaults(command='get_block_number')
 
     # Scale up
-    scale_up = subparsers.add_parser('scale-up', help='Scale up Ethereum nodes')
+    scale_up = subparsers.add_parser('scale-up', help='Scale up blockchain nodes')
+    scale_up.add_argument('network', help='Network to scale')
     scale_up.set_defaults(command='scale_up')
 
     # Scale down
-    scale_down = subparsers.add_parser('scale-down', help='Scale down Ethereum nodes')
+    scale_down = subparsers.add_parser('scale-down', help='Scale down blockchain nodes')
+    scale_down.add_argument('network', help='Network to scale')
     scale_down.set_defaults(command='scale_down')
 
     args = parser.parse_args()
