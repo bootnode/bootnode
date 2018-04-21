@@ -112,5 +112,5 @@ class Gcloud(object):
             project = self.project
         if not zone:
             zone = self.zone
-        self.api.disks().createSnapshot(project=project, zone=zone, disk=disk,
-                                        body={'name': name}).execute()
+        return self.api.disks().createSnapshot(project=project, zone=zone,
+                                               disk=disk, body={'name': name}).execute()
