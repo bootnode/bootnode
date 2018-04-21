@@ -25,12 +25,21 @@ class Bootnode(object):
         snap = self.gcloud.get_last_snapshot(network=network)
         print('{0}\t{1}\t{2}'.format(snap.name, snap.link, snap.status))
 
+    def snapshot_disk(self, name):
+        disk = self.gcloud.get_disk(name)
+        pod = self.kube.get_pod(name)
+        if pod.syncing():
+            raise Exception('Pod not synced: ""' % pod.name)
+        name = "{0}-{1}-{2}".format(pod.client, pod.network, pod.block_number())
+        print(self.gcloud.snapshot_disk(pod.disk, name, pod_name=pod.name))
+
     def snapshot_pod(self, name):
         pod = self.kube.get_pod(name)
         if pod.syncing():
             raise Exception('Pod not synced: ""' % pod.name)
         name = "{0}-{1}-{2}".format(pod.client, pod.network, pod.block_number())
         print(self.gcloud.snapshot_disk(pod.disk, name, pod_name=pod.name))
+
 
     def update_snapshot(self, network=None):
         if not network:

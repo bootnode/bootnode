@@ -43,6 +43,10 @@ if __name__ == '__main__':
     snapshot_pod_parser.add_argument('name', help='Name of pod to snapshot')
     snapshot_pod_parser.set_defaults(command='snapshot_pod')
 
+    snapshot_disk_parser = subparsers.add_parser('snapshot-disk', help='Snapshot disk')
+    snapshot_disk_parser.add_argument('name', help='Name of disk to snapshot')
+    snapshot_disk_parser.set_defaults(command='snapshot_disk')
+
     update_snapshot_parser = subparsers.add_parser('update-snapshot',
                                                    help='Update snapshot for a given network')
     update_snapshot_parser.add_argument('network', help='Network to update snapshot for')

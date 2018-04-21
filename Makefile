@@ -64,7 +64,10 @@ nodeinfo:
 	kubectl exec -it geth-$(net) -- $(geth) attach --exec 'admin.nodeInfo'
 
 syncstatus:
-	kubectl exec -it geth-$(net) -- $(geth) attach --exec 'eth.syncing'
+	kubectl exec -it geth-$(net)-02 -- $(geth) attach --exec 'eth.syncing'
+
+blocknumber:
+	kubectl exec -it geth-$(net)-02 -- $(geth) attach --exec 'eth.blockNumber'
 
 # Add secret for hanzo-ai gcr.io. This enables our cluster to pull images from
 # our shared image repo. This should only be run once after cluster creation.

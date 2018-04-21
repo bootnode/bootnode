@@ -95,6 +95,11 @@ class Gcloud(object):
 
         return [s for s in disks if s.network == network]
 
+    def get_disk(self, name):
+        for disk in self.list_disk():
+            if disk.name == name:
+                return disk
+
     def get_last_disk(self, network=None):
         return max(self.list_disks(network), key=lambda x: x.created_at)
 
