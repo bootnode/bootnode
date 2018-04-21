@@ -34,6 +34,10 @@ class Bootnode(object):
         pod = self.kube.last_pod(network=network)
         print('{0}\t{1}\t{2}'.format(pod.name, pod.phase, pod.ip))
 
+    def synced_pod(self, network=None):
+        pod = self.kube.synced_pod(network=network)
+        print('{0}\t{1}\t{2}'.format(pod.name, pod.phase, pod.ip))
+
     def scale_up(args):
         pass
 

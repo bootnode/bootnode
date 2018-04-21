@@ -46,6 +46,9 @@ if __name__ == '__main__':
     last_parser = subparsers.add_parser('pod', help='Last pod')
     last_parser.set_defaults(command='last_pod')
 
+    last_parser = subparsers.add_parser('synced-pod', help='Get fully synced pod')
+    last_parser.set_defaults(command='synced_pod')
+
     # Scale up
     scale_up_parser = subparsers.add_parser('scale-up', help='Scale up Ethereum nodes')
     scale_up_parser.set_defaults(command='scale_up')

@@ -5,7 +5,9 @@ POD_NAMESPACE = 'default'
 
 
 class Pod(object):
-    def __init__(self, pod):
+    def __init__(self, pod, api=None):
+        self.api = api
+
         name = pod.metadata.name
         self.name = name
 
@@ -23,6 +25,20 @@ class Pod(object):
         else:
             self.number = -1
 
+    def synced(self):
+        command = [
+            '/bin/geth',
+            '--datadir=/data',
+            'attach',
+            '--exec',
+            'eth.syncing',
+        ]
+
+        if self.api.exec(self.name, command).lower() == 'false':
+            return True
+        else:
+            return False
+
     def __repr__(self):
         return self.name
 
@@ -34,8 +50,14 @@ class Kubernetes(object):
         config.load_kube_config(config_path)
         self.api = client.CoreV1Api()
 
+    def exec(self, pod_name, command, namespace=POD_NAMESPACE, stdin=False,
+             stderr=True, stdout=True, tty=False):
+        return stream(self.api.connect_get_namespaced_pod_exec, pod_name,
+                      namespace, command=command, stdin=stdin, stderr=stderr,
+                      stdout=stdout, tty=tty)
+
     def list_pods(self, network=None):
-        pods = [Pod(p) for p in
+        pods = [Pod(p, self) for p in
                 self.api.list_namespaced_pod(POD_NAMESPACE).items]
 
         if not network:
@@ -46,19 +68,8 @@ class Kubernetes(object):
     def last_pod(self, network=None):
         return max(self.list_pods(network), key=lambda x: x.number)
 
-    def pod_synced(self, pod_name):
-        command = [
-            '/bin/geth',
-            '--datadir=/data',
-            'attach',
-            '--exec',
-            'eth.syncing',
-        ]
-        res = stream(self.api.connect_get_namespaced_pod_exec, pod_name,
-                     POD_NAMESPACE, command=command, stdin=False, stderr=True,
-                     stdout=True, tty=False)
-
-        if res.lower() == 'false':
-            return True
-        else:
-            return False
+    def synced_pod(self, network=None):
+        pods = self.list_pods(network)
+        for pod in sorted(pods, key=lambda x: x.number):
+            if pod.synced():
+                return pod
