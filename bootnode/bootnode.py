@@ -22,8 +22,33 @@ class Bootnode(object):
             print('{0}\t{1}\t{2}'.format(snap.name, snap.link, snap.status))
 
     def get_last_snapshot(self, network=None):
-        snap = self.gcloud.last_snapshot(network=network)
+        snap = self.gcloud.get_last_snapshot(network=network)
         print('{0}\t{1}\t{2}'.format(snap.name, snap.link, snap.status))
+
+    def snapshot_pod(self, name):
+        pod = self.kube.get_pod(name)
+        if pod.syncing():
+            raise Exception('Pod not synced: ""' % pod.name)
+        name = "{0}-{1}-{2}".format(pod.client, pod.network, pod.block_number())
+        print(self.gcloud.snapshot_disk(pod.disk, name, pod_name=pod.name))
+
+    def update_snapshot(self, network=None):
+        if not network:
+            raise Exception('Network must be specified')
+
+        # Re-use last snapshot so subsequent snapshots are just deltas,
+        # otherwise find any sync'd pod and start there
+        snap = self.gcloud.get_last_snapshot(network=network)
+        if snap:
+            pod = self.kube.get_pod(snap.pod)
+        else:
+            pod = self.kube.get_synced_pod(network)
+
+        if not pod or pod.syncing():
+            raise Exception('Pod not synced: ""' % pod.name)
+
+        name = "{0}-{1}-{2}".format(pod.client, pod.network, pod.block_number())
+        print(self.gcloud.snapshot_disk(pod.disk, name, pod_name=pod.name))
 
     # Pods
     def list_pods(self, network=None):
@@ -42,14 +67,6 @@ class Bootnode(object):
         pod = self.kube.get_synced_pod(network=network)
         print('{0}\t{1}\t{2}\t{3}'.format(pod.name, pod.phase,
                                           pod.block_number(), pod.ip))
-
-    def snapshot_pod(self, name, pod_name=None, network=None):
-        if pod_name:
-            pod = self.kube.get_pod(pod_name)
-        else:
-            pod = self.kube.get_synced_pod(network)
-
-        print(self.gcloud.snapshot_disk(pod.disk, name))
 
     # Scaling
     def scale_up(args):

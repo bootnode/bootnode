@@ -48,6 +48,9 @@ class Snapshot(object):
         self.network = bits[1]
         self.block   = int(bits[2])
 
+        # self.pod = obj['labels']['pod']
+        self.pod = 'geth-testnet-02'
+
         self.id         = obj['id']
         self.created_at = obj['creationTimestamp']
         self.disk_size  = obj['diskSizeGb'] + 'Gi'
@@ -105,12 +108,16 @@ class Gcloud(object):
         return [s for s in snaps if s.network == network]
 
     def get_last_snapshot(self, network=None):
-        return max(self.list_snapshots(network), key=lambda x: x.created_at)
+        return max(self.list_snapshots(network), key=lambda x: x.block)
 
-    def snapshot_disk(self, disk, name, project=None, zone=None):
+    def snapshot_disk(self, disk, name, pod_name=None, project=None, zone=None):
         if not project:
             project = self.project
         if not zone:
             zone = self.zone
+        body = {
+            'name': name,
+            'labels': {'pod-name': pod_name},
+        }
         return self.api.disks().createSnapshot(project=project, zone=zone,
-                                               disk=disk, body={'name': name}).execute()
+                                               disk=disk, body=body).execute()

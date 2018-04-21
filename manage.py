@@ -13,6 +13,9 @@ def run_command(cmd, args):
     # Create kwargs from args specified
     kwargs = dict(map(lambda k: (k, getattr(args, k)), keys))
 
+    # Clear out any default args that are unspecified
+    kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
     # Call relevant method on Bootnode
     getattr(bootnode, cmd)(**kwargs)
 
@@ -37,9 +40,13 @@ if __name__ == '__main__':
     last_parser.set_defaults(command='get_last_snapshot')
 
     snapshot_pod_parser = subparsers.add_parser('snapshot-pod', help='Snapshot pod')
-    snapshot_pod_parser.add_argument('--pod_name', help='Name of pod to snapshot')
-    snapshot_pod_parser.add_argument('name', help='Name of snapshot')
+    snapshot_pod_parser.add_argument('name', help='Name of pod to snapshot')
     snapshot_pod_parser.set_defaults(command='snapshot_pod')
+
+    update_snapshot_parser = subparsers.add_parser('update-snapshot',
+                                                   help='Update snapshot for a given network')
+    update_snapshot_parser.add_argument('network', help='Network to update snapshot for')
+    update_snapshot_parser.set_defaults(command='update_snapshot')
 
     # Pods
     list_parser = subparsers.add_parser('pods', help='List pods')
