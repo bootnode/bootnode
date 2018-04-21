@@ -80,7 +80,7 @@ class Bootnode(object):
         print('{0}\t{1}\t{2}\t{3}'.format(pod.name, pod.phase,
                                           pod.block_number(), pod.ip))
 
-    def block_number(self, name):
+    def get_block_number(self, name):
         pod = self.kube.get_pod(name)
         print(pod.block_number())
 
