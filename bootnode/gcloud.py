@@ -48,8 +48,7 @@ class Snapshot(object):
         self.network = bits[1]
         self.block   = int(bits[2])
 
-        # self.pod = obj['labels']['pod-name']
-        self.pod = 'geth-testnet-02'
+        self.pod = obj['labels']['pod-name']
 
         self.id         = obj['id']
         self.created_at = obj['creationTimestamp']
