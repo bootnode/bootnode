@@ -25,19 +25,24 @@ class Pod(object):
         else:
             self.number = -1
 
-    def synced(self):
+    def exec(self, js):
         command = [
             '/bin/geth',
             '--datadir=/data',
             'attach',
             '--exec',
-            'eth.syncing',
+            js
         ]
+        return self.api.exec(self.name, command).lower()
 
-        if self.api.exec(self.name, command).lower() == 'false':
-            return True
-        else:
+    def syncing(self):
+        if self.exec('eth.syncing').lower() == 'false':
             return False
+        else:
+            return True
+
+    def block_number(self):
+        return int(self.exec('eth.blockNumber'))
 
     def __repr__(self):
         return self.name
@@ -71,5 +76,5 @@ class Kubernetes(object):
     def synced_pod(self, network=None):
         pods = self.list_pods(network)
         for pod in sorted(pods, key=lambda x: x.number):
-            if pod.synced():
+            if not pod.syncing():
                 return pod
