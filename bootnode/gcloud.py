@@ -96,7 +96,7 @@ class Gcloud(object):
         return [s for s in disks if s.network == network]
 
     def get_disk(self, name):
-        for disk in self.list_disk():
+        for disk in self.list_disks():
             if disk.name == name:
                 return disk
 

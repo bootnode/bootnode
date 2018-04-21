@@ -12,6 +12,10 @@ class Bootnode(object):
         for disk in self.gcloud.list_disks(network=network):
             print('{0}\t{1}\t{2}'.format(disk.name, disk.link, disk.status))
 
+    def get_disk(self, name):
+        disk = self.gcloud.get_disk(name)
+        print('{0}\t{1}\t{2}'.format(disk.name, disk.link, disk.status))
+
     def get_last_disk(self, network=None):
         disk = self.gcloud.last_disk(network=network)
         print('{0}\t{1}\t{2}'.format(disk.name, disk.link, disk.status))

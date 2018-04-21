@@ -29,14 +29,22 @@ if __name__ == '__main__':
     list_parser = subparsers.add_parser('disks', help='List disks')
     list_parser.set_defaults(command='list_disks')
 
-    last_parser = subparsers.add_parser('disk', help='Get last disk')
+    get_parser = subparsers.add_parser('disk', help='Get disk')
+    get_parser.add_argument('name', help='Name of disk')
+    get_parser.set_defaults(command='get_disk')
+
+    last_parser = subparsers.add_parser('last-disk', help='Get last disk')
     last_parser.set_defaults(command='get_last_disk')
 
     # Snapshots
     list_parser = subparsers.add_parser('snapshots', help='List snapshots')
     list_parser.set_defaults(command='list_snapshots')
 
-    last_parser = subparsers.add_parser('snapshot', help='Get last snapshot')
+    get_parser = subparsers.add_parser('snapshot', help='Get snapshot')
+    get_parser.add_argument('name', help='Name of snapshot')
+    get_parser.set_defaults(command='get_snapshot')
+
+    last_parser = subparsers.add_parser('last-snapshot', help='Get last snapshot')
     last_parser.set_defaults(command='get_last_snapshot')
 
     snapshot_pod_parser = subparsers.add_parser('snapshot-pod', help='Snapshot pod')
@@ -56,7 +64,11 @@ if __name__ == '__main__':
     list_parser = subparsers.add_parser('pods', help='List pods')
     list_parser.set_defaults(command='list_pods')
 
-    last_parser = subparsers.add_parser('pod', help='Last pod')
+    get_parser = subparsers.add_parser('pod', help='Get pod')
+    get_parser.add_argument('name', help='Name of pod')
+    get_parser.set_defaults(command='get_pod')
+
+    last_parser = subparsers.add_parser('last-pod', help='Last pod')
     last_parser.set_defaults(command='get_last_pod')
 
     last_parser = subparsers.add_parser('synced-pod', help='Get any synced pod')
