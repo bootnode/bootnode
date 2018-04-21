@@ -3,7 +3,19 @@ import sys
 import argparse
 from bootnode import Bootnode
 
-bootnode = Bootnode()
+
+def run_command(cmd, args):
+    bootnode = Bootnode()
+
+    # Get argument names
+    keys = [k for k in dir(args) if not k.startswith('_') and not k == 'command']
+
+    # Create kwargs from args specified
+    kwargs = dict(map(lambda k: (k, getattr(args, k)), keys))
+
+    # Call relevant method on Bootnode
+    getattr(bootnode, cmd)(**kwargs)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Cluster management commands')
@@ -16,9 +28,6 @@ if __name__ == '__main__':
 
     last_parser = subparsers.add_parser('disk', help='Last disk')
     last_parser.set_defaults(command='last_disk')
-
-    update_parser = subparsers.add_parser('disk-update', help='Update disk')
-    update_parser.set_defaults(command='update_disk')
 
     # Snapshots
     list_parser = subparsers.add_parser('snapshots', help='List snapshots')
@@ -53,6 +62,4 @@ if __name__ == '__main__':
         parser.print_help()
         sys.exit(1)
 
-    keys = [k for k in dir(args) if not k.startswith('_') and not k == 'command']
-    kwargs = dict(map(lambda k: (k, getattr(args, k)), keys))
-    getattr(bootnode, cmd)(**kwargs)
+    run_command(cmd, args)

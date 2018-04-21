@@ -27,11 +27,11 @@ class Bootnode(object):
         pass
 
     def list_pods(self, network=None):
-        for pod in self.gcloud.list_pods(network=network):
+        for pod in self.kube.list_pods(network=network):
             print('{0}\t{1}\t{2}'.format(pod.name, pod.phase, pod.ip))
 
     def last_pod(self, network=None):
-        pod = self.gcloud.last_pod(network=network)
+        pod = self.kube.last_pod(network=network)
         print('{0}\t{1}\t{2}'.format(pod.name, pod.phase, pod.ip))
 
     def scale_up(args):
