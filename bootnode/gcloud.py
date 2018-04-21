@@ -69,7 +69,7 @@ class Snapshot(object):
         return self.name
 
     def create_disk(self, name):
-        return self.api.create_disk(name, self.link, self.project, self.zone)
+        return self.api.create_disk(name, self, self.project, self.zone)
 
 
 class Gcloud(object):
@@ -79,13 +79,20 @@ class Gcloud(object):
         self.zone    = zone
         self.api     = googleapiclient.discovery.build('compute', 'v1')
 
-    def create_disk(self, name, snapshot_link, project=PROJECT, zone=ZONE):
-        return self.api.disks().insert(project=project, zone=zone, body={
+    def create_disk(self, name, snapshot, project=PROJECT, zone=ZONE):
+        body = {
             'name': name,
-            'sourceSnapshot': snapshot_link,
+            'description': 'from-pod: {0} from-snapshot: {1}'.format(snapshot.pod, snapshot.name),
+            'labels': {
+                'snapshot-name': snapshot.name,
+                'pod-name': snapshot.pod,
+            },
+            'sourceSnapshot': snapshot.link,
             'zone': zone,
             'type': ssd_type(project, zone),
-        }).execute()
+        }
+        return self.api.disks().insert(project=project, zone=zone,
+                                       body=body).execute()
 
     def list_disks(self, network=None):
         disks = [Disk(s, self) for s in
