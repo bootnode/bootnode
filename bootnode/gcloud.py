@@ -48,7 +48,7 @@ class Snapshot(object):
         self.network = bits[1]
         self.block   = int(bits[2])
 
-        # self.pod = obj['labels']['pod']
+        # self.pod = obj['labels']['pod-name']
         self.pod = 'geth-testnet-02'
 
         self.id         = obj['id']
