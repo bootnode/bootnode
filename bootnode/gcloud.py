@@ -121,10 +121,13 @@ class Gcloud(object):
             project = self.project
         if not zone:
             zone = self.zone
+
         body = {
             'name': name,
             'labels': {'pod-name': pod_name},
+            'description': 'from-pod: {0}'.format(pod_name)
         }
+
         return self.api.disks().createSnapshot(project=project, zone=zone,
                                                disk=disk, body=body).execute()
 
