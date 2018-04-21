@@ -27,7 +27,7 @@ class Pod(object):
 
 
 class Kubernetes(object):
-    def __init__(self, config_path):
+    def __init__(self, config_path='config/cluster.yaml'):
         self.config_path = config_path
 
         config.load_kube_config(config_path)
