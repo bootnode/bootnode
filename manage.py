@@ -48,15 +48,15 @@ if __name__ == '__main__':
     get_last_snapshot.set_defaults(command='get_last_snapshot')
 
     snapshot_pod = subparsers.add_parser('snapshot-pod', help='Snapshot pod')
-    snapshot_pod.add_argument('name', help='Name of pod to snapshot')
+    snapshot_pod.add_argument('name', help='Pod to snapshot')
     snapshot_pod.set_defaults(command='snapshot_pod')
 
     snapshot_disk = subparsers.add_parser('snapshot-disk', help='Snapshot disk')
-    snapshot_disk.add_argument('name', help='Name of disk to snapshot')
+    snapshot_disk.add_argument('name', help='Disk to snapshot')
     snapshot_disk.set_defaults(command='snapshot_disk')
 
     update_snapshot = subparsers.add_parser('update-snapshot', help='Update snapshot for a given network')
-    update_snapshot.add_argument('network', help='Network to update snapshot for')
+    update_snapshot.add_argument('network', help='Network to snapshot')
     update_snapshot.set_defaults(command='update_snapshot')
 
     # Pods
