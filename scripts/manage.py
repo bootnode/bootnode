@@ -1,90 +1,16 @@
 #!/usr/bin/env python3
-
-from kubernetes import client, config
-import argparse
-import subprocess
 import sys
-
-REGION = 'us-central1'
-ZONE   = 'us-central1-a'
-
-
-class Pod(object):
-    def __init__(self, pod):
-        name = pod.metadata.name
-        self.name = name
-
-        bits = name.split('-')
-        self.client  = bits[0]
-        self.network = bits[1]
-        self.number  = int(bits[2])
-
-    def __repr__(self):
-        return self.name
-
-
-class Snapshot(object):
-    def __init__(self, line):
-        name = line.split(' ')[0]
-        self.name = name
-
-        bits = name.split('-')
-        self.client  = bits[0]
-        self.network = bits[1]
-        self.block   = int(bits[2])
-
-    def __repr__(self):
-        return self.name
-
-
-def gcloud(args):
-    res = subprocess.check_output('gcloud ' + args, shell=True)
-    return [s.decode() for s in res.strip().split(b'\n')[1:]]
-
-
-def kubectl():
-    config.load_kube_config('config/cluster.yaml')
-
-    return client.CoreV1Api()
-
-
-def create_disk_from_snapshot(disk, snapshot, zone=ZONE):
-    return gcloud('compute disks create {0} --source-snapshot={1} --type=pd-ssd --zone={2}'.format(disk, snapshot, zone))
-
-
-def list_snapshots(network=None):
-    snaps = [Snapshot(s) for s in gcloud('compute snapshots list')]
-
-    if not network:
-        return snaps
-
-    return [s for s in snaps if s.network == network]
-
-
-def last_snapshot(network):
-    return max(list_snapshots(network), key=lambda x: x.block)
-
-
-def list_pods(network=None):
-    pods = [Pod(p) for p in kubectl().list_namespaced_pod('default').items]
-
-    if not network:
-        return pods
-
-    return [p for p in pods if p.network == network]
-
-
-def last_pod(network):
-    return max(list_pods(network), key=lambda x: x.number)
+import admin
+import argparse
 
 
 # Snapshot commands
 def cmd_list_snapshots(args):
-    print(list_snapshots(args.network))
+    print(admin.list_snapshots(args.network))
 
 
 def cmd_last_snapshot(args):
-    print(last_snapshot(args.network))
+    print(admin.last_snapshot(args.network))
 
 
 def cmd_update_snapshot(args):
@@ -93,14 +19,14 @@ def cmd_update_snapshot(args):
 
 # Pod commands
 def cmd_list_pods(args):
-    for pod in list_pods(args.network):
-        print('%s\t%s\t%s' % (pod.metadata.name,
-                              pod.status.phase,
-                              pod.status.pod_ip))
+    for pod in admin.list_pods(args.network):
+        print('%s\t%s\t%s' % (pod.name,
+                              pod.phase,
+                              pod.ip))
 
 
 def cmd_last_pod(args):
-    print(last_pod(args.network))
+    print(admin.last_pod(args.network))
 
 
 # Scaling commands
