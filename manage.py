@@ -26,28 +26,30 @@ if __name__ == '__main__':
     list_parser = subparsers.add_parser('disks', help='List disks')
     list_parser.set_defaults(command='list_disks')
 
-    last_parser = subparsers.add_parser('disk', help='Last disk')
-    last_parser.set_defaults(command='last_disk')
+    last_parser = subparsers.add_parser('disk', help='Get last disk')
+    last_parser.set_defaults(command='get_last_disk')
 
     # Snapshots
     list_parser = subparsers.add_parser('snapshots', help='List snapshots')
     list_parser.set_defaults(command='list_snapshots')
 
-    last_parser = subparsers.add_parser('snapshot', help='Last snapshot')
-    last_parser.set_defaults(command='last_snapshot')
+    last_parser = subparsers.add_parser('snapshot', help='Get last snapshot')
+    last_parser.set_defaults(command='get_last_snapshot')
 
-    update_parser = subparsers.add_parser('snapshot-update', help='Update snapshot')
-    update_parser.set_defaults(command='update_snapshot')
+    snapshot_pod_parser = subparsers.add_parser('snapshot-pod', help='Snapshot pod')
+    snapshot_pod_parser.add_argument('--pod_name', help='Name of pod to snapshot')
+    snapshot_pod_parser.add_argument('name', help='Name of snapshot')
+    snapshot_pod_parser.set_defaults(command='snapshot_pod')
 
     # Pods
     list_parser = subparsers.add_parser('pods', help='List pods')
     list_parser.set_defaults(command='list_pods')
 
     last_parser = subparsers.add_parser('pod', help='Last pod')
-    last_parser.set_defaults(command='last_pod')
+    last_parser.set_defaults(command='get_last_pod')
 
-    last_parser = subparsers.add_parser('synced-pod', help='Get fully synced pod')
-    last_parser.set_defaults(command='synced_pod')
+    last_parser = subparsers.add_parser('synced-pod', help='Get any synced pod')
+    last_parser.set_defaults(command='get_synced_pod')
 
     # Scale up
     scale_up_parser = subparsers.add_parser('scale-up', help='Scale up Ethereum nodes')

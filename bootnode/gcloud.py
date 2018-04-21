@@ -92,7 +92,7 @@ class Gcloud(object):
 
         return [s for s in disks if s.network == network]
 
-    def last_disk(self, network=None):
+    def get_last_disk(self, network=None):
         return max(self.list_disks(network), key=lambda x: x.created_at)
 
     def list_snapshots(self, network=None):
@@ -104,5 +104,13 @@ class Gcloud(object):
 
         return [s for s in snaps if s.network == network]
 
-    def last_snapshot(self, network=None):
+    def get_last_snapshot(self, network=None):
         return max(self.list_snapshots(network), key=lambda x: x.created_at)
+
+    def snapshot_disk(self, disk, name, project=None, zone=None):
+        if not project:
+            project = self.project
+        if not zone:
+            zone = self.zone
+        self.api.disks().createSnapshot(project=project, zone=zone, disk=disk,
+                                        body={'name': name}).execute()

@@ -7,6 +7,7 @@ POD_NAMESPACE = 'default'
 class Pod(object):
     def __init__(self, pod, api=None):
         self.api = api
+        self.pod = pod
 
         name = pod.metadata.name
         self.name = name
@@ -18,6 +19,12 @@ class Pod(object):
         bits = name.split('-')
         self.client  = bits[0]
         self.network = bits[1]
+
+        # Currently only support directly attached gce persistent disks
+        try:
+            self.disk = pod.spec.volumes[0].gce_persistent_disk.pd_name
+        except Exception:
+            self.disk = 'unknown'
 
         # Pod may not follow correct naming scheme
         if len(bits) > 2:
@@ -70,10 +77,16 @@ class Kubernetes(object):
 
         return [p for p in pods if p.network == network]
 
-    def last_pod(self, network=None):
+    def get_pod(self, name):
+        for pod in self.list_pods():
+            if pod.name == name:
+                return pod
+        raise Exception('Pod not found: "%s"' % name)
+
+    def get_last_pod(self, network=None):
         return max(self.list_pods(network), key=lambda x: x.number)
 
-    def synced_pod(self, network=None):
+    def get_synced_pod(self, network=None):
         pods = self.list_pods(network)
         for pod in sorted(pods, key=lambda x: x.number):
             if not pod.syncing():
