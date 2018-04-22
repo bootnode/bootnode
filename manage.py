@@ -26,23 +26,28 @@ if __name__ == '__main__':
     subparsers = parser.add_subparsers()
 
     # Disks
-    list_disks = subparsers.add_parser('disks', help='List disks')
-    list_disks.set_defaults(command='list_disks')
+    create_disk = subparsers.add_parser('create-disk', help='Create disk')
+    create_disk.add_argument('snapshot', help='Name of snapshot to use as source')
+    create_disk.add_argument('name', help='Name of disk')
+    create_disk.set_defaults(command='create_disk')
 
     get_disk = subparsers.add_parser('disk', help='Get disk')
     get_disk.add_argument('name', help='Name of disk')
     get_disk.set_defaults(command='get_disk')
 
+    list_disks = subparsers.add_parser('disks', help='List disks')
+    list_disks.set_defaults(command='list_disks')
+
     get_last_disk = subparsers.add_parser('last-disk', help='Get last disk')
     get_last_disk.set_defaults(command='get_last_disk')
 
     # Snapshots
-    list_snapshots = subparsers.add_parser('snapshots', help='List snapshots')
-    list_snapshots.set_defaults(command='list_snapshots')
-
     get_snapshot = subparsers.add_parser('snapshot', help='Get snapshot')
     get_snapshot.add_argument('name', help='Name of snapshot')
     get_snapshot.set_defaults(command='get_snapshot')
+
+    list_snapshots = subparsers.add_parser('snapshots', help='List snapshots')
+    list_snapshots.set_defaults(command='list_snapshots')
 
     get_last_snapshot = subparsers.add_parser('last-snapshot', help='Get last snapshot')
     get_last_snapshot.set_defaults(command='get_last_snapshot')

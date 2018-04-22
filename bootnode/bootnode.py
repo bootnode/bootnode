@@ -1,5 +1,6 @@
 from .gcloud import Gcloud
 from .kubernetes import Kubernetes
+from .table import table
 
 
 class Bootnode(object):
@@ -8,26 +9,28 @@ class Bootnode(object):
         self.kube   = Kubernetes()
 
     # Disks
+    def create_disk(self, snapshot, name):
+        snap = self.gcloud.get_snapshot(snapshot)
+        print(snap.create_disk(name))
+
     def list_disks(self, network=None):
-        for disk in self.gcloud.list_disks(network=network):
-            print('{0}\t{1}\t{2}'.format(disk.name, disk.link, disk.status))
+        table(self.gcloud.list_disks(network=network), 'name', 'status', 'link')
 
     def get_disk(self, name):
-        disk = self.gcloud.get_disk(name)
-        print('{0}\t{1}\t{2}'.format(disk.name, disk.link, disk.status))
+        table(self.gcloud.get_disk(name), ['name', 'status', 'link'])
 
     def get_last_disk(self, network=None):
-        disk = self.gcloud.last_disk(network=network)
-        print('{0}\t{1}\t{2}'.format(disk.name, disk.link, disk.status))
+        table(self.gcloud.last_disk(network=network), 'name', 'status', 'link')
 
     # Snapshots
+    def get_snapshot(self, name):
+        table(self.gcloud.get_snapshot(name), 'name', 'status', 'link')
+
     def list_snapshots(self, network=None):
-        for snap in self.gcloud.list_snapshots(network=network):
-            print('{0}\t{1}\t{2}'.format(snap.name, snap.link, snap.status))
+        table(self.gcloud.list_snapshots(network=network), 'name', 'status', 'link')
 
     def get_last_snapshot(self, network=None):
-        snap = self.gcloud.get_last_snapshot(network=network)
-        print('{0}\t{1}\t{2}'.format(snap.name, snap.link, snap.status))
+        table(self.gcloud.get_last_snapshot(network=network), 'name', 'status', 'link')
 
     def snapshot_disk(self, name):
         disk = self.gcloud.get_disk(name)
@@ -58,21 +61,16 @@ class Bootnode(object):
 
     # Pods
     def list_pods(self, network=None):
-        for pod in self.kube.list_pods(network=network):
-            print('{0}\t{1}\t{2}'.format(pod.name, pod.phase, pod.ip))
+        table(self.kube.list_pods(network=network), 'name', 'phase', 'block_number', 'ip')
 
     def get_pod(self, name):
-        pod = self.kube.get_pod(name)
-        print('{0}\t{1}\t{2}'.format(pod.name, pod.phase, pod.ip))
+        table(self.kube.get_pod(name), 'name', 'phase', 'ip')
 
     def get_last_pod(self, network=None):
-        pod = self.kube.get_last_pod(network=network)
-        print('{0}\t{1}\t{2}'.format(pod.name, pod.phase, pod.ip))
+        table(self.kube.get_last_pod(network=network), 'name', 'phase', 'block_number', 'ip')
 
     def get_synced_pod(self, network=None):
-        pod = self.kube.get_synced_pod(network=network)
-        print('{0}\t{1}\t{2}\t{3}'.format(pod.name, pod.phase,
-                                          pod.block_number(), pod.ip))
+        table(self.kube.get_synced_pod(network=network), 'name', 'phase', 'block_number', 'ip')
 
     def get_block_number(self, name):
         pod = self.kube.get_pod(name)

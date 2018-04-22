@@ -30,10 +30,17 @@ class Disk(object):
         self.status          = obj['status']
         self.size            = obj['sizeGb']
         self.type            = type_from_url(obj['type'])
+
+        labels = obj.get('labels', None)
+        if labels:
+            self.pod = labels['pod-name']
+        else:
+            self.pod = None
+
+        self.project, self.zone = project_zone_from_disk(self.link)
+
         self.source_image    = None
         self.source_image_id = None
-
-        self.pod             = obj['labels']['pod-name']
 
         if 'sourceImage' in obj:
             self.source_image    = obj['sourceImage']
@@ -50,7 +57,11 @@ class Snapshot(object):
         self.network = bits[1]
         self.block   = int(bits[2])
 
-        self.pod = obj['labels']['pod-name']
+        labels = obj.get('labels', None)
+        if labels:
+            self.pod = labels['pod-name']
+        else:
+            self.pod = None
 
         self.id         = obj['id']
         self.created_at = obj['creationTimestamp']
@@ -79,13 +90,21 @@ class Gcloud(object):
         self.zone    = zone
         self.api     = googleapiclient.discovery.build('compute', 'v1')
 
-    def create_disk(self, name, snapshot, project=PROJECT, zone=ZONE):
+    # Disks
+    def create_disk(self, name, snapshot, project=None, zone=None):
+        if not project:
+            project = snapshot.project
+        if not zone:
+            zone = snapshot.zone
+
         body = {
             'name': name,
             'description': 'from-pod: {0} from-snapshot: {1}'.format(snapshot.pod, snapshot.name),
             'labels': {
                 'snapshot-name': snapshot.name,
-                'pod-name': snapshot.pod,
+                'pod-name':      snapshot.pod,
+                'project':       project,
+                'zone':          zone,
             },
             'sourceSnapshot': snapshot.link,
             'zone': zone,
@@ -93,6 +112,14 @@ class Gcloud(object):
         }
         return self.api.disks().insert(project=project, zone=zone,
                                        body=body).execute()
+
+    def get_disk(self, name):
+        for disk in self.list_disks():
+            if disk.name == name:
+                return disk
+
+    def get_last_disk(self, network=None):
+        return max(self.list_disks(network), key=lambda x: x.created_at)
 
     def list_disks(self, network=None):
         disks = [Disk(s, self) for s in
@@ -103,13 +130,14 @@ class Gcloud(object):
 
         return [s for s in disks if s.network == network]
 
-    def get_disk(self, name):
-        for disk in self.list_disks():
-            if disk.name == name:
-                return disk
+    # Snapshots
+    def get_snapshot(self, name):
+        for snap in self.list_snapshots():
+            if snap.name == name:
+                return snap
 
-    def get_last_disk(self, network=None):
-        return max(self.list_disks(network), key=lambda x: x.created_at)
+    def get_last_snapshot(self, network=None):
+        return max(self.list_snapshots(network), key=lambda x: x.block)
 
     def list_snapshots(self, network=None):
         snaps = [Snapshot(s, self) for s in
@@ -120,9 +148,6 @@ class Gcloud(object):
 
         return [s for s in snaps if s.network == network]
 
-    def get_last_snapshot(self, network=None):
-        return max(self.list_snapshots(network), key=lambda x: x.block)
-
     def snapshot_disk(self, disk, name, pod_name=None, project=None, zone=None):
         if not project:
             project = self.project
@@ -131,7 +156,11 @@ class Gcloud(object):
 
         body = {
             'name': name,
-            'labels': {'pod-name': pod_name},
+            'labels': {
+                'pod-name': pod_name,
+                'project':  project,
+                'zone':     zone,
+            },
             'description': 'from-pod: {0}'.format(pod_name)
         }
 
