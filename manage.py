@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import sys
 import argparse
-from bootnode import Bootnode
+from bootnode import Bootnode, complete
 
 
 def run_command(cmd, args):
@@ -20,7 +20,7 @@ def run_command(cmd, args):
     getattr(bootnode, cmd)(**kwargs)
 
 
-if __name__ == '__main__':
+def parser():
     parser = argparse.ArgumentParser(description='Cluster management commands')
     parser.add_argument('--network', help='Ethereum network')
     subparsers = parser.add_subparsers()
@@ -92,6 +92,12 @@ if __name__ == '__main__':
     scale_down.add_argument('network', help='Network to scale')
     scale_down.set_defaults(command='scale_down')
 
+    return parser
+
+
+if __name__ == '__main__':
+    parser = parser()
+    complete(sys.argv, parser)
     args = parser.parse_args()
 
     try:
