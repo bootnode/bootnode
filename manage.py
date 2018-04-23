@@ -82,6 +82,10 @@ def parser():
     get_block_number.add_argument('name', help='Name of pod')
     get_block_number.set_defaults(command='get_block_number')
 
+    # Clusters
+    list_clusters = subparsers.add_parser('clusters', help='List clusters')
+    list_clusters.set_defaults(command='list_clusters')
+
     # Scale up
     scale_up = subparsers.add_parser('scale-up', help='Scale up blockchain nodes')
     scale_up.add_argument('network', help='Network to scale')

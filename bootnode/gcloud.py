@@ -1,5 +1,6 @@
-import googleapiclient.discovery
 from google.cloud import container_v1
+from protobuf_to_dict import protobuf_to_dict as pbd
+import googleapiclient.discovery
 import re
 
 PROJECT = 'hanzo-ai'
@@ -30,32 +31,49 @@ def ssd_type(project, zone):
     return "projects/{0}/zones/{1}/diskTypes/pd-ssd".format(project, zone)
 
 
-class Cluster(object):
-    """
-    GKE Cluster, annotated with values we care about.
-    """
-
-    def __init__(self, obj, api=None):
-        self.gce_api        = api
-        self.name       = obj['name']
-        self.id         = obj['id']
-        self.created_at = obj['creationTimestamp']
-        self.link       = obj['selfLink']
-        self.status     = obj['status']
-
-
 class NodePool(object):
     """
     GKE NodePool, annotated with values we care about.
     """
 
     def __init__(self, obj, api=None):
-        self.gce_api        = api
-        self.name       = obj['name']
-        self.id         = obj['id']
-        self.created_at = obj['creationTimestamp']
-        self.link       = obj['selfLink']
-        self.status     = obj['status']
+        self.gke_api            = api
+        self.name               = obj['name']
+        self.id                 = obj['name']  # NodePools do not seem to have an ID
+        self.link               = obj['self_link']
+        self.status             = obj['status']
+        self.config             = obj['config']
+        self.autoscaling        = obj['autoscaling']
+        self.initial_node_count = obj['initial_node_count']
+        self.management         = obj['management']
+        self.version            = obj['version']
+        self.instance_group     = obj['instance_group_urls']
+
+
+class Cluster(object):
+    """
+    GKE Cluster, annotated with values we care about.
+    """
+
+    def __init__(self, obj, api=None):
+        self.gke_api            = api
+        self.name               = obj['name']
+        self.id                 = obj['name']  # Clusters do not seem to have an ID
+        self.created_at         = obj['create_time']
+        self.link               = obj['self_link']
+        self.status             = obj['status']
+        self.zone               = obj['zone']
+        self.ip                 = obj['endpoint']
+        self.master_version     = obj['current_master_version']
+        self.node_version       = obj['current_node_version']
+        self.node_count         = obj['current_node_count']
+        self.node_config        = obj['node_config']
+        self.master_auth        = obj['master_auth']
+        self.maintenance_policy = obj['maintenance_policy']
+        self.locations          = obj['locations']
+        self.instance_groupl    = obj['instance_group_urls']
+
+        self.node_pools = [NodePool(o, api) for o in obj['node_pools']]
 
 
 class Disk(object):
@@ -64,14 +82,14 @@ class Disk(object):
     """
 
     def __init__(self, obj, api=None):
-        self.gce_api         = api
-        self.name            = obj['name']
-        self.id              = obj['id']
-        self.created_at      = obj['creationTimestamp']
-        self.link            = obj['selfLink']
-        self.status          = obj['status']
-        self.size            = obj['sizeGb']
-        self.type            = type_from_url(obj['type'])
+        self.gce_api    = api
+        self.name       = obj['name']
+        self.id         = obj['id']
+        self.created_at = obj['creationTimestamp']
+        self.link       = obj['selfLink']
+        self.status     = obj['status']
+        self.size       = obj['sizeGb']
+        self.type       = type_from_url(obj['type'])
 
         labels = obj.get('labels', None)
         if labels:
@@ -95,8 +113,8 @@ class Snapshot(object):
     """
 
     def __init__(self, obj, api=None):
-        self.gce_api  = api
-        self.name = obj['name']
+        self.gce_api = api
+        self.name    = obj['name']
 
         bits = self.name.split('-')
         self.client  = bits[0]
@@ -261,7 +279,9 @@ class Gcloud(object):
         Lists all clusters owned by a project in either the specified zone or
         all zones.
         """
-        return self.gke_api.list_clusters(self.project, zone, retry, timeout)
+        return [Cluster(c, self) for c in
+                pbd(self.gke_api.list_clusters(self.project, self.zone, retry,
+                                               timeout))['clusters']]
 
     def get_cluster(self, cluster_id, zone, retry=None, timeout=None):
         """
