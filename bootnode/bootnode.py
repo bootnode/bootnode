@@ -93,7 +93,8 @@ class Bootnode(object):
 
     # Cluster
     def list_clusters(self):
-        table(self.gcloud.list_clusters(), 'name', 'status', 'link')
+        table(self.gcloud.list_clusters(), 'name', 'status', 'ip',
+              'node_count', 'version')
 
     # Scaling
     def scale_up(args):
