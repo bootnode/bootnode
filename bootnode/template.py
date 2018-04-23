@@ -12,7 +12,7 @@ class Metadata(Dict):
         self.network    = network
 
 
-class Spec(dict):
+class Spec(Dict):
     def __init__(self, nodeSelector=None, containers=(), volumes=()):
         Dict.__init__(self, nodeSelector=nodeSelector, containers=containers,
                       volumes=volumes)
@@ -22,14 +22,14 @@ class Spec(dict):
         self.volumes      = volumes
 
 
-class Resources(dict):
+class Resources(Dict):
     def __init__(self, requests=None, limits=None):
         Dict.__init__(self, requests=requests, limits=limits)
         self.requests = requests
         self.limits   = limits
 
 
-class Container(dict):
+class Container(Dict):
     def __init__(self, name, image, command, args, resources=None,
                  volumeMounts=None):
         Dict.__init__(self, name=name, image=image, command=command, args=args,
@@ -42,42 +42,42 @@ class Container(dict):
         self.volumeMounts = volumeMounts
 
 
-class Requests(dict):
+class Requests(Dict):
     def __init__(self, cpu=None, memory=None):
         Dict.__init__(self, cpu=cpu, memory=memory)
         self.cpu    = cpu
         self.memory = memory
 
 
-class Limits(dict):
+class Limits(Dict):
     def __init__(self, cpu=None, memory=None):
         Dict.__init__(self, cpu=cpu, memory=memory)
         self.cpu    = cpu
         self.memory = memory
 
 
-class VolumeMount(dict):
+class VolumeMount(Dict):
     def __init__(self, name, mountPath):
         Dict.__init__(self, name=name, mountPath=mountPath)
         self.name      = name
         self.mountPath = mountPath
 
 
-class Volume(dict):
+class Volume(Dict):
     def __init__(self, name, gcePersistentDisk):
         Dict.__init__(self, name=name, gcePersistentDisk=gcePersistentDisk)
         self.name              = name
         self.gcePersistentDisk = gcePersistentDisk
 
 
-class GcePersistentDisk(dict):
+class GcePersistentDisk(Dict):
     def __init__(self, pdName, fsType):
         Dict.__init__(self, pdName=pdName, fsType=fsType)
         self.pdName = pdName
         self.fsType = fsType
 
 
-class Config(dict):
+class Config(Dict):
     def __init__(self, apiVersion='v1', kind=None, metadata=Metadata(),
                  spec=Spec()):
         Dict.__init__(self, apiVersion=apiVersion, kind=kind,
