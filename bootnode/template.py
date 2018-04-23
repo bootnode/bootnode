@@ -151,8 +151,7 @@ class Ethereum(Blockchain):
                  rpccorsdomain='*', wsorigins='*', requests=None, limits=None):
 
         # Normalize networks
-        network_id = Ethereum.to_network_id(network)
-        network    = Ethereum.to_network(network_id)
+        network, network_id = Ethereum.normalize_network(network)
 
         if args is None:
             args = [
@@ -239,6 +238,12 @@ class Ethereum(Blockchain):
             3: 'testnet',
             4: 'rinkeby'
         }.get(network_id)
+
+    @staticmethod
+    def normalize_network(network):
+        network_id = Ethereum.to_network_id(network)
+        network    = Ethereum.to_network(network_id)
+        return network, network_id
 
 
 class Bitcoin(Blockchain):
