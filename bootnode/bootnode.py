@@ -9,6 +9,10 @@ class Bootnode(object):
         self.gcloud = Gcloud()
         self.kube   = Kubernetes()
 
+    # Cluster
+    def list_clusters(self):
+        table(self.gcloud.list_clusters(), 'name', 'status', 'link')
+
     # Disks
     def list_disks(self, network=None):
         table(self.gcloud.list_disks(network=network), 'name', 'status', 'link')
