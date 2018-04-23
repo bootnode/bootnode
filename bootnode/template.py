@@ -22,17 +22,6 @@ class Spec(dict):
         self.volumes      = volumes
 
 
-class Config(dict):
-    def __init__(self, apiVersion='v1', kind=None, metadata=Metadata(),
-                 spec=Spec()):
-        Dict.__init__(self, apiVersion=apiVersion, kind=kind,
-                      metadata=metadata, spec=spec)
-        self.apiVersion = apiVersion
-        self.kind       = kind
-        self.metadata   = metadata
-        self.spec       = spec
-
-
 class Resources(dict):
     def __init__(self, requests=None, limits=None):
         Dict.__init__(self, requests=requests, limits=limits)
@@ -88,9 +77,26 @@ class GcePersistentDisk(dict):
         self.fsType = fsType
 
 
+class Config(dict):
+    def __init__(self, apiVersion='v1', kind=None, metadata=Metadata(),
+                 spec=Spec()):
+        Dict.__init__(self, apiVersion=apiVersion, kind=kind,
+                      metadata=metadata, spec=spec)
+        self.apiVersion = apiVersion
+        self.kind       = kind
+        self.metadata   = metadata
+        self.spec       = spec
+
+
 class Pod(Config):
+    def __init__(self, metadata=None, spec=None):
+        super(Pod, self).__init__(apiVersion='v1', kind='Pod',
+                                  metadata=metadata, spec=spec)
+
+
+class Blockchain(Pod):
     def __init__(self, name, blockchain, network, image, command, args, path,
-                 resources=None, limits=None):
+                 requests=None, limits=None):
 
         self.name       = name
         self.blockchain = blockchain
@@ -99,8 +105,6 @@ class Pod(Config):
         self.command    = command
         self.args       = args
         self.path       = path
-        self.resources  = resources
-        self.limits     = limits
 
         self.metadata = Metadata(name=name, blockchain=blockchain, network=network)
 
@@ -116,10 +120,11 @@ class Pod(Config):
             command=[command],
             args=args,
             volumeMounts=[VolumeMount(mountPath=path, name=name + '-pv')],
+            resources=Resources(),
         )
 
-        if resources:
-            container.resources.request = resources
+        if requests:
+            container.resources.request = requests
         if limits:
             container.resources.limits = limits
 
@@ -135,16 +140,112 @@ class Pod(Config):
 
         self.spec.volumes.append(volume)
 
-        super(Pod, self).__init__(apiVersion='v1', kind='Pod',
-                                  metadata=self.metadata, spec=self.spec)
+        super(Blockchain, self).__init__(self.metadata, self.spec)
 
 
-class Ethereum(Pod):
-    pass
+class Ethereum(Blockchain):
+    def __init__(self, name, network='mainnet',
+                 image='gcr.io/hanzo-ai/geth:latest', command='/bin/geth',
+                 args=None, datadir='/data', path='/data/geth/chaindata',
+                 size=None, rpc=True, ws=True, rpcport=8545, wsport=8546,
+                 rpccorsdomain='*', wsorigins='*', requests=None, limits=None):
+
+        # Normalize networks
+        network_id = Ethereum.to_network_id(network)
+        network    = Ethereum.to_network(network_id)
+
+        if args is None:
+            args = [
+                '--networkid={0}'.format(network_id),
+                '--datadir=/data',
+                '--ethash.dagdir=/data/geth/chaindata/dag',
+                '--syncmode=fast',
+            ]
+
+            if rpc:
+                args.extend([
+                    '--rpc',
+                    '--rpcaddr=0.0.0.0',
+                    '--rpcport={0}'.format(rpcport),
+                    '--rpccorsdomain="{0}"'.format(rpccorsdomain),
+                ])
+
+            if ws:
+                args.extend([
+                    '--ws',
+                    '--wsaddr=0.0.0.0',
+                    '--wsport={0}'.format(wsport),
+                    '--wsorigins="{0}"'.format(wsorigins),
+                ])
+
+            if size is None and requests is None:
+                if network is 'mainnet':
+                    size = 'large'
+                elif network is 'testnet':
+                    size = 'medium'
+                else:
+                    size = 'small'
+
+            if size == 'small':
+                requests = Requests(cpu='1', memory='1Gi')
+                limits   = Limits(cpu='1',   memory='2Gi')
+                args.extend([
+                    '--cache=512',
+                    '--maxpeers=15',
+                ])
+
+            elif size == 'medium':
+                requests = Requests(cpu='2', memory='2Gi')
+                limits   = Limits(cpu='2',   memory='4Gi')
+                args.extend([
+                    '--cache=1024',
+                    '--maxpeers=25',
+                ])
+
+            elif size == 'large':
+                requests = Requests(cpu='3', memory='8Gi')
+                limits   = None
+                args.extend([
+                    '--cache=4096',
+                    '--maxpeers=50',
+                ])
+
+        super(Ethereum, self).__init__(name, 'ethereum', network, image,
+                                       command, args, path, requests, limits)
+
+    @staticmethod
+    def to_network_id(network):
+        return {
+            'mainnet':  1,
+            'frontier': 1,
+            '1':        1,
+
+            'morden':   2,
+            '2':        2,
+
+            'testnet':  3,
+            'ropsten':  3,
+            '3':        3,
+
+            'rinkeby':  4,
+            '4':        4
+        }.get(str(network).lower())
+
+    @staticmethod
+    def to_network(network_id):
+        return {
+            1: 'mainnet',
+            2: 'morden',
+            3: 'testnet',
+            4: 'rinkeby'
+        }.get(network_id)
 
 
-class Bitcoin(Pod):
-    pass
+class Bitcoin(Blockchain):
+    def __init__(self, name, network, image, command, args, path,
+                 resources=None, limits=None):
+        super(Bitcoin, self).__init__(name, 'bitcoin', network, image, command,
+                                      args, path, resources, limits)
 
 # apiVersion: v1
 # kind: Pod
