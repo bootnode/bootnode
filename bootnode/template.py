@@ -1,77 +1,111 @@
-from collections import namedtuple
+class Dict(dict):
+    def __init__(self, **kwargs):
+        dict.__init__(self, **kwargs)
+        self.__dict__ = self
 
 
-Config = namedtuple('Config', [
-    'apiVersion',
-    'kind',
-    'metadata',
-    'spec',
-])
-
-Metadata = namedtuple('Metadata', [
-    'name',
-    'blockchain',
-    'network',
-])
-
-Spec = namedtuple('Spec', [
-    'nodeSelector',
-    'containers',
-    'volumes',
-])
-
-Container = namedtuple('Container', [
-    'name',
-    'image',
-    'resources',
-    'command',
-    'args',
-    'volumeMounts',
-])
-
-Resources = namedtuple('Resources', [
-    'requests',
-    'limits',
-])
-
-Requests = namedtuple('Requests', [
-    'cpu',
-    'memory',
-])
-
-Limits = namedtuple('Limits', [
-    'cpu',
-    'memory',
-])
-
-VolumeMount = namedtuple('VolumeMount', [
-    'name',
-    'mountPath',
-])
-
-Volume = namedtuple('Volume', [
-    'name',
-    'gcePersistentDisk',
-])
-
-GcePersistentDisk = namedtuple('GcePersistentDisk', [
-    'pdName',
-    'fsType',
-])
+class Metadata(Dict):
+    def __init__(self, name='', blockchain='', network=''):
+        Dict.__init__(self, name=name, blockchain=blockchain, network=network)
+        self.name       = name
+        self.blockchain = blockchain
+        self.network    = network
 
 
-class PodTemplate(object):
+class Spec(dict):
+    def __init__(self, nodeSelector=None, containers=(), volumes=()):
+        Dict.__init__(self, nodeSelector=nodeSelector, containers=containers,
+                      volumes=volumes)
+        self.__dict__ = self
+        self.nodeSelector = nodeSelector
+        self.containers   = containers
+        self.volumes      = volumes
+
+
+class Config(dict):
+    def __init__(self, apiVersion='v1', kind=None, metadata=Metadata(),
+                 spec=Spec()):
+        Dict.__init__(self, apiVersion=apiVersion, kind=kind,
+                      metadata=metadata, spec=spec)
+        self.apiVersion = apiVersion
+        self.kind       = kind
+        self.metadata   = metadata
+        self.spec       = spec
+
+
+class Resources(dict):
+    def __init__(self, requests=None, limits=None):
+        Dict.__init__(self, requests=requests, limits=limits)
+        self.requests = requests
+        self.limits   = limits
+
+
+class Container(dict):
+    def __init__(self, name, image, command, args, resources=None,
+                 volumeMounts=None):
+        Dict.__init__(self, name=name, image=image, command=command, args=args,
+                      resources=resources)
+        self.name         = name
+        self.image        = image
+        self.command      = command
+        self.args         = args
+        self.resources    = resources
+        self.volumeMounts = volumeMounts
+
+
+class Requests(dict):
+    def __init__(self, cpu=None, memory=None):
+        Dict.__init__(self, cpu=cpu, memory=memory)
+        self.cpu    = cpu
+        self.memory = memory
+
+
+class Limits(dict):
+    def __init__(self, cpu=None, memory=None):
+        Dict.__init__(self, cpu=cpu, memory=memory)
+        self.cpu    = cpu
+        self.memory = memory
+
+
+class VolumeMount(dict):
+    def __init__(self, name, mountPath):
+        Dict.__init__(self, name=name, mountPath=mountPath)
+        self.name      = name
+        self.mountPath = mountPath
+
+
+class Volume(dict):
+    def __init__(self, name, gcePersistentDisk):
+        Dict.__init__(self, name=name, gcePersistentDisk=gcePersistentDisk)
+        self.name              = name
+        self.gcePersistentDisk = gcePersistentDisk
+
+
+class GcePersistentDisk(dict):
+    def __init__(self, pdName, fsType):
+        Dict.__init__(self, pdName=pdName, fsType=fsType)
+        self.pdName = pdName
+        self.fsType = fsType
+
+
+class Pod(Config):
     def __init__(self, name, blockchain, network, image, command, args, path,
                  resources=None, limits=None):
 
-        cfg = Config(apiVersion='v1', kind='Pod')
+        self.name       = name
+        self.blockchain = blockchain
+        self.network    = network
+        self.image      = image
+        self.command    = command
+        self.args       = args
+        self.path       = path
+        self.resources  = resources
+        self.limits     = limits
 
-        cfg.metadata = Metadata(name=name, blockchain=blockchain, network=network)
+        self.metadata = Metadata(name=name, blockchain=blockchain, network=network)
 
-        cfg.spec = Spec(
-            nodeSelector={
-                "cloud.google.com/gke-nodepool": network,
-            },
+        self.spec = Spec(
+            nodeSelector={"cloud.google.com/gke-nodepool": network},
             containers=[],
             volumes=[],
         )
@@ -81,9 +115,7 @@ class PodTemplate(object):
             image=image,
             command=[command],
             args=args,
-            volumeMounts=[
-                Volume(mountPath=path, name=name + '-pv'),
-            ],
+            volumeMounts=[VolumeMount(mountPath=path, name=name + '-pv')],
         )
 
         if resources:
@@ -91,13 +123,7 @@ class PodTemplate(object):
         if limits:
             container.resources.limits = limits
 
-        mount = VolumeMount(
-            mountPath=path,
-            name=name + '-pv',
-        )
-        container.volumeMounts.append(mount)
-
-        cfg.spec.containers.append(container)
+        self.spec.containers.append(container)
 
         volume = Volume(
             name=name + '-pv',
@@ -107,8 +133,18 @@ class PodTemplate(object):
             )
         )
 
-        cfg.spec.volumes.append(volume)
+        self.spec.volumes.append(volume)
 
+        super(Pod, self).__init__(apiVersion='v1', kind='Pod',
+                                  metadata=self.metadata, spec=self.spec)
+
+
+class Ethereum(Pod):
+    pass
+
+
+class Bitcoin(Pod):
+    pass
 
 # apiVersion: v1
 # kind: Pod
