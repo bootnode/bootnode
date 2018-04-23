@@ -20,6 +20,16 @@ def ssd_type(project, zone):
     return "projects/{0}/zones/{1}/diskTypes/pd-ssd".format(project, zone)
 
 
+class NodePool(object):
+    def __init__(self, obj, api=None):
+        self.api        = api
+        self.name       = obj['name']
+        self.id         = obj['id']
+        self.created_at = obj['creationTimestamp']
+        self.link       = obj['selfLink']
+        self.status     = obj['status']
+
+
 class Disk(object):
     def __init__(self, obj, api=None):
         self.api             = api
