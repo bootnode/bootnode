@@ -1,4 +1,5 @@
 import googleapiclient.discovery
+from google.cloud import container_v1
 import re
 
 PROJECT = 'hanzo-ai'
@@ -22,7 +23,7 @@ def ssd_type(project, zone):
 
 class Cluster(object):
     def __init__(self, obj, api=None):
-        self.api        = api
+        self.gce_api        = api
         self.name       = obj['name']
         self.id         = obj['id']
         self.created_at = obj['creationTimestamp']
@@ -32,7 +33,7 @@ class Cluster(object):
 
 class NodePool(object):
     def __init__(self, obj, api=None):
-        self.api        = api
+        self.gce_api        = api
         self.name       = obj['name']
         self.id         = obj['id']
         self.created_at = obj['creationTimestamp']
@@ -42,7 +43,7 @@ class NodePool(object):
 
 class Disk(object):
     def __init__(self, obj, api=None):
-        self.api             = api
+        self.gce_api             = api
         self.name            = obj['name']
         self.id              = obj['id']
         self.created_at      = obj['creationTimestamp']
@@ -69,7 +70,7 @@ class Disk(object):
 
 class Snapshot(object):
     def __init__(self, obj, api=None):
-        self.api  = api
+        self.gce_api  = api
         self.name = obj['name']
 
         bits = self.name.split('-')
@@ -100,7 +101,7 @@ class Snapshot(object):
         return self.name
 
     def create_disk(self, name):
-        return self.api.create_disk(name, self, self.project, self.zone)
+        return self.gce_api.create_disk(name, self, self.project, self.zone)
 
 
 class Gcloud(object):
@@ -108,7 +109,8 @@ class Gcloud(object):
         self.project = project
         self.region  = region
         self.zone    = zone
-        self.api     = googleapiclient.discovery.build('compute', 'v1')
+        self.gce_api = googleapiclient.discovery.build('compute', 'v1')
+        self.gke_api = container_v1.ClusterManagerClient()
 
     # Disks
     def create_disk(self, name, snapshot, project=None, zone=None):
@@ -130,8 +132,8 @@ class Gcloud(object):
             'zone': zone,
             'type': ssd_type(project, zone),
         }
-        return self.api.disks().insert(project=project, zone=zone,
-                                       body=body).execute()
+        return self.gce_api.disks().insert(project=project, zone=zone,
+                                           body=body).execute()
 
     def get_disk(self, name):
         for disk in self.list_disks():
@@ -143,7 +145,7 @@ class Gcloud(object):
 
     def list_disks(self, network=None):
         disks = [Disk(s, self) for s in
-                 self.api.disks().list(project=self.project, zone=self.zone).execute()['items']]
+                 self.gce_api.disks().list(project=self.project, zone=self.zone).execute()['items']]
 
         if not network:
             return disks
@@ -161,7 +163,7 @@ class Gcloud(object):
 
     def list_snapshots(self, network=None):
         snaps = [Snapshot(s, self) for s in
-                 self.api.snapshots().list(project=self.project).execute()['items']]
+                 self.gce_api.snapshots().list(project=self.project).execute()['items']]
 
         if not network:
             return snaps
@@ -184,8 +186,9 @@ class Gcloud(object):
             'description': 'from-pod: {0}'.format(pod_name)
         }
 
-        return self.api.disks().createSnapshot(project=project, zone=zone,
-                                               disk=disk, body=body).execute()
+        return self.gce_api.disks().createSnapshot(project=project, zone=zone,
+                                                   disk=disk,
+                                                   body=body).execute()
 
     def snapshot_pod(self, pod, project=None, zone=None):
         if pod.syncing():
