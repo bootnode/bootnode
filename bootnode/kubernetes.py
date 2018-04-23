@@ -4,12 +4,6 @@ from kubernetes.stream import stream
 POD_NAMESPACE = 'default'
 
 
-class Cluster(object):
-    def __init__(self, cluster, api=None):
-        self.api     = api
-        self.cluster = cluster
-
-
 class Node(object):
     def __init__(self, node, api=None):
         self.api  = api
