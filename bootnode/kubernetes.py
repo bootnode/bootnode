@@ -61,7 +61,10 @@ class Pod(object):
             return True
 
     def block_number(self):
-        return int(self.exec('eth.blockNumber'))
+        try:
+            return int(self.exec('eth.blockNumber'))
+        except:
+            return -1
 
     def __repr__(self):
         return self.name
