@@ -10,6 +10,12 @@ class Node(object):
         self.node = node
 
 
+class Pool(object):
+    def __init__(self, pool, api=None):
+        self.api  = api
+        self.pool = pool
+
+
 class Pod(object):
     def __init__(self, pod, api=None):
         self.api = api
@@ -73,6 +79,9 @@ class Kubernetes(object):
         return stream(self.api.connect_get_namespaced_pod_exec, pod_name,
                       namespace, command=command, stdin=stdin, stderr=stderr,
                       stdout=stdout, tty=tty)
+
+    def create_pod(self, config):
+        return self.api.create_namespaced_pod(POD_NAMESPACE, body=config)
 
     def list_pods(self, network=None):
         pods = [Pod(p, self) for p in
