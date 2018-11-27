@@ -52,10 +52,10 @@ status:
 	kubectl get pods -o yaml
 
 logs:
-	kubectl logs geth-$(net) -f
+	kubectl logs geth-$(net)-044 -f
 
 ssh:
-	kubectl exec -it geth-$(net)-02 -- /bin/bash
+	kubectl exec -it geth-$(net)-044 -- /bin/bash
 
 attach:
 	kubectl exec -it geth-$(net)-01 -- $(geth) attach

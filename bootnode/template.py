@@ -1,3 +1,6 @@
+import os.path
+
+
 class Dict(dict):
     def __init__(self, **kwargs):
         dict.__init__(self, **kwargs)
@@ -108,8 +111,10 @@ class Blockchain(Pod):
 
         self.metadata = Metadata(name=name, blockchain=blockchain, network=network)
 
+        client = os.path.basename(command)
+        selector = client + '-' + network
         self.spec = Spec(
-            nodeSelector={"cloud.google.com/gke-nodepool": network},
+            nodeSelector={"cloud.google.com/gke-nodepool": selector},
             containers=[],
             volumes=[],
         )
