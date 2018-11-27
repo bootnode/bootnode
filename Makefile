@@ -55,7 +55,7 @@ logs:
 	kubectl logs geth-$(net)-044 -f
 
 ssh:
-	kubectl exec -it geth-$(net)-044 -- /bin/bash
+	kubectl exec -it geth-$(net)-046 -- /bin/bash
 
 attach:
 	kubectl exec -it geth-$(net)-01 -- $(geth) attach

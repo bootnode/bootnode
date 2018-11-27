@@ -75,6 +75,12 @@ class Bootnode(object):
         #     self.kube.create_pool(network)
         self.kube.create_pod(config)
 
+    def delete_pod(self, network, name):
+        network, id = Ethereum.normalize_network(network)
+        config = Ethereum(name, network)
+
+        self.kube.delete_pod(name, config)
+
     def list_pods(self, network=None):
         table(self.kube.list_pods(network=network), 'name', 'phase', 'block_number', 'ip')
 
