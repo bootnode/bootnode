@@ -10,7 +10,7 @@ zone   := us-central1-a
 all: deploy
 
 build:
-	gcloud container builds submit \
+	gcloud builds submit \
 		-t gcr.io/hanzo-ai/geth:$(sha1) \
 		-t gcr.io/hanzo-ai/geth:latest \
 		geth
