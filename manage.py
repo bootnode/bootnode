@@ -65,6 +65,11 @@ def parser():
     update_snapshot.set_defaults(command='update_snapshot')
 
     # Pods
+    create_pod = subparsers.add_parser('create-pod', help='Create pod')
+    create_pod.add_argument('network', help='Name of network to use')
+    create_pod.add_argument('name', help='Name of pod')
+    create_pod.set_defaults(command='create_pod')
+
     list_pods = subparsers.add_parser('pods', help='List pods')
     list_pods.set_defaults(command='list_pods')
 
