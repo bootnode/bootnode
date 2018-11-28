@@ -86,6 +86,9 @@ class Kubernetes(object):
     def create_pod(self, config):
         return self.api.create_namespaced_pod(POD_NAMESPACE, body=config)
 
+    def delete_pod(self, name):
+        return self.api.delete_namespaced_pod(name, POD_NAMESPACE, body=client.V1DeleteOptions())
+
     def list_pods(self, network=None):
         pods = [Pod(p, self) for p in
                 self.api.list_namespaced_pod(POD_NAMESPACE).items]

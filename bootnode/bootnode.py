@@ -63,17 +63,22 @@ class Bootnode(object):
     # Pods
     def create_pod(self, network, name):
         network, id = Ethereum.normalize_network(network)
+        config = Ethereum(name, network)
+
+        disk_name = config.spec.volumes[0].gcePersistentDisk.pdName
         snap = self.gcloud.get_last_snapshot(network)
         if snap:
-            snap.create_disk(name)
+            snap.create_disk(disk_name)
         else:
-            self.gcloud.create_disk(name)
+            self.gcloud.create_disk(disk_name)
 
-        config = Ethereum(name, network)
         # pool = self.kube.get_pool(network)
         # if not pool:
         #     self.kube.create_pool(network)
         self.kube.create_pod(config)
+
+    def delete_pod(self, network, name):
+        self.kube.delete_pod(name)
 
     def list_pods(self, network=None):
         table(self.kube.list_pods(network=network), 'name', 'phase', 'block_number', 'ip')
