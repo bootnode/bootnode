@@ -1,6 +1,6 @@
 kubernetes
-google-cloud
 google-api-python-client
 google-auth-httplib2
 tabulate
 protobuf3-to-dict
+google-cloud-container
