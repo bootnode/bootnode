@@ -147,6 +147,21 @@ class Blockchain(Pod):
 
         super(Blockchain, self).__init__(self.metadata, self.spec)
 
+    @classmethod
+    def to_network_id(cls, network):
+        return 0
+
+    @classmethod
+    def to_network(cls, network_id):
+        return
+
+    @classmethod
+    def normalize_network(cls, network):
+        return None, 0
+
+    @classmethod
+    def is_blockchain(cls, chain):
+        return
 
 class Ethereum(Blockchain):
     def __init__(self, name, network='mainnet',
@@ -217,8 +232,8 @@ class Ethereum(Blockchain):
         super(Ethereum, self).__init__(name, 'ethereum', network, image,
                                        command, args, path, requests, limits)
 
-    @staticmethod
-    def to_network_id(network):
+    @classmethod
+    def to_network_id(cls, network):
         return {
             'mainnet':  1,
             'frontier': 1,
@@ -235,8 +250,8 @@ class Ethereum(Blockchain):
             '4':        4
         }.get(str(network).lower())
 
-    @staticmethod
-    def to_network(network_id):
+    @classmethod
+    def to_network(cls, network_id):
         return {
             1: 'mainnet',
             2: 'morden',
@@ -244,12 +259,15 @@ class Ethereum(Blockchain):
             4: 'rinkeby'
         }.get(network_id)
 
-    @staticmethod
-    def normalize_network(network):
+    @classmethod
+    def normalize_network(cls, network):
         network_id = Ethereum.to_network_id(network)
         network    = Ethereum.to_network(network_id)
         return network, network_id
 
+    @classmethod
+    def is_blockchain(cls, chain):
+        return chain in ['ethereum', 'eth', 'geth']
 
 class Bitcoin(Blockchain):
     def __init__(self, name, network, image, command, args, path,
