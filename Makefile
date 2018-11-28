@@ -55,7 +55,7 @@ logs:
 	kubectl logs geth-$(net)-044 -f
 
 ssh:
-	kubectl exec -it geth-$(net)-046 -- /bin/bash
+	kubectl exec -it geth-$(net)-047 -- /bin/bash
 
 attach:
 	kubectl exec -it geth-$(net)-01 -- $(geth) attach
@@ -64,7 +64,7 @@ nodeinfo:
 	kubectl exec -it geth-$(net) -- $(geth) attach --exec 'admin.nodeInfo'
 
 syncstatus:
-	kubectl exec -it geth-$(net)-02 -- $(geth) attach --exec 'eth.syncing'
+	kubectl exec -it geth-$(net)-047 -- $(geth) attach --exec 'eth.syncing'
 
 blocknumber:
 	kubectl exec -it geth-$(net)-02 -- $(geth) attach --exec 'eth.blockNumber'
