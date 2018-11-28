@@ -3,6 +3,7 @@ from .kubernetes import Kubernetes
 from .template import Ethereum
 from .table import table
 
+blockchains = [Ethereum]
 
 class Bootnode(object):
     def __init__(self):
@@ -61,9 +62,19 @@ class Bootnode(object):
         print(self.gcloud.snapshot_disk(pod.disk, name, pod_name=pod.name))
 
     # Pods
-    def create_pod(self, network, name):
-        network, id = Ethereum.normalize_network(network)
-        config = Ethereum(name, network)
+    def find_blockchain(self, chain):
+        for blockchain in blockchains:
+            if blockchain.is_blockchain(chain):
+                return blockchain
+
+    def create_pod(self, chain, network, name):
+        c = self.find_blockchain(chain)
+
+        if c is None:
+            raise Exception('Blockchain "" does not exist' % chain)
+
+        network, id = c.normalize_network(network)
+        config = c(name, network)
 
         disk_name = config.spec.volumes[0].gcePersistentDisk.pdName
         snap = self.gcloud.get_last_snapshot(network)
