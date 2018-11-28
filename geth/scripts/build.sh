@@ -3,7 +3,7 @@
 # Clone geth repo
 git clone https://github.com/ethereum/go-ethereum
 cd go-ethereum
-git checkout v1.8.4
+git checkout v1.8.18
 
 make geth
 
