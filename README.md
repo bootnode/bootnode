@@ -1,4 +1,7 @@
 # bootnode
 
-[Bootnode](https://bootnode.io) provides the simplest, most flexible way to
-deploy and manage blockchains.
+[Bootnode](https://bootnode.io) provides a flexible and scalable framework for
+deploying and managing blockchains.
+
+## License
+BSD.
