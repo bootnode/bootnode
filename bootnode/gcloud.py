@@ -289,6 +289,7 @@ class Gcloud(object):
             zone = self.zone
 
         name = "{}-{}".format(chain, network)
+        version = "1.11.3-gke.18"
 
         body = {
             "cluster": {
@@ -296,6 +297,7 @@ class Gcloud(object):
                 "description": "Boonode created and managed cluster for {} chain, {} network".format(chain, network),
                 "nodePools": [{
                     "name": "default-pool",
+                    "version": version,
                     "initialNodeCount": 1,
                     "autoscaling": {
                         "enabled": True,
@@ -323,6 +325,7 @@ class Gcloud(object):
                     "useIpAliases": True,
                     "createSubnetwork": True,
                 },
+                "initialClusterVersion": version,
                 # "addons_config": {
                 #     "horizontal_pod_autoscaling": {
                 #         "disabled": False,

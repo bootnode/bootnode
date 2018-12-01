@@ -1,5 +1,3 @@
-export KUBECONFIG=config/cluster.yaml
-
 sha1   := $(shell git rev-parse --short=8 HEAD)
 geth   := /bin/geth --datadir=/data
 net    ?= testnet
@@ -7,6 +5,9 @@ cfg    := config/$(net)
 region := us-central1
 zone   := us-central1-a
 number ?= 047
+chain  ?= ethereum
+
+export KUBECONFIG=config/$(chain)-$(net)/cluster.yaml
 
 all: deploy
 
@@ -78,7 +79,7 @@ add-gcr-key:
 
 # Get credentials for kubectl for current cluster
 get-credentials:
-	gcloud container clusters get-credentials ethereum --zone $(zone) --project hanzo-ai
+	gcloud container clusters get-credentials $(chain)-$(net) --zone $(zone) --project hanzo-ai
 
 # Default to whatever zone you launched your cluster in to reduce key strokes
 region-zone-defaults:
