@@ -1,6 +1,7 @@
 from google.cloud import container_v1
+from oauth2client.client import GoogleCredentials
 from protobuf_to_dict import protobuf_to_dict as pbd
-import googleapiclient.discovery
+from googleapiclient import discovery
 import re
 
 PROJECT = 'hanzo-ai'
@@ -158,7 +159,7 @@ class Gcloud(object):
         self.project = project
         self.region  = region
         self.zone    = zone
-        self.gce_api = googleapiclient.discovery.build('compute', 'v1')
+        self.gce_api = discovery.build('compute', 'v1')
         self.gke_api = container_v1.ClusterManagerClient()
 
     # Disks
@@ -275,7 +276,7 @@ class Gcloud(object):
         name = "{0}-{1}-{2}".format(pod.client, pod.network, pod.block_number())
         return self.snapshot_disk(pod.disk, name, pod_name=pod.name)
 
-    def create_cluster(self, name, zone=None, retry=None, timeout=None):
+    def create_cluster(self, chain, network, zone=None, retry=None, timeout=None):
         """
         Creates a new GKE cluster using NEG.
         """
@@ -287,44 +288,59 @@ class Gcloud(object):
         if not zone:
             zone = self.zone
 
-        cluster = {
+        name = "{}-{}".format(chain, network)
+
+        body = {
+            "cluster": {
                 "name": name,
-                # "description": description,
-                "initial_node_count": 1,
-                "node_config": {
-                    "machine_type": "n1-standard-2",
-                    "disk_size_gb": 100,
-                    "disk_type": "pd-ssd",
-                    "min_cpu_platform": "Intel Skylake",
-                    "oauth_scopes": [
-                        "https://www.googleapis.com/auth/compute",
-                        "https://www.googleapis.com/auth/devstorage.read_only",
-                    ],
+                "description": "Boonode created and managed cluster for {} chain, {} network".format(chain, network),
+                "nodePools": [{
+                    "name": "default-pool",
+                    "initialNodeCount": 1,
+                    "autoscaling": {
+                        "enabled": True,
+                        "minNodeCount": 1,
+                        "maxNodeCount": 10,
+                    },
+                    "management": {
+                        "autoRepair": True,
+                        "autoUpgrade": True,
+                    },
+                    "config": {
+                        "machineType": "n1-standard-2",
+                        "diskSizeGb": 100,
+                        "diskType": "pd-ssd",
+                        "minCpuPlatform": "Intel Skylake",
+                        "oauthScopes": [
+                            "https://www.googleapis.com/auth/compute",
+                            "https://www.googleapis.com/auth/devstorage.read_only",
+                        ],
+                    },
+                }],
+                "loggingService": "logging.googleapis.com",
+                "monitoringService": "monitoring.googleapis.com",
+                "ipAllocationPolicy": {
+                    "useIpAliases": True,
+                    "createSubnetwork": True,
                 },
-                "logging_service": "logging.googleapis.com",
-                "monitoring_service": "monitoring.googleapis.com",
-                "ip_allocation_policy": {
-                    "use_ip_aliases": True,
-                    "create_subnetwork": True,
-                },
-                # "node_pool_autoscaling": {
-                #     "enabled": True,
-                #     "min_node_count: 1,
-                #     "max_node_count: 10,
+                # "addons_config": {
+                #     "horizontal_pod_autoscaling": {
+                #         "disabled": False,
+                #     },
+                #     "http_load_balancing": {
+                #         "disabled": False,
+                #     },
+                #     "kubernetes_dashboard": {
+                #         "disabled": False,
+                #     },
                 # },
-                "addons_config": {
-                    "horizontal_pod_autoscaling": {
-                        "disabled": False,
-                    },
-                    "http_load_balancing": {
-                        "disabled": False,
-                    },
-                    "kubernetes_dashboard": {
-                        "disabled": False,
-                    },
-                },
+            },
         }
-        return self.gke_api.create_cluster(self.project, zone, cluster)
+
+        credentials = GoogleCredentials.get_application_default()
+        service = discovery.build('container', 'v1', credentials=credentials)
+        return service.projects().zones().clusters().create(projectId=self.project, zone=zone, body=body).execute()
+        # self.gke_api.create_cluster(self.project, zone, cluster)
 
     # Clusters
     def list_clusters(self, project=None, zone=None, retry=None, timeout=None):

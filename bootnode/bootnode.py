@@ -109,7 +109,7 @@ class Bootnode(object):
 
     # Cluster
     def create_cluster(self, chain, network):
-        print(self.gcloud.create_cluster("{}-{}".format(chain, network)))
+        print(self.gcloud.create_cluster(chain, network))
 
     def list_clusters(self):
         table(self.gcloud.list_clusters(), 'name', 'status', 'ip',
