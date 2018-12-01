@@ -94,6 +94,11 @@ def parser():
     get_block_number.set_defaults(command='get_block_number')
 
     # Clusters
+    create_cluster = subparsers.add_parser('create-cluster', help='Create a new cluster')
+    create_cluster.add_argument('chain', help='Chain used by this cluster')
+    create_cluster.add_argument('network', help='Network used by this cluster')
+    create_cluster.set_defaults(command='create_cluster')
+
     list_clusters = subparsers.add_parser('clusters', help='List clusters')
     list_clusters.set_defaults(command='list_clusters')
 

@@ -108,6 +108,9 @@ class Bootnode(object):
         print(pod.block_number())
 
     # Cluster
+    def create_cluster(self, chain, network):
+        print(self.gcloud.create_cluster("{}-{}".format(chain, network)))
+
     def list_clusters(self):
         table(self.gcloud.list_clusters(), 'name', 'status', 'ip',
               'node_count', 'version')

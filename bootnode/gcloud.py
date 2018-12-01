@@ -275,6 +275,57 @@ class Gcloud(object):
         name = "{0}-{1}-{2}".format(pod.client, pod.network, pod.block_number())
         return self.snapshot_disk(pod.disk, name, pod_name=pod.name)
 
+    def create_cluster(self, name, zone=None, retry=None, timeout=None):
+        """
+        Creates a new GKE cluster using NEG.
+        """
+        # gcloud container clusters create neg-demo-cluster \
+        #     --enable-ip-alias \
+        #     --create-subnetwork="" \
+        #     --network=default \
+        #     --zone=us-central1-a
+        if not zone:
+            zone = self.zone
+
+        cluster = {
+                "name": name,
+                # "description": description,
+                "initial_node_count": 1,
+                "node_config": {
+                    "machine_type": "n1-standard-2",
+                    "disk_size_gb": 100,
+                    "disk_type": "pd-ssd",
+                    "min_cpu_platform": "Intel Skylake",
+                    "oauth_scopes": [
+                        "https://www.googleapis.com/auth/compute",
+                        "https://www.googleapis.com/auth/devstorage.read_only",
+                    ],
+                },
+                "logging_service": "logging.googleapis.com",
+                "monitoring_service": "monitoring.googleapis.com",
+                "ip_allocation_policy": {
+                    "use_ip_aliases": True,
+                    "create_subnetwork": True,
+                },
+                # "node_pool_autoscaling": {
+                #     "enabled": True,
+                #     "min_node_count: 1,
+                #     "max_node_count: 10,
+                # },
+                "addons_config": {
+                    "horizontal_pod_autoscaling": {
+                        "disabled": False,
+                    },
+                    "http_load_balancing": {
+                        "disabled": False,
+                    },
+                    "kubernetes_dashboard": {
+                        "disabled": False,
+                    },
+                },
+        }
+        return self.gke_api.create_cluster(self.project, zone, cluster)
+
     # Clusters
     def list_clusters(self, project=None, zone=None, retry=None, timeout=None):
         """
