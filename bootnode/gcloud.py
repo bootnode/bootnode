@@ -267,7 +267,7 @@ class Gcloud(object):
 
     def snapshot_pod(self, pod, project=None, zone=None):
         """
-        Snapshot a running pod, as long as it's not yet synced.
+        Snapshot a running pod, as long as it is synced.
         """
         if pod.syncing():
             raise Exception('Pod not synced: ""' % pod.name)
