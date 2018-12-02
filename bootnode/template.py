@@ -163,6 +163,7 @@ class Blockchain(Pod):
     def is_blockchain(cls, chain):
         return
 
+
 class Ethereum(Blockchain):
     def __init__(self, name, network='mainnet',
                  image='gcr.io/hanzo-ai/geth:latest', command='/bin/geth',
@@ -269,8 +270,13 @@ class Ethereum(Blockchain):
     def is_blockchain(cls, chain):
         return chain in ['ethereum', 'eth', 'geth']
 
+
 class Bitcoin(Blockchain):
     def __init__(self, name, network, image, command, args, path,
                  resources=None, limits=None):
         super(Bitcoin, self).__init__(name, 'bitcoin', network, image, command,
                                       args, path, resources, limits)
+
+    @classmethod
+    def is_blockchain(cls, chain):
+        return chain in ['bitcoin']
