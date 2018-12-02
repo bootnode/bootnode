@@ -4,3 +4,4 @@ google-auth-httplib2
 tabulate
 protobuf3-to-dict
 google-cloud-container
+oauth2client

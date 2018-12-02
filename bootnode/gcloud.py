@@ -232,6 +232,9 @@ class Gcloud(object):
     def list_snapshots(self, network=None):
         """
         List all snapshots for a given network.
+
+        :param network: The name of the network
+        :return: Returns the list of snapshots, parsed into objects
         """
         snaps = [Snapshot(s, self) for s in
                  self.gce_api.snapshots().list(project=self.project).execute()['items']]
@@ -245,6 +248,9 @@ class Gcloud(object):
         """
         Create a snapshot of a given disk. Optionally label with Pod disk is
         associated.
+
+        :param network: The name of the network
+        :return: Returns the list of snapshots, parsed into objects
         """
 
         if not project:
