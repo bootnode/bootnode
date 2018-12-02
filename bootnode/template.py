@@ -114,9 +114,9 @@ class Blockchain(Pod):
         self.metadata = Metadata(name=name, cluster=cluster, blockchain=blockchain, network=network)
 
         client = os.path.basename(command)
-        selector = client + '-' + network
         self.spec = Spec(
-            nodeSelector={"cloud.google.com/gke-nodepool": selector},
+            # nodeSelector={"cloud.google.com/gke-nodepool": selector},
+            nodeSelector={},
             containers=[],
             volumes=[],
         )
