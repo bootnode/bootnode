@@ -213,27 +213,35 @@ class Ethereum(Blockchain):
                     size = 'small'
 
             if size == 'small':
-                requests = Requests(cpu='1', memory='1Gi')
-                limits   = Limits(cpu='1',   memory='2Gi')
+                requests = Requests(cpu='2', memory='1Gi')
+                limits   = Limits(cpu='2',   memory='1536Mi')
                 args.extend([
                     '--cache=512',
                     '--maxpeers=15',
                 ])
 
             elif size == 'medium':
-                requests = Requests(cpu='1', memory='2Gi')
-                limits   = Limits(cpu='1',   memory='4Gi')
+                requests = Requests(cpu='2', memory='2Gi')
+                limits   = Limits(cpu='2',   memory='3Gi')
                 args.extend([
                     '--cache=1024',
                     '--maxpeers=25',
                 ])
 
             elif size == 'large':
-                requests = Requests(cpu='1', memory='8Gi')
-                limits   = None
+                requests = Requests(cpu='2', memory='4Gi')
+                limits   = Limits(cpu='2',   memory='6Gi')
+                args.extend([
+                    '--cache=2048',
+                    '--maxpeers=50',
+                ])
+
+            elif size == 'huge':
+                requests = Requests(cpu='2', memory='8Gi')
+                limits   = Limits(cpu='2',   memory='12Gi')
                 args.extend([
                     '--cache=4096',
-                    '--maxpeers=50',
+                    '--maxpeers=100',
                 ])
 
         super(Ethereum, self).__init__(name, cluster, 'ethereum', network, image,

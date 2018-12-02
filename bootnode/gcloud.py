@@ -315,7 +315,7 @@ class Gcloud(object):
                         "autoUpgrade": True,
                     },
                     "config": {
-                        "machineType": "n1-standard-2",
+                        "machineType": "n1-standard-4",
                         "diskSizeGb": 100,
                         "diskType": "pd-ssd",
                         "minCpuPlatform": "Intel Skylake",
