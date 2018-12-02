@@ -99,7 +99,7 @@ class Pod(Config):
 
 
 class Blockchain(Pod):
-    def __init__(self, name, network, cluster, blockchain, image, command, args, path,
+    def __init__(self, name, cluster, blockchain, network, image, command, args, path,
                  requests=None, limits=None):
 
         self.name       = name
@@ -221,15 +221,15 @@ class Ethereum(Blockchain):
                 ])
 
             elif size == 'medium':
-                requests = Requests(cpu='2', memory='2Gi')
-                limits   = Limits(cpu='2',   memory='4Gi')
+                requests = Requests(cpu='1', memory='2Gi')
+                limits   = Limits(cpu='1',   memory='4Gi')
                 args.extend([
                     '--cache=1024',
                     '--maxpeers=25',
                 ])
 
             elif size == 'large':
-                requests = Requests(cpu='3', memory='8Gi')
+                requests = Requests(cpu='1', memory='8Gi')
                 limits   = None
                 args.extend([
                     '--cache=4096',

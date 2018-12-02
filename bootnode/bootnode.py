@@ -7,9 +7,18 @@ import secrets
 blockchains = [Ethereum]
 
 class Bootnode(object):
-    def __init__(self):
+    def __init__(self, chain, network):
         self.gcloud = Gcloud()
-        self.kube   = Kubernetes()
+
+        c = self.find_blockchain(chain)
+
+        if c is None:
+            raise Exception('Blockchain "" does not exist' % chain)
+
+        self.chain       = c
+        self.network, id = c.normalize_network(network)
+        self.cluster     = '{0}-{1}'.format(c.get_name(), network)
+        self.kube        = Kubernetes('config/{0}/cluster.yaml'.format(self.cluster))
 
     # Disks
     def list_disks(self, network=None):
@@ -44,17 +53,17 @@ class Bootnode(object):
         pod = self.kube.get_pod(name)
         print(self.gcloud.snapshot_pod(pod))
 
-    def update_snapshot(self, network=None):
+    def update_snapshot(self):
         if not network:
             raise Exception('Network must be specified')
 
         # Re-use last snapshot so subsequent snapshots are just deltas,
         # otherwise find any sync'd pod and start there
-        snap = self.gcloud.get_last_snapshot(network=network)
+        snap = self.gcloud.get_last_snapshot(network=self.network)
         if snap:
             pod = self.kube.get_pod(snap.pod)
         else:
-            pod = self.kube.get_synced_pod(network)
+            pod = self.kube.get_synced_pod(self.network)
 
         if not pod or pod.syncing():
             raise Exception('Pod not synced: ""' % pod.name)
@@ -68,28 +77,20 @@ class Bootnode(object):
             if blockchain.is_blockchain(chain):
                 return blockchain
 
-    def create_pod(self, chain, network, name=None):
+    def create_pod(self, name=None):
         """
         Create a new pod for a specific chain on a specific network of that
         chain.  Ex. geth-mainnet
         """
-        c = self.find_blockchain(chain)
-
-        if c is None:
-            raise Exception('Blockchain "" does not exist' % chain)
-
-        network, id = c.normalize_network(network)
 
         if not name:
-            name = '{0}-{1}-{2}'.format(c.get_name(),network,secrets.randbelow(1000000000000))
-
-        cluster = '{0}-{1}'.format(c.get_name(),network)
+            name = '{0}-{1}-{2}'.format(self.chain.get_name(), self.network, secrets.randbelow(1000000000000))
 
         print('Creating pod {0}'.format(name))
-        config = c(name, network, cluster)
+        config = self.chain(name, self.network, self.cluster)
 
         disk_name = config.spec.volumes[0].gcePersistentDisk.pdName
-        snap = self.gcloud.get_last_snapshot(network)
+        snap = self.gcloud.get_last_snapshot(self.network)
         if snap:
             snap.create_disk(disk_name)
         else:
@@ -100,7 +101,7 @@ class Bootnode(object):
         #     self.kube.create_pool(network)
         print(self.kube.create_pod(config))
 
-    def delete_pod(self, network, name):
+    def delete_pod(self, name):
         self.kube.delete_pod(name)
 
     def list_pods(self, network=None):
@@ -109,33 +110,28 @@ class Bootnode(object):
     def get_pod(self, name):
         table(self.kube.get_pod(name), 'name', 'phase', 'ip')
 
-    def get_last_pod(self, network=None):
-        table(self.kube.get_last_pod(network=network), 'name', 'phase', 'block_number', 'ip')
+    def get_last_pod(self):
+        table(self.kube.get_last_pod(network=self.network), 'name', 'phase', 'block_number', 'ip')
 
-    def get_synced_pod(self, network=None):
-        table(self.kube.get_synced_pod(network=network), 'name', 'phase', 'block_number', 'ip')
+    def get_synced_pod(self):
+        table(self.kube.get_synced_pod(network=self.network), 'name', 'phase', 'block_number', 'ip')
 
     def get_block_number(self, name):
         pod = self.kube.get_pod(name)
         print(pod.block_number())
 
     # Cluster
-    def create_cluster(self, chain, network):
+    def create_cluster(self):
         """
         Create a new cluster and pod for a specific chain on a specific network of that
         chain.  Ex. geth-mainnet
         """
 
-        c = self.find_blockchain(chain)
+        chain_name = self.chain.get_name()
 
-        if c is None:
-            raise Exception('Blockchain "" does not exist' % chain)
+        print(self.gcloud.create_cluster(chain_name, self.network))
 
-        chain = c.get_name()
-
-        print(self.gcloud.create_cluster(chain, network))
-
-        self.create_pod(chain, network)
+        self.create_pod()
 
     def list_clusters(self):
         table(self.gcloud.list_clusters(), 'name', 'status', 'ip',

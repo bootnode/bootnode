@@ -5,8 +5,6 @@ from bootnode import Bootnode, complete
 
 
 def run_command(cmd, args):
-    bootnode = Bootnode()
-
     # Get argument names
     keys = [k for k in dir(args) if not k.startswith('_') and not k == 'command']
 
@@ -16,13 +14,19 @@ def run_command(cmd, args):
     # Clear out any default args that are unspecified
     kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
+    bootnode = Bootnode(args.chain, args.network)
+
+    del kwargs['chain']
+    del kwargs['network']
+
     # Call relevant method on Bootnode
     getattr(bootnode, cmd)(**kwargs)
 
 
 def parser():
     parser = argparse.ArgumentParser(description='Cluster management commands')
-    parser.add_argument('--network', help='Ethereum network')
+    parser.add_argument('--chain', help='Blockchain')
+    parser.add_argument('--network', help='Blockcahin network')
     subparsers = parser.add_subparsers()
 
     # Disks
@@ -66,12 +70,9 @@ def parser():
 
     # Pods
     create_pod = subparsers.add_parser('create-pod', help='Create pod')
-    create_pod.add_argument('chain', help='Type of blockchain node to create')
-    create_pod.add_argument('network', help='Name of network to use')
     create_pod.set_defaults(command='create_pod')
 
     delete_pod = subparsers.add_parser('delete-pod', help='Delete pod')
-    delete_pod.add_argument('network', help='Name of network to use')
     delete_pod.add_argument('name', help='Name of pod')
     delete_pod.set_defaults(command='delete_pod')
 
@@ -94,8 +95,6 @@ def parser():
 
     # Clusters
     create_cluster = subparsers.add_parser('create-cluster', help='Create a new cluster')
-    create_cluster.add_argument('chain', help='Chain used by this cluster')
-    create_cluster.add_argument('network', help='Network used by this cluster')
     create_cluster.set_defaults(command='create_cluster')
 
     list_clusters = subparsers.add_parser('clusters', help='List clusters')
