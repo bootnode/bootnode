@@ -68,7 +68,6 @@ def parser():
     create_pod = subparsers.add_parser('create-pod', help='Create pod')
     create_pod.add_argument('chain', help='Type of blockchain node to create')
     create_pod.add_argument('network', help='Name of network to use')
-    create_pod.add_argument('name', help='Name of pod')
     create_pod.set_defaults(command='create_pod')
 
     delete_pod = subparsers.add_parser('delete-pod', help='Delete pod')

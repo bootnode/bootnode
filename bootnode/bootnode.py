@@ -2,6 +2,7 @@ from .gcloud import Gcloud
 from .kubernetes import Kubernetes
 from .template import Ethereum
 from .table import table
+import secrets
 
 blockchains = [Ethereum]
 
@@ -67,14 +68,25 @@ class Bootnode(object):
             if blockchain.is_blockchain(chain):
                 return blockchain
 
-    def create_pod(self, chain, network, name):
+    def create_pod(self, chain, network, name=None):
+        """
+        Create a new pod for a specific chain on a specific network of that
+        chain.  Ex. geth-mainnet
+        """
         c = self.find_blockchain(chain)
 
         if c is None:
             raise Exception('Blockchain "" does not exist' % chain)
 
         network, id = c.normalize_network(network)
-        config = c(name, network)
+
+        if not name:
+            name = '{0}-{1}-{2}'.format(c.get_name(),network,secrets.randbelow(1000000000000))
+
+        cluster = '{0}-{1}'.format(c.get_name(),network)
+
+        print('Creating pod {0}'.format(name))
+        config = c(name, network, cluster)
 
         disk_name = config.spec.volumes[0].gcePersistentDisk.pdName
         snap = self.gcloud.get_last_snapshot(network)
@@ -86,7 +98,7 @@ class Bootnode(object):
         # pool = self.kube.get_pool(network)
         # if not pool:
         #     self.kube.create_pool(network)
-        self.kube.create_pod(config)
+        print(self.kube.create_pod(config))
 
     def delete_pod(self, network, name):
         self.kube.delete_pod(name)
@@ -109,7 +121,21 @@ class Bootnode(object):
 
     # Cluster
     def create_cluster(self, chain, network):
+        """
+        Create a new cluster and pod for a specific chain on a specific network of that
+        chain.  Ex. geth-mainnet
+        """
+
+        c = self.find_blockchain(chain)
+
+        if c is None:
+            raise Exception('Blockchain "" does not exist' % chain)
+
+        chain = c.get_name()
+
         print(self.gcloud.create_cluster(chain, network))
+
+        self.create_pod(chain, network)
 
     def list_clusters(self):
         table(self.gcloud.list_clusters(), 'name', 'status', 'ip',

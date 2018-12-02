@@ -8,9 +8,10 @@ class Dict(dict):
 
 
 class Metadata(Dict):
-    def __init__(self, name='', blockchain='', network=''):
-        Dict.__init__(self, name=name, blockchain=blockchain, network=network)
+    def __init__(self, name='', cluster='', blockchain='', network=''):
+        Dict.__init__(self, name=name, cluster=cluster, blockchain=blockchain, network=network)
         self.name       = name
+        self.cluster    = cluster
         self.blockchain = blockchain
         self.network    = network
 
@@ -98,10 +99,11 @@ class Pod(Config):
 
 
 class Blockchain(Pod):
-    def __init__(self, name, blockchain, network, image, command, args, path,
+    def __init__(self, name, network, cluster, blockchain, image, command, args, path,
                  requests=None, limits=None):
 
         self.name       = name
+        self.cluster    = cluster
         self.blockchain = blockchain
         self.network    = network
         self.image      = image
@@ -109,7 +111,7 @@ class Blockchain(Pod):
         self.args       = args
         self.path       = path
 
-        self.metadata = Metadata(name=name, blockchain=blockchain, network=network)
+        self.metadata = Metadata(name=name, cluster=cluster, blockchain=blockchain, network=network)
 
         client = os.path.basename(command)
         selector = client + '-' + network
@@ -163,9 +165,13 @@ class Blockchain(Pod):
     def is_blockchain(cls, chain):
         return
 
+    @classmethod
+    def get_name(cls):
+        return "none"
+
 
 class Ethereum(Blockchain):
-    def __init__(self, name, network='mainnet',
+    def __init__(self, name, network='mainnet', cluster=None,
                  image='gcr.io/hanzo-ai/geth:latest', command='/bin/geth',
                  args=None, datadir='/data', path='/data/geth/chaindata',
                  size=None, rpc=True, ws=True, rpcport=8545, wsport=8546,
@@ -230,7 +236,7 @@ class Ethereum(Blockchain):
                     '--maxpeers=50',
                 ])
 
-        super(Ethereum, self).__init__(name, 'ethereum', network, image,
+        super(Ethereum, self).__init__(name, cluster, 'ethereum', network, image,
                                        command, args, path, requests, limits)
 
     @classmethod
@@ -270,12 +276,46 @@ class Ethereum(Blockchain):
     def is_blockchain(cls, chain):
         return chain in ['ethereum', 'eth', 'geth']
 
+    @classmethod
+    def get_name(cls):
+        return "geth"
 
 class Bitcoin(Blockchain):
     def __init__(self, name, network, image, command, args, path,
                  resources=None, limits=None):
         super(Bitcoin, self).__init__(name, 'bitcoin', network, image, command,
                                       args, path, resources, limits)
+
+    @classmethod
+    def to_network_id(cls, network):
+        return {
+            'mainnet':  1,
+            'frontier': 1,
+            '1':        1,
+
+            'morden':   2,
+            '2':        2,
+
+            'testnet':  3,
+            'ropsten':  3,
+            '3':        3,
+
+            'rinkeby':  4,
+            '4':        4
+        }.get(str(network).lower())
+
+    @classmethod
+    def to_network(cls, network_id):
+        return {
+            1: 'mainnet',
+            2: 'testnet',
+        }.get(network_id)
+
+    @classmethod
+    def normalize_network(cls, network):
+        network_id = Ethereum.to_network_id(network)
+        network    = Ethereum.to_network(network_id)
+        return network, network_id
 
     @classmethod
     def is_blockchain(cls, chain):
