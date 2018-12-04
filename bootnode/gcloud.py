@@ -8,7 +8,6 @@ PROJECT = 'hanzo-ai'
 REGION  = 'us-central1'
 ZONE    = 'us-central1-a'
 
-
 def project_zone_from_disk(s):
     """
     Helper to pull project id and zone off a disk URI.
