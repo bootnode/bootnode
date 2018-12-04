@@ -97,6 +97,9 @@ def parser():
     create_cluster = subparsers.add_parser('create-cluster', help='Create a new cluster')
     create_cluster.set_defaults(command='create_cluster')
 
+    create_cluster = subparsers.add_parser('delete-cluster', help='Delete a cluster')
+    create_cluster.set_defaults(command='delete_cluster')
+
     list_clusters = subparsers.add_parser('clusters', help='List clusters')
     list_clusters.set_defaults(command='list_clusters')
 

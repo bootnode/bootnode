@@ -72,7 +72,9 @@ class Cluster(object):
         self.node_count         = obj['current_node_count']
         self.node_config        = obj['node_config']
         self.master_auth        = obj['master_auth']
-        self.maintenance_policy = obj['maintenance_policy']
+
+        # Not in the dict
+        # self.maintenance_policy = obj['maintenance_policy']
         self.locations          = obj['locations']
         self.instance_groupl    = obj['instance_group_urls']
 
