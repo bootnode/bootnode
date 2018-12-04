@@ -123,15 +123,21 @@ class Bootnode(object):
     # Cluster
     def create_cluster(self):
         """
-        Create a new cluster and pod for a specific chain on a specific network of that
+        Create a new cluster for a specific chain on a specific network of that
+        chain.  Ex. geth-mainnet
+        """
+
+        print(self.gcloud.create_cluster(self.cluster))
+
+    def delete_cluster(self):
+        """
+        Delete a cluster for a specific chain on a specific network of that
         chain.  Ex. geth-mainnet
         """
 
         chain_name = self.chain.get_name()
 
-        print(self.gcloud.create_cluster(chain_name, self.network))
-
-        self.create_pod()
+        print(self.gcloud.delete_cluster(self.network))
 
     def list_clusters(self):
         table(self.gcloud.list_clusters(), 'name', 'status', 'ip',

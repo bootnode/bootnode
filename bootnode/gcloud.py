@@ -351,6 +351,13 @@ class Gcloud(object):
         return service.projects().zones().clusters().create(projectId=self.project, zone=zone, body=body).execute()
         # self.gke_api.create_cluster(self.project, zone, cluster)
 
+    def delete_cluster(self, cluster_id, zone=None, retry=None, timeout=None):
+        credentials = GoogleCredentials.get_application_default()
+        service = discovery.build('container', 'v1', credentials=credentials)
+        return service.projects().zones().clusters().delete(projectId=self.project,
+                                                            zone=zone,
+                                                            clusterId=cluster_id).execute()
+
     # Clusters
     def list_clusters(self, project=None, zone=None, retry=None, timeout=None):
         """
