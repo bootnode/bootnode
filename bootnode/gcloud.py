@@ -284,6 +284,7 @@ class Gcloud(object):
         name = "{0}-{1}-{2}".format(pod.client, pod.network, pod.block_number())
         return self.snapshot_disk(pod.disk, name, pod_name=pod.name)
 
+    # Clusters
     def create_cluster(self, chain, network, zone=None, retry=None, timeout=None):
         """
         Creates a new GKE cluster using NEG.
@@ -354,13 +355,18 @@ class Gcloud(object):
         # self.gke_api.create_cluster(self.project, zone, cluster)
 
     def delete_cluster(self, cluster_id, zone=None, retry=None, timeout=None):
+        """
+        Deletes a specific cluster.
+        """
+        if not zone:
+            zone = self.zone
+
         credentials = GoogleCredentials.get_application_default()
         service = discovery.build('container', 'v1', credentials=credentials)
         return service.projects().zones().clusters().delete(projectId=self.project,
                                                             zone=zone,
                                                             clusterId=cluster_id).execute()
 
-    # Clusters
     def list_clusters(self, project=None, zone=None, retry=None, timeout=None):
         """
         Lists all clusters owned by a project in either the specified zone or
@@ -370,11 +376,18 @@ class Gcloud(object):
                 pbd(self.gke_api.list_clusters(self.project, self.zone, retry,
                                                timeout))['clusters']]
 
-    def get_cluster(self, cluster_id, zone, retry=None, timeout=None):
+    def get_cluster(self, cluster_id, zone=None, retry=None, timeout=None):
         """
         Gets the details of a specific cluster.
         """
-        return self.gke_api.list_clusters(self.project, zone, cluster_id, retry, timeout)
+        if not zone:
+            zone = self.zone
+
+        credentials = GoogleCredentials.get_application_default()
+        service = discovery.build('container', 'v1', credentials=credentials)
+        return service.projects().zones().clusters().get(projectId=self.project,
+                                                         zone=zone,
+                                                         clusterId=cluster_id).execute()
 
     # Misc operations
     def cancel_operation(self, operation_id, retry=None, timeout=None):

@@ -97,11 +97,14 @@ def parser():
     create_cluster = subparsers.add_parser('create-cluster', help='Create a new cluster')
     create_cluster.set_defaults(command='create_cluster')
 
-    create_cluster = subparsers.add_parser('delete-cluster', help='Delete a cluster')
-    create_cluster.set_defaults(command='delete_cluster')
+    delete_cluster = subparsers.add_parser('delete-cluster', help='Delete a cluster')
+    delete_cluster.set_defaults(command='delete_cluster')
 
     list_clusters = subparsers.add_parser('clusters', help='List clusters')
     list_clusters.set_defaults(command='list_clusters')
+
+    get_cluster = subparsers.add_parser('cluster', help='Get cluster')
+    get_cluster.set_defaults(command='get_cluster')
 
     # Scale up
     scale_up = subparsers.add_parser('scale-up', help='Scale up blockchain nodes')
