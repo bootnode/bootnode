@@ -1,6 +1,6 @@
 from .gcloud import Gcloud
 from .kubernetes import Kubernetes
-from .template import Ethereum
+from .template import Ethereum, Service, Ingress, Backend, Port
 from .table import table
 import secrets
 
@@ -10,15 +10,14 @@ class Bootnode(object):
     def __init__(self, chain, network):
         self.gcloud = Gcloud()
 
-        c = self.find_blockchain(chain)
+        self.chain = self.find_blockchain(chain)
+        self.network, id = self.chain.normalize_network(network)
 
         if c is None:
             raise Exception('Blockchain "" does not exist' % chain)
 
-        self.chain       = c
-        self.network, id = c.normalize_network(network)
-        self.cluster     = '{0}-{1}'.format(c.get_name(), network)
-        self.kube        = Kubernetes('config/{0}/cluster.yaml'.format(self.cluster))
+        self.cluster = '{0}-{1}'.format(c.get_name(), network)
+        self.kube    = Kubernetes('config/{0}/cluster.yaml'.format(self.cluster))
 
     # Disks
     def list_disks(self, network=None):
@@ -71,8 +70,11 @@ class Bootnode(object):
         name = "{0}-{1}-{2}".format(pod.client, pod.network, pod.block_number())
         print(self.gcloud.snapshot_disk(pod.disk, name, pod_name=pod.name))
 
-    # Pods
     def find_blockchain(self, chain):
+        """
+        Find constructor to use for given blockchain node, i.e. Ethereum()
+        which generates a config for `geth`.
+        """
         for blockchain in blockchains:
             if blockchain.is_blockchain(chain):
                 return blockchain
@@ -100,6 +102,40 @@ class Bootnode(object):
         # if not pool:
         #     self.kube.create_pool(network)
         print(self.kube.create_pod(config))
+
+    def create_load_balancer(self, name=None):
+        """
+        Create a new load balancer for a given set of pods.
+        """
+
+        service_name = self.cluster + '-svc'
+        ingress_name = self.cluster + '-ing'
+
+        service = Service(
+            metadata=Metadata(
+                name=service_name,
+                annotations={"cloud.google.com/neg": '{"ingress": true}'},
+            ),
+            spec=Spec(
+                selector={"run": self.cluster},
+                ports=[Port(port=80, protocol='TCP', targetPort=9376)])
+            ),
+        )
+
+        ingress = Ingress(
+            metadata=Metadata(
+                name=ingress_name,
+            ),
+            spec=Spec(
+                backend=Backend(
+                    serviceName=service_name,
+                    servicePort=80,
+                )
+            )
+        )
+
+        self.kube.create_service(service)
+        self.kube.create_ingress(ingress)
 
     def delete_pod(self, name):
         self.kube.delete_pod(name)

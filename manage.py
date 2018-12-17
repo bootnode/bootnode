@@ -106,6 +106,10 @@ def parser():
     get_cluster = subparsers.add_parser('cluster', help='Get cluster')
     get_cluster.set_defaults(command='get_cluster')
 
+    # Load balancers
+    create_load_balancer = subparsers.add_parser('create-load-balancer', help='Create a new load_balancer')
+    create_load_balancer.set_defaults(command='create_load_balancer')
+
     # Scale up
     scale_up = subparsers.add_parser('scale-up', help='Scale up blockchain nodes')
     scale_up.add_argument('network', help='Network to scale')

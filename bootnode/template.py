@@ -8,22 +8,24 @@ class Dict(dict):
 
 
 class Metadata(Dict):
-    def __init__(self, name='', cluster='', blockchain='', network=''):
+    def __init__(self, name='', cluster='', blockchain='', network='',
+            annoations=None):
         Dict.__init__(self, name=name, cluster=cluster, blockchain=blockchain, network=network)
-        self.name       = name
-        self.cluster    = cluster
-        self.blockchain = blockchain
-        self.network    = network
-
+        self.name        = name
+        self.cluster     = cluster
+        self.blockchain  = blockchain
+        self.network     = network
+        self.annotations = annotations
 
 class Spec(Dict):
-    def __init__(self, nodeSelector=None, containers=(), volumes=()):
-        Dict.__init__(self, nodeSelector=nodeSelector, containers=containers,
+    def __init__(self, containers=(), volumes=(), ports=(), selector=None,
+            backend=None):
+        Dict.__init__(self, selector=selector, containers=containers,
                       volumes=volumes)
-        self.__dict__ = self
-        self.nodeSelector = nodeSelector
-        self.containers   = containers
-        self.volumes      = volumes
+        self.containers = containers
+        self.selector   = selector
+        self.volumes    = volumes
+        self.backend    = backend
 
 
 class Resources(Dict):
@@ -81,6 +83,22 @@ class GcePersistentDisk(Dict):
         self.fsType = fsType
 
 
+class Backend(Dict):
+    def __init__(self, serviceName, servicePort):
+        Dict.__init__(self, serviceName=serviceName, servicePort=servicePort)
+        self.serviceName = serviceName
+        self.servicePort = servicePort
+
+
+class Port(Dict):
+    def __init__(self, port, protocol, targetPort):
+        Dict.__init__(self, port=port, protocol=protocol,
+                targetPort=targetPort)
+        self.port       = port
+        self.protocol   = protocol
+        self.targetPort = targetPort
+
+
 class Config(Dict):
     def __init__(self, apiVersion='v1', kind=None, metadata=Metadata(),
                  spec=Spec()):
@@ -90,6 +108,18 @@ class Config(Dict):
         self.kind       = kind
         self.metadata   = metadata
         self.spec       = spec
+
+
+class Ingress(Config):
+    def __init__(self, metadata=None, spec=None):
+        super(Ingress, self).__init__(apiVersion='extensions/v1beta1',
+                kind='Ingress', metadata=metadata, spec=spec)
+
+
+class Service(Config):
+    def __init__(self, metadata=None, spec=None):
+        super(Service, self).__init__(apiVersion='v1', kind='Service',
+                                  metadata=metadata, spec=spec)
 
 
 class Pod(Config):
@@ -115,8 +145,7 @@ class Blockchain(Pod):
 
         client = os.path.basename(command)
         self.spec = Spec(
-            # nodeSelector={"cloud.google.com/gke-nodepool": selector},
-            nodeSelector={},
+            selector={},
             containers=[],
             volumes=[],
         )
@@ -286,7 +315,8 @@ class Ethereum(Blockchain):
 
     @classmethod
     def get_name(cls):
-        return "geth"
+        return 'geth'
+
 
 class Bitcoin(Blockchain):
     def __init__(self, name, network, image, command, args, path,

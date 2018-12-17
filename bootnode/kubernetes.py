@@ -112,3 +112,9 @@ class Kubernetes(object):
         for pod in sorted(pods, key=lambda x: x.number):
             if not pod.syncing():
                 return pod
+
+    def create_service(self, config):
+        self.api.create_namespaced_service(POD_NAMESPACE, config)
+
+    def create_ingress(self, config):
+        self.api.create_namespaced_ingress(POD_NAMESPACE, config)
