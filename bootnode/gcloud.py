@@ -302,7 +302,7 @@ class Gcloud(object):
         body = {
             "cluster": {
                 "name": name,
-                "description": "Boonode created and managed cluster for {} chain, {} network".format(chain, network),
+                "description": "Bootnode created and managed cluster for {} chain, {} network".format(chain, network),
                 "nodePools": [{
                     "name": "default-pool",
                     "version": version,
