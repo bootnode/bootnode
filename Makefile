@@ -1,24 +1,31 @@
-sha1    := $(shell git rev-parse --short=8 HEAD)
-geth    := /bin/geth --datadir=/data
-net     ?= testnet
-cfg     := config/$(net)
-region  := us-central1
-zone    := us-central1-a
-number  ?= 657758440341
-node    ?= geth
+sha1    	:= $(shell git rev-parse --short=8 HEAD)
+geth    	:= /bin/geth --datadir=/data
+net     	?= testnet
+cfg     	:= config/$(net)
+region  	:= us-central1
+zone    	:= us-central1-a
+number  	?= 657758440341
+node    	?= geth
+project_id 	:= hanzo-ai
 
 export KUBECONFIG=config/$(node)-$(net)/cluster.yaml
 
 all: deploy
 
+# authenticate gcloud
+gcloud-auth:
+	gcloud auth application-default login
+	gcloud config set project $(project_id)
+
+#build image
 build:
 	gcloud builds submit \
-		-t gcr.io/hanzo-ai/geth:$(sha1) \
-		-t gcr.io/hanzo-ai/geth:latest \
+		-t gcr.io/$(project_id)/$(node):$(sha1) \
+		-t gcr.io/$(project_id)/$(node):latest \
 		geth
 
 deploy: build
-	kubectl set image deployment/geth-$(net) geth-$(net)=gcr.io/hanzo-ai/geth:$(sha1)
+	kubectl set image deployment/$(node)-$(net) $(node)-$(net)=gcr.io/$(project_id)/$(node):$(sha1)
 
 create: build create-volume create-pod
 
@@ -48,28 +55,28 @@ delete:
 	kubectl delete -f $(cfg)/pod.yaml || echo not running
 	kubectl delete -f $(cfg)/pvc.yaml || echo not running
 	kubectl delete -f $(cfg)/sc.yaml  || echo not running
-	gcloud compute disks delete --zone=$(zone) geth-$(net)-disk
+	gcloud compute disks delete --zone=$(zone) $(node)-$(net)-disk
 
 status:
 	kubectl get pods -o yaml
 
 logs:
-	kubectl logs geth-$(net)-$(number) -f
+	kubectl logs $(node)-$(net)-$(number) -f
 
 ssh:
-	kubectl exec -it geth-$(net)-$(number) -- /bin/bash
+	kubectl exec -it $(node)-$(net)-$(number) -- /bin/bash
 
 attach:
-	kubectl exec -it geth-$(net)-$(number) -- $(geth) attach
+	kubectl exec -it $(node)-$(net)-$(number) -- $(geth) attach
 
 nodeinfo:
-	kubectl exec -it geth-$(net)-$(number) -- $(geth) attach --exec 'admin.nodeInfo'
+	kubectl exec -it $(node)-$(net)-$(number) -- $(geth) attach --exec 'admin.nodeInfo'
 
 syncstatus:
-	kubectl exec -it geth-$(net)-$(number) -- $(geth) attach --exec 'eth.syncing'
+	kubectl exec -it $(node)-$(net)-$(number) -- $(geth) attach --exec 'eth.syncing'
 
 blocknumber:
-	kubectl exec -it geth-$(net)-$(number) -- $(geth) attach --exec 'eth.blockNumber'
+	kubectl exec -it $(node)-$(net)-$(number) -- $(geth) attach --exec 'eth.blockNumber'
 
 # Add secret for hanzo-ai gcr.io. This enables our cluster to pull images from
 # our shared image repo. This should only be run once after cluster creation.
@@ -79,7 +86,7 @@ add-gcr-key:
 
 # Get credentials for kubectl for current cluster
 get-credentials:
-	gcloud container clusters get-credentials $(node)-$(net) --zone $(zone) --project hanzo-ai
+	gcloud container clusters get-credentials $(node)-$(net) --zone $(zone) --project $(project_id)
 
 # Default to whatever zone you launched your cluster in to reduce key strokes
 region-zone-defaults:

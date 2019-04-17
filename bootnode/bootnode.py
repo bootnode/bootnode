@@ -13,10 +13,10 @@ class Bootnode(object):
         self.chain = self.find_blockchain(chain)
         self.network, id = self.chain.normalize_network(network)
 
-        if c is None:
+        if self.chain is None:
             raise Exception('Blockchain "" does not exist' % chain)
 
-        self.cluster = '{0}-{1}'.format(c.get_name(), network)
+        self.cluster = '{0}-{1}'.format(self.chain.get_name(), network)
         self.kube    = Kubernetes('config/{0}/cluster.yaml'.format(self.cluster))
 
     # Disks
@@ -118,7 +118,7 @@ class Bootnode(object):
             ),
             spec=Spec(
                 selector={"run": self.cluster},
-                ports=[Port(port=80, protocol='TCP', targetPort=9376)])
+                ports=[Port(port=80, protocol='TCP', targetPort=9376)]
             ),
         )
 
@@ -173,7 +173,7 @@ class Bootnode(object):
 
         chain_name = self.chain.get_name()
 
-        print(self.gcloud.delete_cluster(self.network))
+        print(self.gcloud.delete_cluster(self.cluster))
 
     def list_clusters(self):
         table(self.gcloud.list_clusters(), 'name', 'status', 'ip',

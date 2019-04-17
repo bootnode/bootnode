@@ -9,7 +9,7 @@ class Dict(dict):
 
 class Metadata(Dict):
     def __init__(self, name='', cluster='', blockchain='', network='',
-            annoations=None):
+            annotations=None):
         Dict.__init__(self, name=name, cluster=cluster, blockchain=blockchain, network=network)
         self.name        = name
         self.cluster     = cluster
