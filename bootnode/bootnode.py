@@ -1,6 +1,6 @@
 from .gcloud import Gcloud
 from .kubernetes import Kubernetes
-from .template import Ethereum, Service, Ingress, Backend, Port
+from .template import Ethereum, Service, Ingress, Backend, ServicePort
 from .table import table
 import secrets
 
@@ -94,7 +94,7 @@ class Bootnode(object):
             ),
             spec=Spec(
                 selector={"run": self.cluster},
-                ports=[Port(port=80, protocol='TCP', targetPort=9376)]
+                ports=[ServicePort(port=80, protocol='TCP', targetServicePort=9376)]
             ),
         )
 
@@ -105,7 +105,7 @@ class Bootnode(object):
             spec=Spec(
                 backend=Backend(
                     serviceName=service_name,
-                    servicePort=80,
+                    serviceServicePort=80,
                 )
             )
         )
@@ -162,7 +162,6 @@ class Bootnode(object):
         if not name:
             name = '{0}-{1}-{2}'.format(self.chain.get_name(), self.network, secrets.randbelow(1000000000000))
 
-        print('Creating deployment {0}'.format(name))
         config = self.chain(name, self.network, self.cluster)
 
         disk_name = config.spec.template.spec.volumes[0].gcePersistentDisk.pdName
@@ -175,9 +174,13 @@ class Bootnode(object):
         # pool = self.kube.get_pool(network)
         # if not pool:
         #     self.kube.create_pool(network)
+        print('Creating service for {0}'.format(name))
+        print(self.kube.create_service(config.get_service()))
+        print('Creating deployment for {0}'.format(name))
         print(self.kube.create_deployment(config))
 
     def delete_deployment(self, name):
+        self.kube.delete_service('service-' + name)
         self.kube.delete_deployment(name)
 
     def list_deployments(self, network=None):

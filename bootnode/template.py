@@ -15,6 +15,29 @@ class Selector(Dict):
         self.matchLabels = matchLabels
         self.match_expressions=[]
 
+class ExecAction(Dict):
+    def __init__(self, command=[]):
+        Dict.__init__(self, command=command)
+
+        self.command=command
+
+class Probe(Dict):
+    def __init__(self, exec=None, failureThreshold=3, initialDelaySeconds=10,
+            periodSeconds=10, successThreshold=1, timeoutSeconds=1):
+        Dict.__init__(self, exec=exec,
+                failureThreshold=failureThreshold,
+                initialDelaySeconds=initialDelaySeconds,
+                periodSeconds=periodSeconds,
+                successThreshold=successThreshold,
+                timeoutSeconds=timeoutSeconds)
+
+        self.exec=exec
+        self.failureThreshold=failureThreshold
+        self.initialDelaySeconds=initialDelaySeconds
+        self.periodSeconds=periodSeconds
+        self.successThreshold=successThreshold
+        self.timeoutSeconds=timeoutSeconds
+
 class Metadata(Dict):
     def __init__(self, name='', cluster='', blockchain='', network='',
             labels=None, annotations=None):
@@ -46,15 +69,18 @@ class Resources(Dict):
 
 class Container(Dict):
     def __init__(self, name, image, command, args, resources=None,
-                 volumeMounts=None):
+                 volumeMounts=None, livenessProbe=None, readinessProbe=None):
         Dict.__init__(self, name=name, image=image, command=command, args=args,
-                      resources=resources)
-        self.name         = name
-        self.image        = image
-        self.command      = command
-        self.args         = args
-        self.resources    = resources
-        self.volumeMounts = volumeMounts
+                      resources=resources, livenessProbe=livenessProbe,
+                      readinessProbe=readinessProbe)
+        self.name            = name
+        self.image           = image
+        self.command         = command
+        self.args            = args
+        self.resources       = resources
+        self.volumeMounts    = volumeMounts
+        self.livenessProbe   = livenessProbe
+        self.readinessProbe  = readinessProbe
 
 
 class Requests(Dict):
@@ -99,16 +125,19 @@ class Backend(Dict):
         self.servicePort = servicePort
 
 
-class Port(Dict):
-    def __init__(self, port, protocol, targetPort):
+class ServicePort(Dict):
+    def __init__(self, name=None, node_port=None, port=None, protocol='TCP',
+            targetPort=None):
         Dict.__init__(self, port=port, protocol=protocol,
                 targetPort=targetPort)
+        self.name       = name
+        self.node_port  = node_port
         self.port       = port
         self.protocol   = protocol
         self.targetPort = targetPort
 
 
-class PodTemplateSpec(Dict):
+class BaseTemplateSpec(Dict):
     def __init__(self, apiVersion='v1', kind=None, metadata=Metadata(),
                  spec=PodSpec()):
         Dict.__init__(self, apiVersion=apiVersion, kind=kind,
@@ -118,18 +147,47 @@ class PodTemplateSpec(Dict):
         self.metadata   = metadata
         self.spec       = spec
 
-class Ingress(PodTemplateSpec):
+class Ingress(BaseTemplateSpec):
     def __init__(self, metadata=None, spec=None):
         super(Ingress, self).__init__(apiVersion='extensions/extensions/v1beta1beta1',
                 kind='Ingress', metadata=metadata, spec=spec)
 
 
-class Service(PodTemplateSpec):
+class Service(BaseTemplateSpec):
     def __init__(self, metadata=None, spec=None):
-        super(Service, self).__init__(apiVersion='extensions/v1beta1', kind='Service',
+        super(Service, self).__init__(apiVersion='v1', kind='Service',
                                   metadata=metadata, spec=spec)
 
-class Pod(PodTemplateSpec):
+class ServiceSpec(Dict):
+    def __init__(self, clusterIp=None, externalIPs=None, externalName=None,
+            externalTrafficPolicy=None, healthCheckNodePort=None,
+            loadBalancerIp=None, loadBalancerSourceRanges=None, ports=None,
+            publishNotReadyAddresses=False, selector=Selector(),
+            sessionAffinity=None, sessionAffinityConfig=None, type='LoadBalancer'):
+        Dict.__init__(self, clusterIp=clusterIp,
+                externalIPs=externalIPs, externalName=externalName,
+                externalTrafficPolicy=externalTrafficPolicy,
+                healthCheckNodePort=healthCheckNodePort,
+                loadBalancerIp=loadBalancerIp,
+                loadBalancerSourceRanges=loadBalancerSourceRanges,
+                ports=ports, publishNotReadyAddresses=publishNotReadyAddresses,
+                selector=selector, sessionAffinity=sessionAffinity,
+                sessionAffinityConfig=sessionAffinityConfig, type=type)
+
+        self.externalIPs=externalIPs
+        self.externalName=externalName
+        self.externalTrafficPolicy=externalTrafficPolicy
+        self.healthCheckNodePort=healthCheckNodePort
+        self.loadBalancerIp=loadBalancerIp
+        self.loadBalancerSourceRanges=loadBalancerSourceRanges
+        self.ports=ports
+        self.publishNotReadyAddresses=publishNotReadyAddresses
+        self.selector=selector
+        self.sessionAffinity=sessionAffinity
+        self.sessionAffinityConfig=sessionAffinityConfig
+        self.type=type
+
+class Pod(BaseTemplateSpec):
     def __init__(self, metadata=None, spec=None):
         super(Pod, self).__init__(apiVersion='v1', kind='Pod',
                                   metadata=metadata, spec=spec)
@@ -142,36 +200,36 @@ class DeploymentStrategy(Dict):
 
 class DeploymentSpec(Dict):
     def __init__(self,
-                 min_ready_seconds=0,
+                 minReadySeconds=0,
                  paused=False,
-                 progress_deadline_seconds=600,
+                 progressDeadlineSeconds=600,
                  replicas=1,
-                 revision_history_limit=10,
+                 revisionHistoryLimit=10,
                  selector={},
                  strategy=DeploymentStrategy(),
-                 template=PodTemplateSpec()):
+                 template=BaseTemplateSpec()):
         Dict.__init__(self,
-                      min_ready_seconds=min_ready_seconds,
+                      minReadySeconds=minReadySeconds,
                       paused=paused,
-                      progress_deadline_seconds=progress_deadline_seconds,
+                      progressDeadlineSeconds=progressDeadlineSeconds,
                       replicas=replicas,
-                      revision_history_limit=revision_history_limit,
+                      revisionHistoryLimit=revisionHistoryLimit,
                       selector=selector,
                       strategy=strategy,
                       template=template)
 
-        self.min_ready_seconds          = min_ready_seconds
+        self.minReadySeconds            = minReadySeconds
         self.paused                     = paused
-        self.progress_deadline_seconds  = progress_deadline_seconds
+        self.progressDeadlineSeconds    = progressDeadlineSeconds
         self.replicas                   = replicas
-        self.revision_history_limit     = revision_history_limit
+        self.revisionHistoryLimit       = revisionHistoryLimit
         self.selector                   = selector
         self.strategy                   = strategy
         self.template                   = template
 
-class Deployment(PodTemplateSpec):
+class Deployment(BaseTemplateSpec):
     def __init__(self, metadata=None, spec=None):
-        super(Deployment, self).__init__(apiVersion='extensions/v1beta1', kind='Deployment',
+        super(Deployment, self).__init__(apiVersion='apps/v1', kind='Deployment',
                                   metadata=metadata, spec=spec)
 
 class Blockchain(Deployment):
@@ -198,7 +256,7 @@ class Blockchain(Deployment):
                 network=network)
 
         self.podMetadata = Metadata(
-                name=name,
+                name='pod-' + name,
                 cluster=cluster,
                 blockchain=blockchain,
                 network=network,
@@ -220,7 +278,7 @@ class Blockchain(Deployment):
                     'app': name
                 }
             ),
-            template=PodTemplateSpec(
+            template=BaseTemplateSpec(
                 metadata=self.podMetadata,
                 spec=self.podSpec,
             )
@@ -233,6 +291,16 @@ class Blockchain(Deployment):
             args=args,
             volumeMounts=[VolumeMount(mountPath=path, name=name + '-pv')],
             resources=Resources(),
+            readinessProbe=Probe(
+                exec=ExecAction(
+                    command=['./scripts/alive.sh']
+                )
+            ),
+            livenessProbe=Probe(
+                exec=ExecAction(
+                    command=['./scripts/alive.sh']
+                )
+            )
         )
 
         if requests:
@@ -255,6 +323,28 @@ class Blockchain(Deployment):
         # Create a PodSpec
         super(Blockchain, self).__init__(metadata=self.deploymentMetadata, spec=self.deploymentSpec)
 
+        self.name       = name
+        self.cluster    = cluster
+        self.blockchain = blockchain
+        self.network    = network
+
+    def get_service(self, ports):
+        return Service(
+            metadata=Metadata(
+                name='service-' + self.name,
+                cluster=self.cluster,
+                blockchain=self.blockchain,
+                network=self.network
+            ),
+            spec=ServiceSpec(
+                selector={
+                    'app': self.name
+                },
+                type='LoadBalancer',
+                ports=ports,
+            )
+        )
+
     @classmethod
     def to_network_id(cls, network):
         return 0
@@ -274,7 +364,6 @@ class Blockchain(Deployment):
     @classmethod
     def get_name(cls):
         return "none"
-
 
 class Ethereum(Blockchain):
     def __init__(self, name, network='mainnet', cluster=None,
@@ -302,6 +391,7 @@ class Ethereum(Blockchain):
                 args.extend([
                     '--rpc',
                     '--rpcaddr=0.0.0.0',
+                    '--rpcapi="eth,net,web3"',
                     '--rpcport={0}'.format(rpcport),
                     '--rpccorsdomain="{0}"'.format(rpccorsdomain),
                 ])
@@ -310,6 +400,7 @@ class Ethereum(Blockchain):
                 args.extend([
                     '--ws',
                     '--wsaddr=0.0.0.0',
+                    '--wsapi="eth,net,web3"',
                     '--wsport={0}'.format(wsport),
                     '--wsorigins="{0}"'.format(wsorigins),
                 ])
@@ -358,6 +449,29 @@ class Ethereum(Blockchain):
         super(Ethereum, self).__init__(name, cluster, 'ethereum', network, image,
                                        command, args, path, requests, limits)
 
+    def get_service(self):
+        ports = []
+        ports.append(
+            ServicePort(
+                name='rpc',
+                protocol='TCP',
+                port=8545,
+                targetPort=8545
+            ))
+        ports.append(
+            ServicePort(
+                name='ws',
+                protocol='TCP',
+                port=8546,
+                targetPort=8546
+            ))
+
+        print(ports)
+        service = super(Ethereum, self).get_service(ports)
+        print(service)
+
+        return service
+
     @classmethod
     def to_network_id(cls, network):
         return {
@@ -398,7 +512,6 @@ class Ethereum(Blockchain):
     @classmethod
     def get_name(cls):
         return 'geth'
-
 
 class Bitcoin(Blockchain):
     def __init__(self, name, network, image, command, args, path,

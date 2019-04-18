@@ -3,6 +3,7 @@ from kubernetes.stream import stream
 
 POD_NAMESPACE = 'default'
 DEPLOYMENT_NAMESPACE=POD_NAMESPACE
+SERVICE_NAMESPACE=POD_NAMESPACE
 
 class Node(object):
     def __init__(self, node, api=None):
@@ -76,13 +77,28 @@ class Kubernetes(object):
 
         config.load_kube_config(config_path)
         self.api = client.CoreV1Api()
-        self.extApi = client.ExtensionsV1beta1Api()
+        self.appsApi = client.AppsV1Api()
 
     def exec(self, pod_name, command, namespace=POD_NAMESPACE, stdin=False,
              stderr=True, stdout=True, tty=False):
         return stream(self.api.connect_get_namespaced_pod_exec, pod_name,
                       namespace, command=command, stdin=stdin, stderr=stderr,
                       stdout=stdout, tty=tty)
+
+    def create_service(self, config):
+        return self.api.create_namespaced_service(SERVICE_NAMESPACE, body=config)
+
+    def delete_service(self, name):
+        return self.api.delete_namespaced_service(name, SERVICE_NAMESPACE, body=client.V1DeleteOptions())
+
+    def list_services(self, network=None):
+        services = [service(p, self) for p in
+                self.api.list_namespaced_service(SERVICE_NAMESPACE).items]
+
+        if not network:
+            return services
+
+        return [p for p in services if p.network == network]
 
     def create_pod(self, config):
         return self.api.create_namespaced_pod(POD_NAMESPACE, body=config)
@@ -100,14 +116,14 @@ class Kubernetes(object):
         return [p for p in pods if p.network == network]
 
     def create_deployment(self, config):
-        return self.extApi.create_namespaced_deployment(DEPLOYMENT_NAMESPACE, body=config)
+        return self.appsApi.create_namespaced_deployment(DEPLOYMENT_NAMESPACE, body=config)
 
     def delete_deployment(self, name):
-        return self.extApi.delete_namespaced_deployment(name, DEPLOYMENT_NAMESPACE, body=client.V1DeleteOptions())
+        return self.appsApi.delete_namespaced_deployment(name, DEPLOYMENT_NAMESPACE, body=client.V1DeleteOptions())
 
     def list_deployments(self, network=None):
         deployments = [deployment(p, self) for p in
-                self.extApi.list_namespaced_deployment(DEPLOYMENT_NAMESPACE).items]
+                self.appsApi.list_namespaced_deployment(DEPLOYMENT_NAMESPACE).items]
 
         if not network:
             return deployments
@@ -128,9 +144,6 @@ class Kubernetes(object):
         for pod in sorted(pods, key=lambda x: x.number):
             if not pod.syncing():
                 return pod
-
-    def create_service(self, config):
-        self.api.create_namespaced_service(POD_NAMESPACE, config)
 
     def create_ingress(self, config):
         self.api.create_namespaced_ingress(POD_NAMESPACE, config)
