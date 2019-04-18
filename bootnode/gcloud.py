@@ -297,7 +297,7 @@ class Gcloud(object):
             zone = self.zone
 
         name = "{}-{}".format(chain, network)
-        version = "1.11.3-gke.18"
+        version = "1.12.6-gke.10"
 
         body = {
             "cluster": {

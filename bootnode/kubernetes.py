@@ -2,7 +2,7 @@ from kubernetes import client, config
 from kubernetes.stream import stream
 
 POD_NAMESPACE = 'default'
-
+DEPLOYMENT_NAMESPACE=POD_NAMESPACE
 
 class Node(object):
     def __init__(self, node, api=None):
@@ -76,6 +76,7 @@ class Kubernetes(object):
 
         config.load_kube_config(config_path)
         self.api = client.CoreV1Api()
+        self.extApi = client.ExtensionsV1beta1Api()
 
     def exec(self, pod_name, command, namespace=POD_NAMESPACE, stdin=False,
              stderr=True, stdout=True, tty=False):
@@ -97,6 +98,21 @@ class Kubernetes(object):
             return pods
 
         return [p for p in pods if p.network == network]
+
+    def create_deployment(self, config):
+        return self.extApi.create_namespaced_deployment(DEPLOYMENT_NAMESPACE, body=config)
+
+    def delete_deployment(self, name):
+        return self.extApi.delete_namespaced_deployment(name, DEPLOYMENT_NAMESPACE, body=client.V1DeleteOptions())
+
+    def list_deployments(self, network=None):
+        deployments = [deployment(p, self) for p in
+                self.extApi.list_namespaced_deployment(DEPLOYMENT_NAMESPACE).items]
+
+        if not network:
+            return deployments
+
+        return [p for p in deployments if p.network == network]
 
     def get_pod(self, name):
         for pod in self.list_pods():

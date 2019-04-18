@@ -79,30 +79,6 @@ class Bootnode(object):
             if blockchain.is_blockchain(chain):
                 return blockchain
 
-    def create_pod(self, name=None):
-        """
-        Create a new pod for a specific chain on a specific network of that
-        chain.  Ex. geth-mainnet
-        """
-
-        if not name:
-            name = '{0}-{1}-{2}'.format(self.chain.get_name(), self.network, secrets.randbelow(1000000000000))
-
-        print('Creating pod {0}'.format(name))
-        config = self.chain(name, self.network, self.cluster)
-
-        disk_name = config.spec.volumes[0].gcePersistentDisk.pdName
-        snap = self.gcloud.get_last_snapshot(self.network)
-        if snap:
-            snap.create_disk(disk_name)
-        else:
-            self.gcloud.create_disk(disk_name)
-
-        # pool = self.kube.get_pool(network)
-        # if not pool:
-        #     self.kube.create_pool(network)
-        print(self.kube.create_pod(config))
-
     def create_load_balancer(self, name=None):
         """
         Create a new load balancer for a given set of pods.
@@ -137,6 +113,31 @@ class Bootnode(object):
         self.kube.create_service(service)
         self.kube.create_ingress(ingress)
 
+
+    def create_pod(self, name=None):
+        """
+        Create a new pod for a specific chain on a specific network of that
+        chain.  Ex. geth-mainnet
+        """
+
+        if not name:
+            name = '{0}-{1}-{2}'.format(self.chain.get_name(), self.network, secrets.randbelow(1000000000000))
+
+        print('Creating pod {0}'.format(name))
+        config = self.chain(name, self.network, self.cluster).spec.template
+
+        disk_name = config.spec.volumes[0].gcePersistentDisk.pdName
+        snap = self.gcloud.get_last_snapshot(self.network)
+        if snap:
+            snap.create_disk(disk_name)
+        else:
+            self.gcloud.create_disk(disk_name)
+
+        # pool = self.kube.get_pool(network)
+        # if not pool:
+        #     self.kube.create_pool(network)
+        print(self.kube.create_pod(config))
+
     def delete_pod(self, name):
         self.kube.delete_pod(name)
 
@@ -152,6 +153,39 @@ class Bootnode(object):
     def get_synced_pod(self):
         table(self.kube.get_synced_pod(network=self.network), 'name', 'phase', 'block_number', 'ip')
 
+    def create_deployment(self, name=None):
+        """
+        Create a new deployment for a specific chain on a specific network of that
+        chain.  Ex. geth-mainnet
+        """
+
+        if not name:
+            name = '{0}-{1}-{2}'.format(self.chain.get_name(), self.network, secrets.randbelow(1000000000000))
+
+        print('Creating deployment {0}'.format(name))
+        config = self.chain(name, self.network, self.cluster)
+
+        disk_name = config.spec.template.spec.volumes[0].gcePersistentDisk.pdName
+        snap = self.gcloud.get_last_snapshot(self.network)
+        if snap:
+            snap.create_disk(disk_name)
+        else:
+            self.gcloud.create_disk(disk_name)
+
+        # pool = self.kube.get_pool(network)
+        # if not pool:
+        #     self.kube.create_pool(network)
+        print(self.kube.create_deployment(config))
+
+    def delete_deployment(self, name):
+        self.kube.delete_deployment(name)
+
+    def list_deployments(self, network=None):
+        table(self.kube.list_deployments(network=network), 'name', 'phase', 'block_number', 'ip')
+
+    def get_deployment(self, name):
+        table(self.kube.get_deployment(name), 'name', 'phase', 'ip')
+
     def get_block_number(self, name):
         pod = self.kube.get_pod(name)
         print(pod.block_number())
@@ -163,7 +197,7 @@ class Bootnode(object):
         chain.  Ex. geth-mainnet
         """
 
-        print(self.gcloud.create_cluster(self.cluster))
+        print(self.gcloud.create_cluster(self.chain.get_name(), self.network))
 
     def delete_cluster(self):
         """

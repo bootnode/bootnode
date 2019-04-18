@@ -3,12 +3,13 @@ geth    	:= /bin/geth --datadir=/data
 net     	?= testnet
 cfg     	:= config/$(net)
 region  	:= us-central1
-zone    	:= us-central1-a
+zone    	?= us-central1-a
 number  	?= 657758440341
 node    	?= geth
-project_id 	:= hanzo-ai
+project_id 	?= hanzo-ai
+pod			?= $(node)-$(net)-$(number)
 
-export KUBECONFIG=config/$(node)-$(net)/cluster.yaml
+# export KUBECONFIG=config/$(node)-$(net)/cluster.yaml
 
 all: deploy
 
@@ -16,6 +17,12 @@ all: deploy
 gcloud-auth:
 	gcloud auth application-default login
 	gcloud config set project $(project_id)
+
+# Get credentials for kubectl for current cluster
+get-credentials:
+	gcloud container clusters get-credentials $(node)-$(net) --zone $(zone) --project $(project_id)
+	@echo "KUBECONFIG=$(KUBECONFIG)" > kubeconfig
+	echo "`source kubeconfig` to update KUBECONFIG environemental variable"
 
 #build image
 build:
@@ -61,32 +68,28 @@ status:
 	kubectl get pods -o yaml
 
 logs:
-	kubectl logs $(node)-$(net)-$(number) -f
+	kubectl logs $(pod) -f
 
 ssh:
-	kubectl exec -it $(node)-$(net)-$(number) -- /bin/bash
+	kubectl exec -it $(pod) -- /bin/bash
 
 attach:
-	kubectl exec -it $(node)-$(net)-$(number) -- $(geth) attach
+	kubectl exec -it $(pod) -- $(geth) attach
 
 nodeinfo:
-	kubectl exec -it $(node)-$(net)-$(number) -- $(geth) attach --exec 'admin.nodeInfo'
+	kubectl exec -it $(pod) -- $(geth) attach --exec 'admin.nodeInfo'
 
 syncstatus:
-	kubectl exec -it $(node)-$(net)-$(number) -- $(geth) attach --exec 'eth.syncing'
+	kubectl exec -it $(pod) -- $(geth) attach --exec 'eth.syncing'
 
 blocknumber:
-	kubectl exec -it $(node)-$(net)-$(number) -- $(geth) attach --exec 'eth.blockNumber'
+	kubectl exec -it $(pod) -- $(geth) attach --exec 'eth.blockNumber'
 
 # Add secret for hanzo-ai gcr.io. This enables our cluster to pull images from
 # our shared image repo. This should only be run once after cluster creation.
 add-gcr-key:
 	kubectl create -f config/secret.yaml
 	kubectl patch serviceaccount default -p '{"imagePullSecrets": [{"name": "gcr-secret"}]}'
-
-# Get credentials for kubectl for current cluster
-get-credentials:
-	gcloud container clusters get-credentials $(node)-$(net) --zone $(zone) --project $(project_id)
 
 # Default to whatever zone you launched your cluster in to reduce key strokes
 region-zone-defaults:

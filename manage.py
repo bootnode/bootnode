@@ -93,6 +93,24 @@ def parser():
     get_block_number.add_argument('name', help='Name of pod')
     get_block_number.set_defaults(command='get_block_number')
 
+    # Deployments
+    create_deployment = subparsers.add_parser('create-deployment', help='Create deployment')
+    create_deployment.set_defaults(command='create_deployment')
+
+    delete_deployment = subparsers.add_parser('delete-deployment', help='Delete deployment')
+    delete_deployment.add_argument('name', help='Name of deployment')
+    delete_deployment.set_defaults(command='delete_deployment')
+
+    list_deployments = subparsers.add_parser('deployments', help='List deployments')
+    list_deployments.set_defaults(command='list_deployments')
+
+    get_deployment = subparsers.add_parser('deployment', help='Get deployment')
+    get_deployment.add_argument('name', help='Name of deployment')
+    get_deployment.set_defaults(command='get_deployment')
+
+    get_last_deployment = subparsers.add_parser('last-deployment', help='Last deployment')
+    get_last_deployment.set_defaults(command='get_last_deployment')
+
     # Clusters
     create_cluster = subparsers.add_parser('create-cluster', help='Create a new cluster')
     create_cluster.set_defaults(command='create_cluster')

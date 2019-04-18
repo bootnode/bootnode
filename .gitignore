@@ -1,3 +1,4 @@
 config/*/cluster.yaml
 *.pyc
 __pycache__
+kubeconfig
