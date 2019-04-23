@@ -9,7 +9,7 @@ node    	?= geth
 project_id 	?= hanzo-ai
 pod			?= $(node)-$(net)-$(number)
 
-# export KUBECONFIG=config/$(node)-$(net)/cluster.yaml
+export KUBECONFIG=config/$(node)-$(net)/cluster.yaml
 
 all: deploy
 
@@ -40,12 +40,14 @@ gcloud-get-credentials:
 #build image
 build:
 	gcloud builds submit \
+		--machine-type n1-highcpu-8 \
+		--timeout 30m \
 		-t gcr.io/$(project_id)/$(node):$(sha1) \
 		-t gcr.io/$(project_id)/$(node):latest \
-		geth
+		$(node)
 
-deploy: build
-	kubectl set image deployment/$(node)-$(net) $(node)-$(net)=gcr.io/$(project_id)/$(node):$(sha1)
+# deploy: build
+# 	kubectl set image deployment/$(node)-$(net) $(node)-$(net)=gcr.io/$(project_id)/$(node):$(sha1)
 
 ### KUBERNETES SPECIFIC COMMANDS ###
 

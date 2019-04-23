@@ -1,10 +1,10 @@
 from .gcloud import Gcloud
 from .kubernetes import Kubernetes
-from .template import Ethereum, Service, Ingress, Backend, ServicePort
+from .template import Ethereum, Casper, Service, Ingress, Backend, ServicePort
 from .table import table
 import secrets
 
-blockchains = [Ethereum]
+blockchains = [Ethereum, Casper]
 
 class Bootnode(object):
     def __init__(self, chain, network):
@@ -17,7 +17,10 @@ class Bootnode(object):
             raise Exception('Blockchain "" does not exist' % chain)
 
         self.cluster = '{0}-{1}'.format(self.chain.get_name(), network)
-        self.kube    = Kubernetes('config/{0}/cluster.yaml'.format(self.cluster))
+        try:
+            self.kube    = Kubernetes('config/{0}/cluster.yaml'.format(self.cluster))
+        except:
+            print("{0} is a new cluster".format(self.cluster))
 
     # Disks
     def list_disks(self, network=None):

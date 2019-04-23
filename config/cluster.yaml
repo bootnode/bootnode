@@ -1,26 +1,43 @@
 apiVersion: v1
 clusters:
 - cluster:
+    certificate-authority-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURDekNDQWZPZ0F3SUJBZ0lRRDBxMjZqb0F5WEdMbzQzNXJsK3UyREFOQmdrcWhraUc5dzBCQVFzRkFEQXYKTVMwd0t3WURWUVFERXlSa1pHUmtNek0xTUMxbFl6VTNMVFJrT1RJdE9EQXdaUzA1TnpZMVkySmtaalUwWVRVdwpIaGNOTVRrd05ESXlNVFV6T1RJM1doY05NalF3TkRJd01UWXpPVEkzV2pBdk1TMHdLd1lEVlFRREV5UmtaR1JrCk16TTFNQzFsWXpVM0xUUmtPVEl0T0RBd1pTMDVOelkxWTJKa1pqVTBZVFV3Z2dFaU1BMEdDU3FHU0liM0RRRUIKQVFVQUE0SUJEd0F3Z2dFS0FvSUJBUURPTkM0QzRYbGxIVWpjdjhnMkt4V0owYUg2cDcxb2x6bGI5SlQyeFFZRApkV0szZEgvOGJGdEptam5kbExuamdpaGh2allQMzR3NFk0OFZjODhya3Y0UDBoRERLK0RFeTVGeklaMWc3OUVqCnlwcWVQT3VsWFpBNW9vSXArYUU0OTJiSnRseVBIamttR296aVpjWmsyWXdIMFA0WDFVaDQzMFJuS1h0eTVFbEsKNzhWcWMxWlVHaThSWUZYV3JKczZaNmd2Wk15Wm0rUXNBRVFXVkFhMHNUbExEZ1Jrd3NpNnRWN1NlVFQycWw1NwoyMGZiREdqaFJUQ1Zuei9SUGRCYUJQV05obk1yazNyYUZlNGpvUitQTjVCejE1cDVObFlZN29qdldqWG00TTRNCmhkbkw5dHlZa0UraHNBdVZTM0JSUSttdmtRVU1zOEE3S3RkYml6dXdHNUlQQWdNQkFBR2pJekFoTUE0R0ExVWQKRHdFQi93UUVBd0lDQkRBUEJnTlZIUk1CQWY4RUJUQURBUUgvTUEwR0NTcUdTSWIzRFFFQkN3VUFBNElCQVFBbgpqdndmbWFyMEREWUtkd3BjWDE1WHNUUnJBU1JWdnFqOEZLZ0pkQVU2SVA5azFDaDlSREcvT0Npc2UycXVoVk9SCmhtVXBzMTVXRHZzK05sZmZJZE1GR1czT0daMHlhd1FucXRxeWtLNFhsaSszQUg1RHFEdUFJQlF1OHNTQnVUbjgKNUFOUDlLaHdUdjVHYjBlSjRNSEtlOTYrRTVwOXBIL3crY0VXRlM3VlRnM285eGlwR0Eya2lKV3VPQ2dMb0VvWgpVYlFGY2d2SHJnTkVhOEtlTHY2a0tNa3h2Y3BHUnpSam8yWi9hREZVZG9aWDJsOWJ2dGV6OENUdzlSeXV1SW1nCmd5Z0xEU2F4dy9QWnZGMXNyZVZUY0Q0T21sa1FLdFROS09QaG9oWEFGSXNKN3UvQjlnbUtmN1BMamQzcURVUEoKUmY1L0hvWVVDRkt0c0szUGJtdDkKLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+    server: https://35.184.239.41
+  name: gke_hanzo-ai_us-central1-a_casper-testnet
+- cluster:
     certificate-authority-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURERENDQWZTZ0F3SUJBZ0lSQUt1TkNnZEQwYVFSSlpIOUlMS3VrY1F3RFFZSktvWklodmNOQVFFTEJRQXcKTHpFdE1Dc0dBMVVFQXhNa1lXRTFaVGswWXpFdE9EZGtNeTAwWkdVMExUaGxaV010TnpsaE1tSTFaRE0wTmpWaApNQjRYRFRFNE1EUXdNakl4TkRRME5sb1hEVEl6TURRd01USXlORFEwTmxvd0x6RXRNQ3NHQTFVRUF4TWtZV0UxClpUazBZekV0T0Rka015MDBaR1UwTFRobFpXTXROemxoTW1JMVpETTBOalZoTUlJQklqQU5CZ2txaGtpRzl3MEIKQVFFRkFBT0NBUThBTUlJQkNnS0NBUUVBd0RWU01JTDBjVGt6bThWd1pnSDhTc3NRNFdWdWUyQXRHcGRicTV6VQpBRlBMWHFpUXFKUHVPUzBlYkt6WVhIYzlWMXdHdkg0M2phWnF2UXFNb1NMMlZRZzZTRGpaTDdVdmVYbUhxRUthCm9oV0VySGl2Nmp6TnBiYm1pRVQ5WEYzNDByTVVsUm5Pa25oY1VzWU9SWEhDdDRIZHNUUkR5NjhPUXRmdmx2RmsKei96UlpteHdFNFZYK1NIOVlRZ1ZVUUZBTExKVlNCSjBuZkpYczdlZUgrblNKMVp4TlVKTVZnbTZyQ3BsUzZtdQpyNUw2U2VpRWZpeGFmbGUyTTNlZXRWa3Q1cHZQL2lPckQ5VXV3ZW01ZWVXTGZPQ0RHcnk5RndqaFMvbUZIUXFtCjBBUnpySW1VSDdDemRReWhDTXdNLzNrZFBkMWZwbVVCRnUzOVExK0kyZVFpUFFJREFRQUJveU13SVRBT0JnTlYKSFE4QkFmOEVCQU1DQWdRd0R3WURWUjBUQVFIL0JBVXdBd0VCL3pBTkJna3Foa2lHOXcwQkFRc0ZBQU9DQVFFQQpHWW5IbGRjZ281VEpNVnNCeGw5bWlKZnJiaHAxUDExV1NFVkhraVdTY0lGc3U5Z3puNnRHOVZnQXZkK1pkT21zCmVJOHBHYXlkMmtqNGVCd1psaHRsMXYydytPR2dWSTA3U3Z0V2pTV0N0RGNaUTRYSGNTTTk4TGxKeCsySDkvRW4KMktUa0VBWG01Q1MyL3IrQ3QrZ1h5cld1bmJKYTRpa3FMNkNDTGlOdk1jbngzd0Fjc3BmK0hxd09kTjVNcWI0NAppRG1RTDVHejFVcGRCY010a20rOVdZdGRLZTNZQ2NqaWNPRXhTbUNjY2pzOGhMNXB0YWkxbXNMYngwZ1BGMElECmFRZTF2VE00SmNVeGd1cHhOcUxDaVo3TG1aejhob0s3K0d6RkptbSs0MHBCay9mSEo3OW05c0lFN1FrTXREeHAKYzlNRGdlSWRsTWxSRndWRzdBSTdQZz09Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
     server: https://35.188.203.215
   name: gke_hanzo-ai_us-central1-a_ethereum
 contexts:
 - context:
+    cluster: gke_hanzo-ai_us-central1-a_casper-testnet
+    user: gke_hanzo-ai_us-central1-a_casper-testnet
+  name: gke_hanzo-ai_us-central1-a_casper-testnet
+- context:
     cluster: gke_hanzo-ai_us-central1-a_ethereum
     user: gke_hanzo-ai_us-central1-a_ethereum
   name: gke_hanzo-ai_us-central1-a_ethereum
-current-context: gke_hanzo-ai_us-central1-a_ethereum
+current-context: gke_hanzo-ai_us-central1-a_casper-testnet
 kind: Config
 preferences: {}
 users:
+- name: gke_hanzo-ai_us-central1-a_casper-testnet
+  user:
+    auth-provider:
+      config:
+        cmd-args: config config-helper --format=json
+        cmd-path: /usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/bin/gcloud
+        expiry-key: '{.credential.token_expiry}'
+        token-key: '{.credential.access_token}'
+      name: gcp
 - name: gke_hanzo-ai_us-central1-a_ethereum
   user:
     auth-provider:
       config:
-        access-token: ya29.GlzvBgXYo06yvavGrjZyT92AR4rDO6GTF-Y33PDNrxVn2Xln4nL9l9sCdZP4Ua8xNGax44da-jO8LZl3AODMA62Sab1XMqg_oFEaQFiHOKfF4fKljfMAS6A2b_hTrA
+        access-token: ya29.GlzzBi8pofXKitZvlwuzKKT5e9XcNmM4RAOQ8v9C67Kic54hhJBCUpluIdsD-NV6lDOqupt2fPC0IeYDUbjRgmDaR_oNnTuleGNwGYXsov9w9vx82cge-OOHqxWO9A
         cmd-args: config config-helper --format=json
         cmd-path: /usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/bin/gcloud
-        expiry: 2019-04-18T17:42:21Z
+        expiry: 2019-04-22 16:53:11
         expiry-key: '{.credential.token_expiry}'
         token-key: '{.credential.access_token}'
       name: gcp

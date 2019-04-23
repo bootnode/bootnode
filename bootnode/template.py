@@ -368,7 +368,7 @@ class Blockchain(Deployment):
 class Ethereum(Blockchain):
     def __init__(self, name, network='mainnet', cluster=None,
                  image='gcr.io/hanzo-ai/geth:latest', command='/bin/geth',
-                 args=None, datadir='/data', path='/data/geth/chaindata',
+                 args=None, datadir='/data', path='./data/geth/chaindata',
                  size=None, rpc=True, ws=True, rpcport=8545, wsport=8546,
                  rpccorsdomain='*', wsorigins='*', requests=None, limits=None):
 
@@ -449,20 +449,23 @@ class Ethereum(Blockchain):
         super(Ethereum, self).__init__(name, cluster, 'ethereum', network, image,
                                        command, args, path, requests, limits)
 
+        this.rpcport=rpcport
+        this.wsport=wsport
+
     def get_service(self):
         ports = []
         ports.append(
             ServicePort(
                 name='rpc',
                 protocol='TCP',
-                port=8545,
+                port=self.rpcport,
                 targetPort=8545
             ))
         ports.append(
             ServicePort(
                 name='ws',
                 protocol='TCP',
-                port=8546,
+                port=self.wsport,
                 targetPort=8546
             ))
 
@@ -512,6 +515,124 @@ class Ethereum(Blockchain):
     @classmethod
     def get_name(cls):
         return 'geth'
+
+class Casper(Blockchain):
+    def __init__(self, name, network='mainnet', cluster=None, path='~/.casperlabs',
+                 image='gcr.io/hanzo-ai/casper:latest',
+                 command='/scripts/start.sh',
+                 grpcport=40401, serverport=40400, discoveryport=40404,
+                 bootstrapaddress=None,
+                 args=None, size=None, requests=None):
+
+        """
+        Takes Casper parameters and generates a DeploymentSpec json
+        """
+
+        # Normalize networks
+        network, network_id = Casper.normalize_network(network)
+
+        if args is None:
+            args = []
+                # '--grpc-port {0}'.format(grpcport),
+                # '--server-port {0}'.format(serverport),
+                # '--server-no-upnp',
+            # ]
+
+            if bootstrapaddress is None:
+                args.extend(['-s'])
+            else:
+                args.extend([
+                    '--server-bootstrap {0}'.format(bootstrapaddress),
+                ])
+
+            if size is None and requests is None:
+                if network is 'mainnet':
+                    size = 'medium'
+                elif network is 'testnet':
+                    size = 'medium'
+                else:
+                    size = 'small'
+
+            if size == 'small':
+                requests = Requests(cpu='2', memory='1Gi')
+                limits   = Limits(cpu='2',   memory='1536Mi')
+
+            elif size == 'medium':
+                requests = Requests(cpu='2', memory='2Gi')
+                limits   = Limits(cpu='2',   memory='2Gi')
+
+        # Generate a PodSpec
+        super(Casper, self).__init__(name, cluster, 'casper', network, image,
+                                       command, args, path, requests, limits)
+
+    def get_service(self):
+        ports = []
+        ports.append(
+            ServicePort(
+                name='grpc',
+                protocol='TCP',
+                port=40401,
+                targetPort=40401
+            ))
+        ports.append(
+            ServicePort(
+                name='server',
+                protocol='TCP',
+                port=40400,
+                targetPort=40400
+            ))
+        ports.append(
+            ServicePort(
+                name='discovery',
+                protocol='TCP',
+                port=40404,
+                targetPort=40404
+            ))
+
+        service = super(Casper, self).get_service(ports)
+
+        return service
+
+    @classmethod
+    def to_network_id(cls, network):
+        return {
+            'mainnet':  1,
+            'frontier': 1,
+            '1':        1,
+
+            'morden':   2,
+            '2':        2,
+
+            'testnet':  3,
+            'ropsten':  3,
+            '3':        3,
+
+            'rinkeby':  4,
+            '4':        4
+        }.get(str(network).lower())
+
+    @classmethod
+    def to_network(cls, network_id):
+        return {
+            1: 'mainnet',
+            2: 'morden',
+            3: 'testnet',
+            4: 'rinkeby'
+        }.get(network_id)
+
+    @classmethod
+    def normalize_network(cls, network):
+        network_id = Casper.to_network_id(network)
+        network    = Casper.to_network(network_id)
+        return network, network_id
+
+    @classmethod
+    def is_blockchain(cls, chain):
+        return chain in ['casper', 'cbc']
+
+    @classmethod
+    def get_name(cls):
+        return 'casper'
 
 class Bitcoin(Blockchain):
     def __init__(self, name, network, image, command, args, path,
