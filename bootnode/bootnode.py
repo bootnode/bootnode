@@ -20,7 +20,7 @@ class Bootnode(object):
         try:
             self.kube    = Kubernetes('config/{0}/cluster.yaml'.format(self.cluster))
         except:
-            print("{0} is a new cluster".format(self.cluster))
+            print('{0} is a new cluster'.format(self.cluster))
 
     # Disks
     def list_disks(self, network=None):
@@ -144,8 +144,11 @@ class Bootnode(object):
     def delete_pod(self, name):
         self.kube.delete_pod(name)
 
-    def list_pods(self, network=None):
-        table(self.kube.list_pods(network=network), 'name', 'phase', 'block_number', 'ip')
+    def list_pods(self, label_selector=None):
+        pods = self.kube.list_pods(label_selector=label_selector, network=self.network)
+        table(pods, 'name', 'status')
+
+        return pods
 
     def get_pod(self, name):
         table(self.kube.get_pod(name), 'name', 'phase', 'ip')
@@ -178,19 +181,48 @@ class Bootnode(object):
         # if not pool:
         #     self.kube.create_pool(network)
         print('Creating service for {0}'.format(name))
-        print(self.kube.create_service(config.get_service()))
+        service = self.kube.create_service(config.get_service())
         print('Creating deployment for {0}'.format(name))
-        print(self.kube.create_deployment(config))
+        deployment = self.kube.create_deployment(config)
+
+        return {
+            'service': service,
+            'deployment': deployment,
+        }
 
     def delete_deployment(self, name):
         self.kube.delete_service('service-' + name)
         self.kube.delete_deployment(name)
 
     def list_deployments(self, network=None):
-        table(self.kube.list_deployments(network=network), 'name', 'phase', 'block_number', 'ip')
+        if network is None:
+            network = self.network
+
+        deployments = self.kube.list_deployments(network=network)
+        table(deployments, 'name')
+
+        return deployments
 
     def get_deployment(self, name):
-        table(self.kube.get_deployment(name), 'name', 'phase', 'ip')
+        deployment = self.kube.get_deployment(name)
+        table([deployment], 'name')
+
+        return deployment
+
+    def list_services(self, network=None):
+        if network is None:
+            network = self.network
+
+        services = self.kube.list_services(network=network)
+        table(services, 'name', 'ip', 'ports')
+
+        return services
+
+    def get_service(self, name):
+        service = self.kube.get_service('service-' + name)
+        table([service], 'name', 'ip', 'ports')
+
+        return service
 
     def get_block_number(self, name):
         pod = self.kube.get_pod(name)

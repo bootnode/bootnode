@@ -253,7 +253,12 @@ class Blockchain(Deployment):
                 name=name,
                 cluster=cluster,
                 blockchain=blockchain,
-                network=network)
+                network=network,
+                labels={
+                    'cluster': cluster,
+                    'blockchain': blockchain,
+                    'network': network,
+                })
 
         self.podMetadata = Metadata(
                 name='pod-' + name,
@@ -517,7 +522,7 @@ class Ethereum(Blockchain):
         return 'geth'
 
 class Casper(Blockchain):
-    def __init__(self, name, network='mainnet', cluster=None, path='~/.casperlabs',
+    def __init__(self, name, network='mainnet', cluster=None, path='/.casperlabs',
                  image='gcr.io/hanzo-ai/casper:latest',
                  command='/scripts/start.sh',
                  grpcport=40401, serverport=40400, discoveryport=40404,
