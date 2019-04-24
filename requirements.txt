@@ -5,3 +5,7 @@ tabulate
 protobuf3-to-dict
 google-cloud-container
 oauth2client
+flask
+flast_restful
+functools
+waitress

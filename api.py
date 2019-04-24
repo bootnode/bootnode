@@ -1,4 +1,5 @@
-from flask import Flask
+from functools import wraps
+from flask import Flask, request
 from flask_restful import Resource, Api
 from bootnode import Bootnode
 
@@ -40,38 +41,66 @@ def convert_to_nodes(deployments, services, pods):
 
     return nodes
 
+def auth_required(fn):
+    @wraps(fn)
+    def wrapped_fn(*args, **kwargs):
+        print(request.headers.get('Authorization'))
+        if request.headers.get('Authorization') != 'Bearer fLcLu7OLD81aR9jf':
+            return {
+                'status': 'failed',
+                'error': 'authorization required',
+            }
+        return fn(*args, **kwargs)
+    return wrapped_fn
+
 class Nodes(Resource):
+    @auth_required
     def get(self):
-        bootnode = Bootnode('casper', 'testnet')
+        try:
+            bootnode = Bootnode('casper', 'testnet')
 
-        deployments = [d.to_dict() for d in bootnode.list_deployments()]
-        services = [s.to_dict() for s in bootnode.list_services()]
-        pods = [p.to_dict() for p in bootnode.list_pods()]
+            deployments = [d.to_dict() for d in bootnode.list_deployments()]
+            services = [s.to_dict() for s in bootnode.list_services()]
+            pods = [p.to_dict() for p in bootnode.list_pods()]
 
-        return convert_to_nodes(deployments, services, pods)
+            return convert_to_nodes(deployments, services, pods)
+        except:
+            return []
 
+    @auth_required
     def put(self):
-        bootnode = Bootnode('casper', 'testnet')
+        try:
+            bootnode = Bootnode('casper', 'testnet')
 
-        ret = bootnode.create_deployment()
-        return Node().get(ret['deployment'].metadata.name)
+            ret = bootnode.create_deployment()
+            return Node().get(ret['deployment'].metadata.name)
+        except:
+             return {
+                'status': 'failed',
+                'error': 'could not create a node',
+            }
 
 class Node(Resource):
+    @auth_required
     def get(self, node_id):
-        bootnode = Bootnode('casper', 'testnet')
-
-        print(node_id)
-
-        deployment = bootnode.get_deployment(node_id)
-        service = bootnode.get_service(node_id)
-        pods = [p.to_dict() for p in bootnode.list_pods(label_selector='app=' + node_id)]
-
-        return convert_to_nodes([deployment.to_dict()], [service.to_dict()], pods)
-
-    def delete(self, node_id):
-        bootnode = Bootnode('casper', 'testnet')
-
         try:
+            bootnode = Bootnode('casper', 'testnet')
+
+            deployment = bootnode.get_deployment(node_id)
+            service = bootnode.get_service(node_id)
+            pods = [p.to_dict() for p in bootnode.list_pods(label_selector='app=' + node_id)]
+
+            return convert_to_nodes([deployment.to_dict()], [service.to_dict()], pods)
+        except:
+             return {
+                'status': 'failed',
+                'error': 'node not found',
+            }
+
+    @auth_required
+    def delete(self, node_id):
+        try:
+            bootnode = Bootnode('casper', 'testnet')
             bootnode.delete_deployment(node_id)
             return {
                 'status': 'ok',
@@ -79,6 +108,7 @@ class Node(Resource):
         except:
             return {
                 'status': 'failed',
+                'error': 'could not delete',
             }
 
 api.add_resource(Nodes, '/nodes')

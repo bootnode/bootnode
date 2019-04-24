@@ -105,3 +105,6 @@ blocknumber:
 # Run Server
 serve:
 	python api.py
+
+serve-prod:
+	python app.py
