@@ -6,6 +6,5 @@ protobuf3-to-dict
 google-cloud-container
 oauth2client
 flask
-flast_restful
-functools
+flask_restful
 waitress
