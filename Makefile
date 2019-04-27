@@ -102,6 +102,9 @@ syncstatus:
 blocknumber:
 	kubectl exec -it $(pod) -- $(geth) attach --exec 'eth.blockNumber'
 
+deps:
+	pip install - ./requirements.txt
+
 # Run Server
 serve:
 	python api.py

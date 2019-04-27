@@ -7,4 +7,7 @@ google-cloud-container
 oauth2client
 flask
 flask_restful
+flask_cors
+functools
+>>>>>>> add cors
 waitress
