@@ -23,7 +23,7 @@ def convert_to_nodes(deployments, services, pods):
         })
 
     for s in services:
-        i = nodesById[s['name']]
+        i = nodesById.get(s['name'])
 
         if i is not None:
             nodes[i]['ip'] = s['ip']
@@ -32,7 +32,7 @@ def convert_to_nodes(deployments, services, pods):
             print('{0} does not exist'.format(s.name))
 
     for p in pods:
-        i = nodesById['{0}-{1}-{2}'.format(p['blockchain'], p['network'], p['number'])]
+        i = nodesById.get('{0}-{1}-{2}'.format(p['blockchain'], p['network'], p['number']))
 
         if i is not None:
             nodes[i]['instances'].append({
@@ -67,8 +67,12 @@ class Nodes(Resource):
             pods = [p.to_dict() for p in bootnode.list_pods()]
 
             return convert_to_nodes(deployments, services, pods)
-        except:
-            return []
+        except Exception as e:
+            print(e.message, e.args)
+            return {
+                'status': 'failed',
+                'error': e.message,
+            }
 
     @auth_required
     def put(self):

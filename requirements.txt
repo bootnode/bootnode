@@ -8,5 +8,4 @@ oauth2client
 flask
 flask_restful
 flask_cors
-functools
 waitress
