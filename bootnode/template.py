@@ -105,10 +105,12 @@ class VolumeMount(Dict):
 
 
 class Volume(Dict):
-    def __init__(self, name, gcePersistentDisk):
-        Dict.__init__(self, name=name, gcePersistentDisk=gcePersistentDisk)
+    def __init__(self, name, gcePersistentDisk, emptyDir = None):
+        Dict.__init__(self, name=name, gcePersistentDisk=gcePersistentDisk,
+                emptyDir=emptyDir)
         self.name              = name
         self.gcePersistentDisk = gcePersistentDisk
+        self.emptyDir          = emptyDir
 
 
 class GcePersistentDisk(Dict):
@@ -117,6 +119,11 @@ class GcePersistentDisk(Dict):
         self.pdName = pdName
         self.fsType = fsType
 
+class EmptyDir(Dict):
+    def __init__(self, medium='', sizeLimit='10gb'):
+        Dict.__init__(self, medium=medium, sizeLimit=sizeLimit)
+        self.medium = medium
+        self.sizeLimit = sizeLimit
 
 class Backend(Dict):
     def __init__(self, serviceName, servicePort):
@@ -554,13 +561,13 @@ class Casper(Blockchain):
                 if network is 'mainnet':
                     size = 'medium'
                 elif network is 'testnet':
-                    size = 'medium'
+                    size = 'small'
                 else:
                     size = 'small'
 
             if size == 'small':
-                requests = Requests(cpu='2', memory='1Gi')
-                limits   = Limits(cpu='2',   memory='1536Mi')
+                requests = Requests(cpu='1', memory='1Gi')
+                limits   = Limits(cpu='1',   memory='1Gi')
 
             elif size == 'medium':
                 requests = Requests(cpu='2', memory='2Gi')

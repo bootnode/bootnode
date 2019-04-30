@@ -310,14 +310,14 @@ class Gcloud(object):
                     "autoscaling": {
                         "enabled": True,
                         "minNodeCount": 1,
-                        "maxNodeCount": 10,
+                        "maxNodeCount": 100,
                     },
                     "management": {
                         "autoRepair": True,
                         "autoUpgrade": True,
                     },
                     "config": {
-                        "machineType": "n1-standard-4",
+                        "machineType": "n1-standard-8",
                         "diskSizeGb": 100,
                         "diskType": "pd-ssd",
                         "minCpuPlatform": "Intel Skylake",
