@@ -73,6 +73,11 @@ class Nodes(Resource):
                 'status': 'failed',
                 'error': e.message,
             }
+        except:
+            return {
+                'status': 'failed',
+                'error': 'unknown',
+            }
 
     @auth_required
     def put(self):
@@ -85,6 +90,11 @@ class Nodes(Resource):
              return {
                 'status': 'failed',
                 'error': 'could not create a node: ' + e.message,
+            }
+        except:
+             return {
+                'status': 'failed',
+                'error': 'could not create a node'
             }
 
 class Node(Resource):
@@ -103,6 +113,11 @@ class Node(Resource):
                 'status': 'failed',
                 'error': 'node not found: ' + e.message,
             }
+        except:
+             return {
+                'status': 'failed',
+                'error': 'node not found'
+            }
 
     @auth_required
     def delete(self, node_id):
@@ -116,6 +131,11 @@ class Node(Resource):
             return {
                 'status': 'failed',
                 'error': 'could not delete: ' + e.message,
+            }
+        except:
+             return {
+                'status': 'failed',
+                'error': 'could not delete'
             }
 
 api.add_resource(Nodes, '/nodes')
