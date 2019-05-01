@@ -196,11 +196,11 @@ class Bootnode(object):
         try:
             self.kube.delete_service('service-' + name)
         except Exception as e:
-            print 'warning: ' + e.message
+            print('warning: ' + e.message)
         try:
             self.kube.delete_persistent_volume_claim(name+'-pd')
         except Exception as e:
-            print 'warning: ' + e.message
+            print('warning: ' + e.message)
         self.kube.delete_deployment(name)
 
     def list_deployments(self, network=None):
