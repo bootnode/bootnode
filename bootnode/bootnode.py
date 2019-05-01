@@ -193,8 +193,12 @@ class Bootnode(object):
         }
 
     def delete_deployment(self, name):
-        self.kube.delete_service('service-' + name)
-        self.kube.delete_persistent_volume_claim(name+'-pd')
+        try:
+            self.kube.delete_service('service-' + name)
+        except:
+        try:
+            self.kube.delete_persistent_volume_claim(name+'-pd')
+        except:
         self.kube.delete_deployment(name)
 
     def list_deployments(self, network=None):
