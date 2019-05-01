@@ -120,7 +120,7 @@ class GcePersistentDisk(Dict):
         self.fsType = fsType
 
 class EmptyDir(Dict):
-    def __init__(self, medium='', sizeLimit='10gb'):
+    def __init__(self, medium='', sizeLimit='10Gi'):
         Dict.__init__(self, medium=medium, sizeLimit=sizeLimit)
         self.medium = medium
         self.sizeLimit = sizeLimit
@@ -159,6 +159,22 @@ class Ingress(BaseTemplateSpec):
         super(Ingress, self).__init__(apiVersion='extensions/extensions/v1beta1beta1',
                 kind='Ingress', metadata=metadata, spec=spec)
 
+
+class PersistentVolumeClaim(BaseTemplateSpec):
+    def __init__(self, metadata=None, spec=None):
+        super(PersistentVolumeClaim, self).__init__(apiVersion='v1', kind='PersistentVolumeClaim', metadata=metadata, spec=spec)
+
+class PersistentVolumeClaimSpec(Dict):
+    def __init__(self, accessModes=['ReadWriteOnce'], resources=None,
+                 selector=None):
+        Dict.__init__(self, accessModes=accessModes,
+                resources=resources, selector=selector)
+
+class ResourceRequirements(Dict):
+    def __init__(self, requests={'storage': '10Gi'},
+                 limits=None):
+        Dict.__init__(self, requests=requests,
+                limits=limits)
 
 class Service(BaseTemplateSpec):
     def __init__(self, metadata=None, spec=None):
@@ -357,6 +373,23 @@ class Blockchain(Deployment):
             )
         )
 
+    def get_volume_claim(self, size='10Gi'):
+        return PersistentVolumeClaim(
+            metadata=Metadata(
+                name=self.name + '-pv',
+                cluster=self.cluster,
+                blockchain=self.blockchain,
+                network=self.network
+            ),
+            spec=PersistentVolumeClaimSpec(
+                resources=ResourceRequirements(
+                    requests={
+                        'storage': size,
+                    },
+                )
+            )
+        )
+
     @classmethod
     def to_network_id(cls, network):
         return 0
@@ -486,6 +519,23 @@ class Ethereum(Blockchain):
         print(service)
 
         return service
+
+    def get_volume_claim(self, size='100Gi'):
+        return PersistentVolumeClaim(
+            metadata=Metadata(
+                name=self.name + '-pv',
+                cluster=self.cluster,
+                blockchain=self.blockchain,
+                network=self.network
+            ),
+            spec=PersistentVolumeClaimSpec(
+                resources=ResourceRequirements(
+                    requests={
+                        'storage': size,
+                    },
+                )
+            )
+        )
 
     @classmethod
     def to_network_id(cls, network):

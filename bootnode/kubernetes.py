@@ -156,6 +156,12 @@ class Kubernetes(object):
                       namespace, command=command, stdin=stdin, stderr=stderr,
                       stdout=stdout, tty=tty)
 
+    def create_volume(self, config):
+        return self.api.create_namespaced_persistent_volume_claim(NAMESPACE, body=config)
+
+    def delete_volume(self, name):
+        return self.api.delete_namespaced_persistent_volume_claim(name, NAMESPACE, body=client.V1DeleteOptions())
+
     def create_service(self, config):
         return self.api.create_namespaced_service(NAMESPACE, body=config)
 

@@ -182,6 +182,8 @@ class Bootnode(object):
         #     self.kube.create_pool(network)
         print('Creating service for {0}'.format(name))
         service = self.kube.create_service(config.get_service())
+        print('Creating volume for {0}'.format(name))
+        service = self.kube.create_volume(config.get_volume_claim())
         print('Creating deployment for {0}'.format(name))
         deployment = self.kube.create_deployment(config)
 
@@ -192,6 +194,7 @@ class Bootnode(object):
 
     def delete_deployment(self, name):
         self.kube.delete_service('service-' + name)
+        self.kube.delete_persistent_volume_claim(name+'-pv')
         self.kube.delete_deployment(name)
 
     def list_deployments(self, network=None):

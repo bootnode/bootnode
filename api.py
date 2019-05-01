@@ -29,7 +29,7 @@ def convert_to_nodes(deployments, services, pods):
             nodes[i]['ip'] = s['ip']
             nodes[i]['ports'] = s['ports']
         else:
-            print('{0} does not exist'.format(s.name))
+            print('{0} does not exist'.format(s['name']))
 
     for p in pods:
         i = nodesById.get('{0}-{1}-{2}'.format(p['blockchain'], p['network'], p['number']))
