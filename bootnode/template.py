@@ -105,13 +105,21 @@ class VolumeMount(Dict):
 
 
 class Volume(Dict):
-    def __init__(self, name, gcePersistentDisk, emptyDir = None):
-        Dict.__init__(self, name=name, gcePersistentDisk=gcePersistentDisk,
-                emptyDir=emptyDir)
+    def __init__(self, name, gcePersistentDisk=None, persistentVolumeClaim=None, emptyDir = None):
+        Dict.__init__(self,
+                    name=name,
+                    gcePersistentDisk=gcePersistentDisk,
+                    persistentVolumeClaim=persistentVolumeClaim,
+                    emptyDir=emptyDir)
         self.name              = name
         self.gcePersistentDisk = gcePersistentDisk
+        self.persistentVolumeClaim = persistentVolumeClaim
         self.emptyDir          = emptyDir
 
+class PersistentVolumeClaim(Dict):
+    def __init__(self, claimName):
+        Dict.__init__(self, claimName=claimName)
+        self.claimName = claimName
 
 class GcePersistentDisk(Dict):
     def __init__(self, pdName, fsType):
@@ -340,9 +348,8 @@ class Blockchain(Deployment):
 
         volume = Volume(
             name=name + '-pv',
-            gcePersistentDisk=GcePersistentDisk(
-                pdName=name + '-pd',
-                fsType='ext4',
+            persistentVolumeClaim=PersistentVolumeClaim(
+                claimName=name + '-pd'
             )
         )
 
