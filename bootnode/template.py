@@ -376,7 +376,7 @@ class Blockchain(Deployment):
     def get_volume_claim(self, size='10Gi'):
         return PersistentVolumeClaim(
             metadata=Metadata(
-                name=self.name + '-pv',
+                name=self.name + '-pd',
                 cluster=self.cluster,
                 blockchain=self.blockchain,
                 network=self.network
