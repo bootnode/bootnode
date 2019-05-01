@@ -170,12 +170,12 @@ class Bootnode(object):
 
         config = self.chain(name, self.network, self.cluster)
 
-        disk_name = config.spec.template.spec.volumes[0].gcePersistentDisk.pdName
-        snap = self.gcloud.get_last_snapshot(self.network)
-        if snap:
-            snap.create_disk(disk_name)
-        else:
-            self.gcloud.create_disk(disk_name)
+        # disk_name = config.spec.template.spec.volumes[0].gcePersistentDisk.pdName
+        # snap = self.gcloud.get_last_snapshot(self.network)
+        # if snap:
+        #     snap.create_disk(disk_name)
+        # else:
+        #     self.gcloud.create_disk(disk_name)
 
         # pool = self.kube.get_pool(network)
         # if not pool:

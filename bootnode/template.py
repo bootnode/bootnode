@@ -116,7 +116,7 @@ class Volume(Dict):
         self.persistentVolumeClaim = persistentVolumeClaim
         self.emptyDir          = emptyDir
 
-class PersistentVolumeClaim(Dict):
+class PersistentVolumeClaimVolume(Dict):
     def __init__(self, claimName):
         Dict.__init__(self, claimName=claimName)
         self.claimName = claimName
@@ -348,7 +348,7 @@ class Blockchain(Deployment):
 
         volume = Volume(
             name=name + '-pv',
-            persistentVolumeClaim=PersistentVolumeClaim(
+            persistentVolumeClaim=PersistentVolumeClaimVolume(
                 claimName=name + '-pd'
             )
         )
