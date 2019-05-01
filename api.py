@@ -81,10 +81,10 @@ class Nodes(Resource):
 
             ret = bootnode.create_deployment()
             return Node().get(ret['deployment'].metadata.name)
-        except:
+        except Exception as e:
              return {
                 'status': 'failed',
-                'error': 'could not create a node',
+                'error': 'could not create a node: ' + e.message,
             }
 
 class Node(Resource):
@@ -98,10 +98,10 @@ class Node(Resource):
             pods = [p.to_dict() for p in bootnode.list_pods(label_selector='app=' + node_id)]
 
             return convert_to_nodes([deployment.to_dict()], [service.to_dict()], pods)
-        except:
-             return {
+        except Exception as e:
+            return {
                 'status': 'failed',
-                'error': 'node not found',
+                'error': 'node not found: ' + e.message,
             }
 
     @auth_required
@@ -112,10 +112,10 @@ class Node(Resource):
             return {
                 'status': 'ok',
             }
-        except:
+        except Exception as e:
             return {
                 'status': 'failed',
-                'error': 'could not delete',
+                'error': 'could not delete: ' + e.message,
             }
 
 api.add_resource(Nodes, '/nodes')
