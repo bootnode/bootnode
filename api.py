@@ -71,12 +71,7 @@ class Nodes(Resource):
             print(e.message, e.args)
             return {
                 'status': 'failed',
-                'error': e.message,
-            }
-        except:
-            return {
-                'status': 'failed',
-                'error': 'unknown',
+                'error': + (e.message if e is not None else 'unknown'),
             }
 
     @auth_required
@@ -89,12 +84,7 @@ class Nodes(Resource):
         except Exception as e:
              return {
                 'status': 'failed',
-                'error': 'could not create a node: ' + e.message,
-            }
-        except:
-             return {
-                'status': 'failed',
-                'error': 'could not create a node'
+                'error': 'could not create a node' + (': ' +e.message if e is not None else ''),
             }
 
 class Node(Resource):
@@ -111,12 +101,7 @@ class Node(Resource):
         except Exception as e:
             return {
                 'status': 'failed',
-                'error': 'node not found: ' + e.message,
-            }
-        except:
-             return {
-                'status': 'failed',
-                'error': 'node not found'
+                'error': 'node not found' + (': ' +e.message if e is not None else ''),
             }
 
     @auth_required
@@ -130,12 +115,7 @@ class Node(Resource):
         except Exception as e:
             return {
                 'status': 'failed',
-                'error': 'could not delete: ' + e.message,
-            }
-        except:
-             return {
-                'status': 'failed',
-                'error': 'could not delete'
+                'error': 'could not delete' + (': ' +e.message if e is not None else ''),
             }
 
 api.add_resource(Nodes, '/nodes')
