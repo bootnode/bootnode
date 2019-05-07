@@ -7,16 +7,19 @@ import secrets
 blockchains = [Ethereum, Casper]
 
 class Bootnode(object):
-    def __init__(self, chain, network):
+    def __init__(self, chain, network, zone):
         self.gcloud = Gcloud()
 
         self.chain = self.find_blockchain(chain)
         self.network, id = self.chain.normalize_network(network)
+        self.zone = zone
 
         if self.chain is None:
             raise Exception('Blockchain "" does not exist' % chain)
 
-        self.cluster = '{0}-{1}'.format(self.chain.get_name(), network)
+        self.cluster = '{0}-{1}-{2}'.format(self.chain.get_name(),
+                                            network,
+                                            zone)
         try:
             self.kube    = Kubernetes('config/{0}/cluster.yaml'.format(self.cluster))
         except:
@@ -195,12 +198,14 @@ class Bootnode(object):
     def delete_deployment(self, name):
         try:
             self.kube.delete_service('service-' + name)
-        except:
-            print('warning: could not delete service')
+        except Exception as e:
+            print('warning: could not delete service ' + 'service-' + name + ': ' +
+                  str(e))
         try:
-            self.kube.delete_persistent_volume_claim(name+'-pd')
-        except:
-            print('warning: could not delete volume claim')
+            self.kube.delete_volume(name+'-pd')
+        except Exception as e:
+            print('warning: could not delete volume claim ' + name + '-pd : ' +
+                  str(e))
         self.kube.delete_deployment(name)
 
     def list_deployments(self, network=None):
@@ -244,7 +249,8 @@ class Bootnode(object):
         chain.  Ex. geth-mainnet
         """
 
-        print(self.gcloud.create_cluster(self.chain.get_name(), self.network))
+        print(self.gcloud.create_cluster(self.chain.get_name(), self.network,
+                                         self.zone))
 
     def delete_cluster(self):
         """

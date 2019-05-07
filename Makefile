@@ -9,7 +9,7 @@ node    	?= geth
 project_id 	?= hanzo-ai
 pod			?= $(node)-$(net)-$(number)
 
-export KUBECONFIG=config/$(node)-$(net)/cluster.yaml
+export KUBECONFIG=config/$(node)-$(net)-$(zone)/cluster.yaml
 
 all: deploy
 
@@ -34,6 +34,8 @@ gcloud-region-zone-defaults:
 # Get credentials for kubectl for current cluster
 gcloud-get-credentials:
 	gcloud container clusters get-credentials $(node)-$(net) --zone $(zone) --project $(project_id)
+	# rm -rf config/$(node)-$(net)-$(zone)
+	# mv -f config/$(node)-$(net) config/$(node)-$(net)-$(zone)
 	@echo "KUBECONFIG=$(KUBECONFIG)" > kubeconfig
 	echo "`source kubeconfig` to update KUBECONFIG environemental variable"
 

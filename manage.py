@@ -14,10 +14,11 @@ def run_command(cmd, args):
     # Clear out any default args that are unspecified
     kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
-    bootnode = Bootnode(args.chain, args.network)
+    bootnode = Bootnode(args.chain, args.network, args.zone)
 
     del kwargs['chain']
     del kwargs['network']
+    del kwargs['zone']
 
     # Call relevant method on Bootnode
     getattr(bootnode, cmd)(**kwargs)
@@ -26,7 +27,8 @@ def run_command(cmd, args):
 def parser():
     parser = argparse.ArgumentParser(description='Cluster management commands')
     parser.add_argument('--chain', help='Blockchain')
-    parser.add_argument('--network', help='Blockcahin network')
+    parser.add_argument('--network', help='Blockchain network')
+    parser.add_argument('--zone', help='Cluster zone')
     subparsers = parser.add_subparsers()
 
     # Disks
