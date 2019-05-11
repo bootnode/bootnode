@@ -302,7 +302,7 @@ class Blockchain(Deployment):
 
         client = os.path.basename(command)
 
-        self.podSpec = PodSpec(
+        podSpec = self.podSpec = PodSpec(
             selector={},
             containers=[],
             volumes=[],
@@ -362,6 +362,7 @@ class Blockchain(Deployment):
         self.cluster    = cluster
         self.blockchain = blockchain
         self.network    = network
+        self.podSpec    = podSpec
 
     def get_service(self, ports):
         return Service(
@@ -608,31 +609,41 @@ class Casper(Blockchain):
             # ]
 
             if bootstrapaddress is None:
-                args.extend(['-s'])
+                args.extend(['--casper-standalone'])
             else:
                 args.extend([
                     '--server-bootstrap {0}'.format(bootstrapaddress),
                 ])
 
-            if size is None and requests is None:
-                if network is 'mainnet':
-                    size = 'medium'
-                elif network is 'testnet':
-                    size = 'small'
-                else:
-                    size = 'small'
+        if size is None and requests is None:
+            if network is 'mainnet':
+                size = 'medium'
+            elif network is 'testnet':
+                size = 'small'
+            else:
+                size = 'small'
 
-            if size == 'small':
-                requests = Requests(cpu='1', memory='1Gi')
-                limits   = Limits(cpu='1',   memory='1Gi')
+        if size == 'small':
+            requests = Requests(cpu='1', memory='1Gi')
+            limits   = Limits(cpu='1',   memory='1Gi')
 
-            elif size == 'medium':
-                requests = Requests(cpu='2', memory='2Gi')
-                limits   = Limits(cpu='2',   memory='2Gi')
+        elif size == 'medium':
+            requests = Requests(cpu='2', memory='2Gi')
+            limits   = Limits(cpu='2',   memory='2Gi')
 
         # Generate a PodSpec
         super(Casper, self).__init__(name, cluster, 'casper', network, image,
                                        command, args, path, requests, limits)
+
+        envoyContainer = Container(
+            name=name+'-envoy',
+            image='gcr.io/hanzo-ai/casper-envoy:latest',
+            command=['envoy'],
+            args=['--config-path envoyConfig.yaml'],
+            resources=Resources(limits=Limits(cpu='0.1', memory='0.1Gi')),
+        )
+
+        self.podSpec.containers.append(envoyContainer)
 
     def get_service(self):
         ports = []
@@ -656,6 +667,13 @@ class Casper(Blockchain):
                 protocol='TCP',
                 port=40404,
                 targetPort=40404
+            ))
+        ports.append(
+            ServicePort(
+                name='rpc',
+                protocol='TCP',
+                port=9001,
+                targetPort=9001
             ))
 
         service = super(Casper, self).get_service(ports)

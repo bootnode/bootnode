@@ -6,6 +6,7 @@ region  	:= us-central1
 zone    	?= us-central1-a
 number  	?= 657758440341
 node    	?= geth
+name        ?= node
 project_id 	?= hanzo-ai
 pod			?= $(node)-$(net)-$(number)
 
@@ -44,9 +45,9 @@ build:
 	gcloud builds submit \
 		--machine-type n1-highcpu-8 \
 		--timeout 30m \
-		-t gcr.io/$(project_id)/$(node):$(sha1) \
-		-t gcr.io/$(project_id)/$(node):latest \
-		$(node)
+		-t gcr.io/$(project_id)/$(name):$(sha1) \
+		-t gcr.io/$(project_id)/$(name):latest \
+		$(name)
 
 # deploy: build
 # 	kubectl set image deployment/$(node)-$(net) $(node)-$(net)=gcr.io/$(project_id)/$(node):$(sha1)
@@ -112,7 +113,7 @@ deps:
 
 # Run Server
 serve: kubeconfig
-	python api.py
+	python app.py
 
 serve-prod: kubeconfig
-	python app.py
+	python main.py

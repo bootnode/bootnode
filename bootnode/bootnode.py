@@ -202,7 +202,7 @@ class Bootnode(object):
             print('warning: could not delete service ' + 'service-' + name + ': ' +
                   str(e))
         try:
-            self.kube.delete_volume(name+'-pd')
+            self.kube.delete_volume_claim(name+'-pd')
         except Exception as e:
             print('warning: could not delete volume claim ' + name + '-pd : ' +
                   str(e))

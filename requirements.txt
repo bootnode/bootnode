@@ -5,7 +5,8 @@ tabulate
 protobuf3-to-dict
 google-cloud-container
 oauth2client
-flask
-flask_restful
-flask_cors
+quart
+quart-cors
+asyncio
 waitress
+pymongo
