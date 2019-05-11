@@ -149,7 +149,7 @@ class Bootnode(object):
 
     def list_pods(self, label_selector=None):
         pods = self.kube.list_pods(label_selector=label_selector, network=self.network)
-        table(pods, 'name', 'status')
+        #table(pods, 'name', 'status')
 
         return pods
 
@@ -213,7 +213,7 @@ class Bootnode(object):
             network = self.network
 
         deployments = self.kube.list_deployments(network=network)
-        table(deployments, 'name')
+        #table(deployments, 'name')
 
         return deployments
 
@@ -228,7 +228,7 @@ class Bootnode(object):
             network = self.network
 
         services = self.kube.list_services(network=network)
-        table(services, 'name', 'ip', 'ports')
+        #table(services, 'name', 'ip', 'ports')
 
         return services
 

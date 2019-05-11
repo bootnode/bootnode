@@ -107,7 +107,7 @@ async def get_nodes():
 async def put_node():
     try:
         json = await request.get_json()
-        print('launching ' + json['number'] + ' nodes in ' + json['zone'])
+        print('launching ' + str(json['number']) + ' nodes in ' + str(json['zone']))
 
         if json['zone'] not in SUPPORTED_ZONES:
             return jsonify({
@@ -129,7 +129,7 @@ async def put_node():
 
         nodes = []
         for i in range(number):
-            asyncio.get_running_loop().run_in_executor(None,
+            asyncio.get_event_loop().run_in_executor(None,
                                                        create_deployment())
 
         return jsonify({
