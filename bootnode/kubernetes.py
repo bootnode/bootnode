@@ -87,7 +87,7 @@ class Service(object):
             'network': self.network,
             'number': self.number,
             'ip': self.ip,
-            'ports': [p.port for p in self.ports],
+            'ports': [{'port': p.port, 'name': p.name} for p in self.ports],
         }
 
     # def exec(self, js):
