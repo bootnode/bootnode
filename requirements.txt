@@ -8,5 +8,5 @@ oauth2client
 quart
 quart-cors
 asyncio
-waitress
 pymongo
+hypercorn
