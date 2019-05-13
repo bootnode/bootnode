@@ -7,6 +7,8 @@ from util import asynctools, convert
 from pymongo import MongoClient
 import datetime
 import asyncio
+import requests
+import datetime
 
 app = Quart(__name__)
 cors(app)
@@ -20,7 +22,7 @@ nodes_collection = bootnode_db.nodes
 updates_collection = bootnode_db.updates
 
 # set up system update loop
-def update_nodes_lambda():
+async def update_nodes_lambda():
     print('updating nodes')
     try:
         date = datetime.datetime.utcnow()
@@ -37,7 +39,31 @@ def update_nodes_lambda():
             nodes = convert.to_nodes(deployments, services, pods, zone)
 
             for node in nodes:
-                node['lateUpdated'] = date
+                node['lastUpdated'] = date
+
+                try:
+                    if node['blockchain'] == 'casper' and node['ip'] is not None:
+                        ip = node['ip']
+                        start = datetime.datetime.now()
+                        blockdata = requests.put('https://{0}:9001/show/blocks'.format(ip),
+                                         json={'depth': 1},
+                                         verify=False)
+                        end = datetime.datetime.now()
+
+                        node['metadata'] = {
+                            'block': blockdata.json()[0],
+                            'dag':
+                            requests.put('https://{0}:9001/show/dag'.format(ip),
+                                         json={'depth': 10,
+                                               'showJustifications':
+                                               True}, verify=False).json(),
+                        }
+                        node['latencyMillis'] = (end - start).microseconds / 1000
+
+                except Exception as e:
+                    print('cannot get metadata for ' + node['id'] + ': ' +
+                          str(e))
+
                 nodes_collection.insert_one(node)
 
     except Exception as e:
@@ -58,7 +84,7 @@ def update_nodes_lambda():
 # function to spin off thread
 async def update_nodes_loop():
     while True:
-        update_nodes_lambda()
+        await update_nodes_lambda()
         await asyncio.sleep(1)
 
 def update_nodes_daemon():
@@ -87,7 +113,7 @@ async def get_nodes():
         update = updates_collection.find_one({ 'name': 'nodes' })
         print(update)
         print('getting node data as of ' + str(update['date']))
-        nodes = nodes_collection.find({'lateUpdated': update['date']})
+        nodes = nodes_collection.find({'lastUpdated': update['date']})
 
         ns = []
         for node in nodes:

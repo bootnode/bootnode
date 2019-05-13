@@ -2,6 +2,10 @@
 # datatypes are listed in parentheses in comments; if surrounded by square brackets = array of said datatype; if ":R" appended = required
 # the top-level object is (config.bootstrap.v2.Bootstrap)
 
+# datatype specs can be found at https://www.envoyproxy.io/docs/envoy/v1.7.1/api-v2/api#envoy-api-reference
+# datatypes are listed in parentheses in comments; if surrounded by square brackets = array of said datatype; if ":R" appended = required
+# the top-level object is (config.bootstrap.v2.Bootstrap)
+
 admin:                                                         #(config.bootstrap.v2.Admin:R)
    access_log_path: envoyLog.txt                               #(string:R)
    address:
@@ -23,9 +27,29 @@ static_resources:                      #(config.bootstrap.v2.Bootstrap.StaticRes
                virtual_hosts:          #([route.VirtualHost]) array of virtual hosts composing the route table; may need to add "cors" (route.CorsPolicy) to route.VirtualHost
                - name: casperNodeWebVHost   #(string:R)
                  domains: [ "*" ]      #([string]:R) if this matches the host component of incoming url, route to this virtual host
+                 cors:
+                    allow_credentials: true
+                    allow_methods: GET, PUT, DELETE, POST, PATCH, OPTIONS
+                    allow_headers: content-type,origin,authorization
+                    allow_headers: keep-alive,user-agent,cache-control,content-type,content-transfer-encoding,x-accept-content-transfer-encoding,x-accept-response-streaming,x-user-agent,x-grpc-web
+                    expose_headers: grpc-status,grpc-message,x-envoy-upstream-service-time
                  routes:               #([route.Route])
-                 - match: { prefix: "/" }        #(route.RouteMatch:R) inside "match" element, one of "prefix", "path", "regex" is required
-                                                                                                                                  # inside "match" element, can also match headers with "headers" (route.HeaderMatcher) and query params with "query_parameters" (route.QueryParameterMatcher)
+                 - match: { prefix: "/", headers: [ { name: ":method", exact_match: "OPTIONS" } ] }
+                   direct_response:
+                      status: 204
+                   response_headers_to_add:
+                      - header: { key: "Access-Control-Allow-Origin", value: "*" }
+                        append: false
+                      - header: { key: "Access-Control-Allow-Methods", value: "DELETE, HEAD, OPTIONS, GET, PATCH, POST, PUT" }
+                        append: false
+                      - header: { key: "Allow", value: "DELETE, HEAD, OPTIONS, GET, PATCH, POST, PUT" }
+                        append: false
+                      - header: { key: "Access-Control-Allow-Headers", value: "Authorization, Content-Type" }
+                        append: false
+                      - header: { key: "Content-Type", value: "text/html; charset=utf-8" }
+                        append: false
+
+                 - match: { prefix: "/" }        #(route.RouteMatch:R) inside "match" element, one of "prefix", "path", "regex" is required                                                                                                       # inside "match" element, can also match headers with "headers" (route.HeaderMatcher) and query params with "query_parameters" (route.QueryParameterMatcher)
                    route: { cluster: casperNodes }    #(route.routeAction) inside "route" element, one of "cluster", "cluster_header", "weighted_clusters" is required
             http_filters:                        #([config.filter.network.http_connection_manager.v2.HttpFilter]) filter order does not appear to be significant
             - name: envoy.grpc_json_transcoder   #(string:R)
@@ -37,6 +61,59 @@ static_resources:                      #(config.bootstrap.v2.Bootstrap.StaticRes
                  - io.casperlabs.casper.protocol.DeployService
             - name: envoy.router       #(string:R)
                                 # other options for elements of the "http_filters" array: envoy.grpc_web, envoy.grpc_http1_bridge, envoy.cors
+   # - name: casperNodeWebListener       #(string)
+   #   address:                          #(core.Address:R)
+   #      socket_address: { address: 0.0.0.0, port_value: 9002 }   #(core.Address) where a browser should connect to talk to a node
+   #   filter_chains:                    #([listener.FilterChain]:R)
+   #   - filters:                        #([listener.Filter])
+   #     - name: envoy.http_connection_manager   #(string:R) make downstream http, i.e. facing out from node cluster
+   #       config:                       #(config.filter.network.http_connection_manager.v2.HttpConnectionManager) specific type depends on value of name field
+   #          stat_prefix: casperNodeWebFilter   #(string:R) prepended to stats for this filter
+   #          codec_type: AUTO           #(config.filter.network.http_connection_manager.v2.HttpConnectionManager.CodecType) options: AUTO (default), HTTP1, HTTP2
+   #          route_config:              #(RouteConfiguration) required for static connection configurations
+   #             name: local_route       #(string)
+   #             virtual_hosts:          #([route.VirtualHost]) array of virtual hosts composing the route table; may need to add "cors" (route.CorsPolicy) to route.VirtualHost
+   #             - name: casperNodeWebVHost   #(string:R)
+   #               domains: [ "*" ]      #([string]:R) if this matches the host component of incoming url, route to this virtual host
+   #               cors:
+   #                  allow_credentials: true
+   #                  allow_methods: GET, PUT, DELETE, POST, PATCH, OPTIONS
+   #                  allow_headers: content-type,origin,authorization
+   #                  allow_headers: keep-alive,user-agent,cache-control,content-type,content-transfer-encoding,x-accept-content-transfer-encoding,x-accept-response-streaming,x-user-agent,x-grpc-web
+   #                  expose_headers: grpc-status,grpc-message,x-envoy-upstream-service-time
+   #               routes:               #([route.Route])
+   #               - match: { prefix: "/", headers: [ { name: ":method", exact_match: "OPTIONS" } ] }
+   #                 direct_response:
+   #                    status: 204
+   #                 response_headers_to_add:
+   #                    - header: { key: "Access-Control-Allow-Origin", value: "*" }
+   #                      append: false
+   #                    - header: { key: "Access-Control-Allow-Methods", value: "DELETE, HEAD, OPTIONS, GET, PATCH, POST, PUT" }
+   #                      append: false
+   #                    - header: { key: "Allow", value: "DELETE, HEAD, OPTIONS, GET, PATCH, POST, PUT" }
+   #                      append: false
+   #                    - header: { key: "Access-Control-Allow-Headers", value: "Authorization, Content-Type" }
+   #                      append: false
+   #                    - header: { key: "Content-Type", value: "text/html; charset=utf-8" }
+   #                      append: false
+
+   #               - match: { prefix: "/" }        #(route.RouteMatch:R) inside "match" element, one of "prefix", "path", "regex" is required                                                                                                       # inside "match" element, can also match headers with "headers" (route.HeaderMatcher) and query params with "query_parameters" (route.QueryParameterMatcher)
+   #                 route: { cluster: casperNodes }    #(route.routeAction) inside "route" element, one of "cluster", "cluster_header", "weighted_clusters" is required
+   #          http_filters:                        #([config.filter.network.http_connection_manager.v2.HttpFilter]) filter order does not appear to be significant
+   #          - name: envoy.grpc_json_transcoder   #(string:R)
+   #            config:                            #(config.filter.http.transcoder.v2.GrpcJsonTranscoder) specific type depends on value of name field
+   #               proto_descriptor: casperMessageDescSet.pb   #(string:R) name of file emitted by protoc using the --descriptor_set_out option
+   #               match_incoming_request_route: true       #(bool) if false, match a fixed URL pattern determined by service and endpoint names in .proto file
+   #                                                                                                                                  # need additional steps when compiling the .proto file; see https://www.envoyproxy.io/docs/envoy/v1.7.1/configuration/http_filters/grpc_json_transcoder_filter
+   #               services:                       #([string]:R) one element per service in .proto file (which is also in the descriptor set file) that is to be exposed
+   #               - io.casperlabs.casper.protocol.DeployService
+   #          - name: envoy.router       #(string:R)
+   #                              # other options for elements of the "http_filters" array: envoy.grpc_web, envoy.grpc_http1_bridge, envoy.cors
+       tls_context:
+          common_tls_context:
+             tls_certificates:
+             - certificate_chain: { filename: "/etc/casper-envoy.crt" }
+               private_key: { filename: "/etc/casper-envoy.key" }
 
    clusters:                           #([Cluster])
    - name: casperNodes                 #(string:R)

@@ -675,6 +675,13 @@ class Casper(Blockchain):
                 port=9001,
                 targetPort=9001
             ))
+        # ports.append(
+        #     ServicePort(
+        #         name='secure-rpc',
+        #         protocol='TCP',
+        #         port=9002,
+        #         targetPort=9002
+        #     ))
 
         service = super(Casper, self).get_service(ports)
 
