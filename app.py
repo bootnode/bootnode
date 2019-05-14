@@ -7,13 +7,17 @@ from util import asynctools, convert
 from pymongo import MongoClient
 import datetime
 import asyncio
-import requests
+import requests_async as requests
 import datetime
 
 app = Quart(__name__)
 cors(app)
 
-SUPPORTED_ZONES = ['us-central1-a', 'europe-west6-a', 'asia-east2-a']
+SUPPORTED_PROVIDERS = ['private-cloud', 'google']
+SUPPORTED_ZONES = {
+    'google': ['us-central1-a', 'europe-west6-a', 'asia-east2-a'],
+    'private-cloud': ['test'],
+}
 
 # connect to mongo and set up database vars
 mongo_client = MongoClient()
@@ -24,13 +28,17 @@ updates_collection = bootnode_db.updates
 # set up system update loop
 async def update_nodes_lambda():
     print('updating nodes')
-    try:
-        date = datetime.datetime.utcnow()
-        zones = SUPPORTED_ZONES
+
+    # try:
+    date = datetime.datetime.utcnow()
+
+    for provider in SUPPORTED_PROVIDERS:
+
+        zones = SUPPORTED_ZONES[provider]
 
         for zone in zones:
-            print('getting nodes in zone: ' + zone)
-            bootnode = Bootnode('casper', 'testnet', zone)
+            print('-------- Getting ' + provider + ' nodes in zone: ' + zone + ' --------')
+            bootnode = Bootnode('casper', 'testnet', provider, zone)
 
             deployments = [d.to_dict() for d in bootnode.list_deployments()]
             services = [s.to_dict() for s in bootnode.list_services()]
@@ -44,19 +52,33 @@ async def update_nodes_lambda():
                 try:
                     if node['blockchain'] == 'casper' and node['ip'] is not None:
                         ip = node['ip']
+                        if provider == 'private-cloud':
+                            ip = '199.47.196.151'
+
+                        node['provider'] = provider
+
                         start = datetime.datetime.now()
-                        blockdata = requests.put('https://{0}:9001/show/blocks'.format(ip),
-                                         json={'depth': 1},
-                                         verify=False)
+
+                        reqs = [
+                            requests.put('https://{0}:9001/show/blocks'.format(ip),
+                                             json={'depth': 1},
+                                             verify=False),
+                            requests.put('https://{0}:9001/show/dag'.format(ip),
+                                             json={'depth': 10,
+                                                   'showJustifications':
+                                                   True}, verify=False)
+                        ]
+
+                        ress = await asyncio.gather(*reqs)
+
+                        blockdata = ress[0]
+                        dag = ress[1]
+
                         end = datetime.datetime.now()
 
                         node['metadata'] = {
                             'block': blockdata.json()[0],
-                            'dag':
-                            requests.put('https://{0}:9001/show/dag'.format(ip),
-                                         json={'depth': 10,
-                                               'showJustifications':
-                                               True}, verify=False).json(),
+                            'dag': dag.json(),
                         }
                         node['latencyMillis'] = (end - start).microseconds / 1000
 
@@ -66,20 +88,20 @@ async def update_nodes_lambda():
 
                 nodes_collection.insert_one(node)
 
-    except Exception as e:
-        print('update nodes loop' + str(e))
-    finally:
-        updates_collection.update_one(
-            {
-                'name': 'nodes',
+    # except Exception as e:
+    #     print('update nodes loop error: ' + str(e))
+    # finally:
+    updates_collection.update_one(
+        {
+            'name': 'nodes',
+        },
+        {
+            '$set': {
+                'date': date
             },
-            {
-                '$set': {
-                    'date': date
-                },
-            },
-            True
-        )
+        },
+        True
+    )
 
 # function to spin off thread
 async def update_nodes_loop():
@@ -105,6 +127,27 @@ def auth_required(fn):
             })
         return await fn(*args, **kwargs)
     return wrapped_fn
+
+@app.route('/login', methods=['POST'])
+async def login():
+    try:
+        json = await request.get_json()
+
+        print('login', json)
+
+        if json['email'] == 'test@hanzo.ai' and json['password'] == 'demo-test-12345':
+            return jsonify({'token': 'fLcLu7OLD81aR9jf'})
+
+        return jsonify({
+            'status': 'failed',
+            'error': 'incorrect username or password'
+        })
+
+    except Exception as e:
+        return jsonify({
+            'status': 'failed',
+            'error': 'could not get login: ' + str(e),
+        })
 
 @app.route('/nodes', methods=['GET'])
 @auth_required
@@ -135,28 +178,33 @@ async def put_node():
         json = await request.get_json()
         print('launching ' + str(json['number']) + ' nodes in ' + str(json['zone']))
 
-        if json['zone'] not in SUPPORTED_ZONES:
+        provider = json['provider']
+        if provider not in SUPPORTED_PROVIDERS:
             return jsonify({
                 'status': 'failed',
-                'error': json['zone'] + ' is not a valid zone',
+                'error': provider + ' is not a valid provider',
             })
 
-        bootnode = Bootnode('casper', 'testnet', json['zone'])
+        zone = json['zone']
+        if zone not in SUPPORTED_ZONES[provider]:
+            return jsonify({
+                'status': 'failed',
+                'error': zone + ' is not a valid zone',
+            })
+
+        bootnode = Bootnode('casper', 'testnet', provider, zone)
 
         number = 1
         if json['number'] is not None:
             number = int(json['number'])
 
-        def create_deployment():
-            try:
-                bootnode.create_deployment()
-            except Exception as e:
-                print('could not create deployment: ' + str(e))
-
         nodes = []
+
+        ds = []
         for i in range(number):
-            asyncio.get_event_loop().run_in_executor(None,
-                                                       create_deployment())
+            ds.append(bootnode.create_deployment())
+
+        asyncio.ensure_future(asyncio.gather(*ds))
 
         return jsonify({
             'status': 'success',
@@ -172,7 +220,11 @@ async def put_node():
 @auth_required
 async def get_node(node_id, zone='us-central1-a'):
     try:
-        bootnode = Bootnode('casper', 'testnet', zone)
+        json = await request.get_json()
+
+        provider = json['provider']
+
+        bootnode = Bootnode('casper', 'testnet', provider, zone)
 
         deployment = bootnode.get_deployment(node_id)
         service = bootnode.get_service(node_id)
@@ -193,9 +245,10 @@ async def delete_node(node_id, zone='us-central1-a'):
         json = await request.get_json()
         print('deleting ' + node_id + ' from zone ' + json['zone'])
 
+        provider = json['provider']
         zone = json['zone']
 
-        bootnode = Bootnode('casper', 'testnet', zone)
+        bootnode = Bootnode('casper', 'testnet', provider, zone)
         bootnode.delete_deployment(node_id)
         return jsonify({
             'status': 'ok',

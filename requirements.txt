@@ -10,3 +10,4 @@ quart-cors
 asyncio
 pymongo
 hypercorn
+requests_async

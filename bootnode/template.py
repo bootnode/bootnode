@@ -66,17 +66,24 @@ class Resources(Dict):
         self.requests = requests
         self.limits   = limits
 
+class EnvVar(Dict):
+    def __init__(self, name=None, value=None):
+        Dict.__init__(self, name=name, value=value)
+        self.name = name
+        self.value = value
 
 class Container(Dict):
     def __init__(self, name, image, command, args, resources=None,
-                 volumeMounts=None, livenessProbe=None, readinessProbe=None):
+                 volumeMounts=None, livenessProbe=None, readinessProbe=None,
+                 env=None):
         Dict.__init__(self, name=name, image=image, command=command, args=args,
                       resources=resources, livenessProbe=livenessProbe,
-                      readinessProbe=readinessProbe)
+                      readinessProbe=readinessProbe, env=env)
         self.name            = name
         self.image           = image
         self.command         = command
         self.args            = args
+        self.env             = env
         self.resources       = resources
         self.volumeMounts    = volumeMounts
         self.livenessProbe   = livenessProbe
@@ -264,7 +271,8 @@ class Deployment(BaseTemplateSpec):
                                   metadata=metadata, spec=spec)
 
 class Blockchain(Deployment):
-    def __init__(self, name, cluster, blockchain, network, image, command, args, path,
+    def __init__(self, name, cluster, blockchain, network, image, command,
+                 args, env, path,
                  requests=None, limits=None):
 
         """
@@ -346,14 +354,22 @@ class Blockchain(Deployment):
 
         self.podSpec.containers.append(container)
 
-        volume = Volume(
-            name=name + '-pv',
-            persistentVolumeClaim=PersistentVolumeClaimVolume(
-                claimName=name + '-pd'
+        # user empty dir for private cloud stuff
+        if cluster == 'casper-testnet-encloudify-test':
+            volume = Volume(
+                name=name + '-pv',
+                emptyDir=EmptyDir()
             )
-        )
+            self.podSpec.volumes.append(volume)
+        else:
+            volume = Volume(
+                name=name + '-pv',
+                persistentVolumeClaim=PersistentVolumeClaimVolume(
+                    claimName=name + '-pd'
+                )
+            )
 
-        self.podSpec.volumes.append(volume)
+            self.podSpec.volumes.append(volume)
 
         # Create a PodSpec
         super(Blockchain, self).__init__(metadata=self.deploymentMetadata, spec=self.deploymentSpec)
@@ -364,39 +380,67 @@ class Blockchain(Deployment):
         self.network    = network
         self.podSpec    = podSpec
 
-    def get_service(self, ports):
-        return Service(
-            metadata=Metadata(
-                name='service-' + self.name,
-                cluster=self.cluster,
-                blockchain=self.blockchain,
-                network=self.network
-            ),
-            spec=ServiceSpec(
-                selector={
-                    'app': self.name
-                },
-                type='LoadBalancer',
-                ports=ports,
-            )
-        )
+    def set_env(self, name, value, container_id=0):
+        if self.podSpec.containers[container_id].env is None:
+            self.podSpec.containers[container_id].env = [EnvVar(name=name,
+                                                                value=value)]
+        else:
+            self.podSpec.containers[container_id].env.append(EnvVar(name=name,
+                                                                    value=value))
 
-    def get_volume_claim(self, size='10Gi'):
-        return PersistentVolumeClaim(
-            metadata=Metadata(
-                name=self.name + '-pd',
-                cluster=self.cluster,
-                blockchain=self.blockchain,
-                network=self.network
-            ),
-            spec=PersistentVolumeClaimSpec(
-                resources=ResourceRequirements(
-                    requests={
-                        'storage': size,
+    def get_service(self, ports):
+        if self.cluster == 'casper-testnet-encloudify-test':
+            return Service(
+                metadata=Metadata(
+                    name='service-' + self.name,
+                    cluster=self.cluster,
+                    blockchain=self.blockchain,
+                    network=self.network
+                ),
+                spec=ServiceSpec(
+                    selector={
+                        'app': self.name
                     },
+                    type='NodePort',
+                    ports=ports,
                 )
             )
-        )
+        else:
+            return Service(
+                metadata=Metadata(
+                    name='service-' + self.name,
+                    cluster=self.cluster,
+                    blockchain=self.blockchain,
+                    network=self.network
+                ),
+                spec=ServiceSpec(
+                    selector={
+                        'app': self.name
+                    },
+                    type='LoadBalancer',
+                    ports=ports,
+                )
+            )
+
+    def get_volume_claim(self, size='10Gi'):
+        if self.cluster == 'casper-testnet-encloudify-test':
+            return None
+        else:
+            return PersistentVolumeClaim(
+                metadata=Metadata(
+                    name=self.name + '-pd',
+                    cluster=self.cluster,
+                    blockchain=self.blockchain,
+                    network=self.network
+                ),
+                spec=PersistentVolumeClaimSpec(
+                    resources=ResourceRequirements(
+                        requests={
+                            'storage': size,
+                        },
+                    )
+                )
+            )
 
     @classmethod
     def to_network_id(cls, network):
@@ -500,10 +544,11 @@ class Ethereum(Blockchain):
 
         # Generate a PodSpec
         super(Ethereum, self).__init__(name, cluster, 'ethereum', network, image,
-                                       command, args, path, requests, limits)
+                                       command, args, None, path, requests, limits)
 
         this.rpcport=rpcport
         this.wsport=wsport
+
 
     def get_service(self):
         ports = []
@@ -591,7 +636,7 @@ class Casper(Blockchain):
                  image='gcr.io/hanzo-ai/casper:latest',
                  command='/scripts/start.sh',
                  grpcport=40401, serverport=40400, discoveryport=40404,
-                 bootstrapaddress=None,
+                 bootstrapaddress=None, externalip=None,
                  args=None, size=None, requests=None):
 
         """
@@ -633,7 +678,7 @@ class Casper(Blockchain):
 
         # Generate a PodSpec
         super(Casper, self).__init__(name, cluster, 'casper', network, image,
-                                       command, args, path, requests, limits)
+                                       command, args, None, path, requests, limits)
 
         envoyContainer = Container(
             name=name+'-envoy',

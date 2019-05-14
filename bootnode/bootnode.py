@@ -3,23 +3,29 @@ from .kubernetes import Kubernetes
 from .template import Ethereum, Casper, Service, Ingress, Backend, ServicePort
 from .table import table
 import secrets
+import asyncio
 
 blockchains = [Ethereum, Casper]
 
 class Bootnode(object):
-    def __init__(self, chain, network, zone):
+    def __init__(self, chain, network, provider, zone):
         self.gcloud = Gcloud()
 
         self.chain = self.find_blockchain(chain)
         self.network, id = self.chain.normalize_network(network)
         self.zone = zone
+        self.provider = provider
 
         if self.chain is None:
             raise Exception('Blockchain "" does not exist' % chain)
 
-        self.cluster = '{0}-{1}-{2}'.format(self.chain.get_name(),
+        if provider == 'private-cloud':
+            self.cluster = 'casper-testnet-encloudify-test'
+        else:
+            self.cluster = '{0}-{1}-{2}'.format(self.chain.get_name(),
                                             network,
                                             zone)
+
         try:
             self.kube    = Kubernetes('config/{0}/cluster.yaml'.format(self.cluster))
         except:
@@ -147,7 +153,10 @@ class Bootnode(object):
     def delete_pod(self, name):
         self.kube.delete_pod(name)
 
-    def list_pods(self, label_selector=None):
+    def list_pods(self, label_selector=None, network=None):
+        if network is None:
+            network = self.network
+
         pods = self.kube.list_pods(label_selector=label_selector, network=self.network)
         #table(pods, 'name', 'status')
 
@@ -162,7 +171,7 @@ class Bootnode(object):
     def get_synced_pod(self):
         table(self.kube.get_synced_pod(network=self.network), 'name', 'phase', 'block_number', 'ip')
 
-    def create_deployment(self, name=None):
+    async def create_deployment(self, name=None):
         """
         Create a new deployment for a specific chain on a specific network of that
         chain.  Ex. geth-mainnet
@@ -184,14 +193,33 @@ class Bootnode(object):
         # if not pool:
         #     self.kube.create_pool(network)
         print('Creating service for {0}'.format(name))
+
         service = self.kube.create_service(config.get_service())
-        print('Creating volume for {0}'.format(name))
-        service = self.kube.create_volume(config.get_volume_claim())
+
+        if self.cluster == 'casper-testnet-encloudify-test':
+            config.set_env('EXTERNAL_IP', '199.47.196.151')
+        else:
+            service = self.kube.get_service('service-'+name)
+            while service.ip == '':
+                print('NO IP!', service.ip)
+                service = self.kube.get_service('service-'+name)
+                await asyncio.sleep(1)
+            print('IP!', service.ip)
+
+            config.set_env('EXTERNAL_IP', service.ip)
+
+        volume = config.get_volume_claim()
+
+        if volume is not None:
+            print('Creating volume for {0}'.format(name))
+            pvc = self.kube.create_volume(volume)
+
         print('Creating deployment for {0}'.format(name))
         deployment = self.kube.create_deployment(config)
 
         return {
             'service': service,
+            'volume': volume,
             'deployment': deployment,
         }
 

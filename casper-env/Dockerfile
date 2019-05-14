@@ -38,7 +38,7 @@ ENV PROTOC_ZIP=protoc-$PROTOC_VERSION-linux-x86_64.zip
 RUN curl -OL https://github.com/google/protobuf/releases/download/v$PROTOC_VERSION/$PROTOC_ZIP
 RUN unzip -o $PROTOC_ZIP -d /usr/local bin/protoc
 RUN rm -f $PROTOC_ZIP
-RUN git clone -b v0.2 https://github.com/CasperLabs/CasperLabs.git
+RUN git clone -b nyc-consensus-demo https://github.com/birchmd/CasperLabs.git
 
 COPY scripts/ scripts
 RUN ./scripts/build.sh

@@ -26,21 +26,27 @@ class Pod(object):
         self.status = pod.status.phase
         self.ip     = pod.status.pod_ip
 
-        # Pod names should follow client-network-number scheme
-        bits = name.split('-')
-        self.client  = bits[0]
-        self.network = bits[1]
-
-        # Currently only support directly attached gce persistent disks
         try:
-            self.disk = pod.spec.volumes[0].gce_persistent_disk.pd_name
-        except Exception:
-            self.disk = 'unknown'
+            # Pod names should follow client-network-number scheme
+            bits = name.split('-')
+            self.client  = bits[0]
+            self.network = bits[1]
 
-        # Pod may not follow correct naming scheme
-        if len(bits) > 2:
-            self.number = int(bits[2])
-        else:
+            # Currently only support directly attached gce persistent disks
+            try:
+                self.disk = pod.spec.volumes[0].gce_persistent_disk.pd_name
+            except Exception:
+                self.disk = 'unknown'
+
+            # Pod may not follow correct naming scheme
+            if len(bits) > 2:
+                self.number = int(bits[2])
+            else:
+                self.number = -1
+        except Exception as e:
+            print('warning: probably not one of ours: ' + str(e))
+            self.client = ''
+            self.network = ''
             self.number = -1
 
     def to_dict(self):
@@ -70,14 +76,20 @@ class Service(object):
 
         self.ports = service.spec.ports
 
-        # Pod names should follow client-network-number scheme
-        bits = name.split('-')
-        self.client  = bits[0]
-        self.network = bits[1]
+        try:
+            # Pod names should follow client-network-number scheme
+            bits = name.split('-')
+            self.client  = bits[0]
+            self.network = bits[1]
 
-        if len(bits) > 2:
-            self.number = int(bits[2])
-        else:
+            if len(bits) > 2:
+                self.number = int(bits[2])
+            else:
+                self.number = -1
+        except Exception as e:
+            print('warning: probably not one of ours: ' + str(e))
+            self.client = ''
+            self.network = ''
             self.number = -1
 
     def to_dict(self):
@@ -123,15 +135,21 @@ class Deployment(object):
         name = deployment.metadata.name
         self.name = name
 
-        # Pod names should follow client-network-number scheme
-        bits = name.split('-')
-        self.client  = bits[0]
-        self.network = bits[1]
+        try:
+            # Pod names should follow client-network-number scheme
+            bits = name.split('-')
+            self.client  = bits[0]
+            self.network = bits[1]
 
-        # Pod may not follow correct naming scheme
-        if len(bits) > 2:
-            self.number = int(bits[2])
-        else:
+            # Pod may not follow correct naming scheme
+            if len(bits) > 2:
+                self.number = int(bits[2])
+            else:
+                self.number = -1
+        except Exception as e:
+            print('warning: probably not one of ours: ' + str(e))
+            self.client = ''
+            self.network = ''
             self.number = -1
 
     def to_dict(self):
@@ -167,7 +185,7 @@ class Kubernetes(object):
                                                                   propagation_policy='Background')
 
     def create_service(self, config):
-        return self.api.create_namespaced_service(NAMESPACE, body=config)
+        return Service(self.api.create_namespaced_service(NAMESPACE, body=config), self)
 
     def delete_service(self, name):
         return self.api.delete_namespaced_service(name, NAMESPACE, body=client.V1DeleteOptions())
@@ -220,8 +238,6 @@ class Kubernetes(object):
 
         if not network:
             return deployments
-
-        return deployments
 
         return [p for p in deployments if p.network == network]
 
