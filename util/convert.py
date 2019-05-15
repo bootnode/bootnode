@@ -36,6 +36,9 @@ def to_nodes(deployments, services, pods, zone):
                     'name': p['name'],
                     'status': p['status'],
                 })
+
+                if nodes[i]['ip'] == '':
+                    nodes[i]['ip'] = p['ip']
             else:
                 print('{0} does not exist'.format(p['name']))
         except Exception as e:

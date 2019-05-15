@@ -1,0 +1,197 @@
+---------- Creating Socket File ----------
+touch /.casperlabs/.casper-node.sock
+---------- Starting Execution Engine ----------
+/root/.cargo/bin/cargo run --bin casperlabs-engine-grpc-server /.casperlabs/.casper-node.sock &
+   Compiling wasm-prep v0.1.0 (/CasperLabs/execution-engine/wasm-prep)
+   Compiling shared v0.2.0 (/CasperLabs/execution-engine/shared)
+   Compiling storage v0.1.0 (/CasperLabs/execution-engine/storage)
+   Compiling execution-engine v0.1.0 (/CasperLabs/execution-engine/engine)
+   Compiling casperlabs-engine-grpc-server v0.3.0 (/CasperLabs/execution-engine/comm)
+---------- Starting Node ----------
+./node/target/universal/stage/bin/casperlabs-node run --server-use-gossiping --server-data-dir /.casperlabs --tls-certificate /.casperlabs/node.certificate.pem --tls-key /.casperlabs/node.key.pem -b "casperlabs://b74021c9eb74548f03f7ef28742c439c2d67cbf9@3.16.244.129?protocol=40400&discovery=40404" --server-host 35.192.61.54
+21:14:27.070 [main] INFO  io.casperlabs.node.Main$ - CasperLabs node 0.3 (665e0c190bd7b6dcfbd912218a56c75daa45c67d)
+21:14:27.149 [main] INFO  io.casperlabs.node.NodeEnvironment$ - Using data dir: /.casperlabs
+21:14:27.160 [main] INFO  i.c.c.t.GenerateCertificateIfAbsent - No certificate found at path /.casperlabs/node.certificate.pem
+21:14:27.161 [main] INFO  i.c.c.t.GenerateCertificateIfAbsent - Generating a X.509 certificate for the node
+21:14:27.165 [main] INFO  i.c.c.t.GenerateCertificateIfAbsent - Generating a PEM secret key for the node
+21:14:28.150 [main] INFO  io.casperlabs.comm.UPnP$ - trying to open ports using UPnP....
+    Finished dev [unoptimized + debuginfo] target(s) in 26.01s
+     Running `target/debug/casperlabs-engine-grpc-server /.casperlabs/.casper-node.sock`
+Server is listening on socket: /.casperlabs/.casper-node.sock
+21:14:37.247 [main] INFO  io.casperlabs.comm.UPnP$ - INFO - No gateway devices found
+21:14:37.253 [main] INFO  io.casperlabs.comm.UPnP$ - No need to open any port
+21:14:38.581 [main] WARN  i.c.b.BlockDagFileStorage$ - CRC file /.casperlabs/dagstorage/latest-messages-crc did not contain a valid CRC value
+21:14:38.603 [main] WARN  i.c.b.BlockDagFileStorage$ - CRC file /.casperlabs/dagstorage/block-metadata-crc did not contain a valid CRC value
+21:14:39.266 [main] INFO  io.casperlabs.node.api.Servers$ - gRPC diagnostics service started on port 40402.
+21:14:39.570 [main] INFO  io.casperlabs.node.api.Servers$ - gRPC deployment service started on port 40401.
+21:14:39.751 [main] INFO  io.casperlabs.node.MetricsRuntime - No Influx configuration found
+21:14:39.763 [main] INFO  io.casperlabs.node.MetricsRuntime - Reporting metrics to InfluxDB disabled.
+21:14:39.764 [main] INFO  io.casperlabs.node.MetricsRuntime - Reporting metrics to Prometheus disabled.
+21:14:39.767 [main] INFO  io.casperlabs.node.MetricsRuntime - Reporting metrics to Zipkin disabled.
+21:14:39.769 [main] INFO  io.casperlabs.node.MetricsRuntime - Reporting metrics to JMX.
+21:14:39.790 [main] INFO  kamon.metrics.SystemMetrics - Starting the Kamon(SystemMetrics) module
+21:14:40.047 [main] INFO  io.casperlabs.node.api.Servers$ - HTTP server started on port 40403.
+21:14:42.558 [main] WARN  i.casperlabs.casper.genesis.Genesis$ - Specified bonds file None does not exist. Falling back on generating random validators.
+21:14:42.661 [main] INFO  i.casperlabs.casper.genesis.Genesis$ - Created validator 6d6cb8d21839956806a454a4a1dd5623ffc63df47d6e45156e8a81dcb0bd3763 with bond 2
+21:14:42.663 [main] INFO  i.casperlabs.casper.genesis.Genesis$ - Created validator 8e8558f3c16379b9500a1f2472fcc62d337520211e0b0183400d8eae23223acc with bond 3
+21:14:42.664 [main] INFO  i.casperlabs.casper.genesis.Genesis$ - Created validator 270af344e64ebc85f9f544d4e82b5fe138d2ea37c7faeb5a1c89153378b8d8a7 with bond 4
+21:14:42.665 [main] INFO  i.casperlabs.casper.genesis.Genesis$ - Created validator 4d34b334b5b880129b9957ad3fb47e122f2077920dea4b2c7631f5e2fbbadcf6 with bond 1
+21:14:42.666 [main] INFO  i.casperlabs.casper.genesis.Genesis$ - Created validator a02f382c265f74aa1e29bca63585979057d4d49e024ea5fc842a3d4425f674eb with bond 5
+21:14:42.674 [main] WARN  i.c.casper.ValidatorIdentity$ - No private key detected, cannot create validator identification.
+21:14:42.679 [main] INFO  i.c.node.casper.gossiping.package$ - Starting in default mode
+21:14:43.050 [main] INFO  io.casperlabs.node.NodeRuntime - Starting node that will bootstrap from Node(<ByteString@5fc7255c size=20>,3.16.244.129,40400,40404)
+21:14:43.057 [main] INFO  io.casperlabs.node.NodeRuntime - Listening for traffic on casperlabs://1bfe5e47178c125f5f6af1784cc26391632ab988@35.192.61.54?protocol=40400&discovery=40404.
+21:14:44.668 [node-runner-28] INFO  i.c.c.gossiping.GossipServiceServer - Received notification about 1 new blocks from casperlabs://b74021c9eb74548f03f7ef28742c439c2d67cbf9@3.16.244.129?protocol=40400&discovery=40404.
+21:14:44.955 [node-runner-27] INFO  i.c.node.casper.gossiping.package$ - Validating genesis-like block 3cc14fb755......
+21:14:45.071 [node-runner-27] INFO  i.c.c.MultiParentCasperImpl$StatelessExecutor - Attempting to add Block 3cc14fb755... to DAG.
+Effects applied. New state hash is: Blake2bHash([86, 34, 94, 200, 7, 200, 168, 251, 27, 186, 60, 15, 247, 221, 85, 229, 213, 163, 251, 227, 103, 100, 22, 220, 98, 40, 57, 16, 139, 74, 114, 76])
+21:14:45.663 [grpc-default-executor-1] WARN  i.c.b.BlockDagFileStorage$ - Block 3cc14fb755e2c6f1641a436f0d91b11022132fccc19d7f92c75b6a23bfd2077b sender is empty
+21:14:45.758 [grpc-default-executor-1] INFO  i.c.c.MultiParentCasperImpl$StatelessExecutor - Added 3cc14fb755...
+21:14:45.780 [node-runner-28] INFO  i.c.c.gossiping.GenesisApproverImpl - Downloaded Genesis candidate 3cc14fb755e2c6f1641a436f0d91b11022132fccc19d7f92c75b6a23bfd2077b from bootstrap.
+21:14:45.863 [node-runner-28] INFO  i.c.c.gossiping.GenesisApproverImpl - Transitioned to approved genesis state.
+21:14:45.871 [node-runner-27] WARN  i.c.casper.ValidatorIdentity$ - No private key detected, cannot create validator identification.
+21:14:45.953 [node-runner-27] WARN  i.c.blockstorage.BlockDagFileStorage - Block 3cc14fb755e2c6f1641a436f0d91b11022132fccc19d7f92c75b6a23bfd2077b is already stored
+Effects applied. New state hash is: Blake2bHash([86, 34, 94, 200, 7, 200, 168, 251, 27, 186, 60, 15, 247, 221, 85, 229, 213, 163, 251, 227, 103, 100, 22, 220, 98, 40, 57, 16, 139, 74, 114, 76])
+21:14:45.971 [grpc-default-executor-1] INFO  i.c.node.casper.gossiping.package$ - Making the transition to block processing.
+21:14:47.083 [node-runner-27] INFO  i.c.c.MultiParentCasperImpl$StatelessExecutor - Attempting to add Block 8c7b3bc30e... to DAG.
+Effects applied. New state hash is: Blake2bHash([31, 185, 249, 230, 239, 12, 212, 130, 82, 232, 85, 211, 102, 10, 52, 40, 81, 37, 234, 46, 108, 88, 124, 41, 85, 91, 79, 232, 105, 118, 121, 115])
+21:14:48.180 [grpc-default-executor-1] INFO  i.c.c.MultiParentCasperImpl$StatelessExecutor - Added 8c7b3bc30e...
+21:14:48.193 [grpc-default-executor-1] INFO  i.c.casper.MultiParentCasperImpl - New fork-choice tip is block 8c7b3bc30e....
+21:14:48.266 [grpc-default-executor-1] INFO  i.c.casper.MultiParentCasperImpl - Fault tolerance for block 8c7b3bc30e... is 1.0; threshold is 0.0
+21:14:48.276 [grpc-default-executor-1] INFO  i.c.casper.MultiParentCasperImpl - Removed 0 deploys from deploy history as we finalized block 8c7b3bc30e....
+21:14:48.278 [grpc-default-executor-1] INFO  i.c.casper.MultiParentCasperImpl - New last finalized block hash is 8c7b3bc30e....
+21:14:48.850 [node-runner-27] INFO  i.c.c.MultiParentCasperImpl$StatelessExecutor - Attempting to add Block 76de718919... to DAG.
+Effects applied. New state hash is: Blake2bHash([240, 60, 209, 207, 47, 122, 188, 166, 176, 167, 107, 94, 155, 72, 86, 79, 206, 144, 85, 101, 43, 236, 201, 93, 171, 165, 168, 134, 179, 218, 44, 191])
+21:14:49.419 [grpc-default-executor-1] INFO  i.c.c.MultiParentCasperImpl$StatelessExecutor - Added 76de718919...
+21:14:49.423 [grpc-default-executor-1] INFO  i.c.casper.MultiParentCasperImpl - New fork-choice tip is block 76de718919....
+21:14:49.425 [grpc-default-executor-1] INFO  i.c.casper.MultiParentCasperImpl - Fault tolerance for block 76de718919... is 1.0; threshold is 0.0
+21:14:49.447 [grpc-default-executor-1] INFO  i.c.casper.MultiParentCasperImpl - Removed 0 deploys from deploy history as we finalized block 76de718919....
+21:14:49.448 [grpc-default-executor-1] INFO  i.c.casper.MultiParentCasperImpl - New last finalized block hash is 76de718919....
+21:14:49.452 [node-runner-28] INFO  i.c.c.gossiping.GossipServiceServer - Synced 3 blocks with casperlabs://b74021c9eb74548f03f7ef28742c439c2d67cbf9@3.16.244.129?protocol=40400&discovery=40404.
+21:15:43.155 [grpc-io-42] INFO  i.c.node.casper.gossiping.package$ - Peers: 14
+21:15:43.159 [grpc-io-42] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://d1c4a1caa63553e5dcd5f56065aceae6caadcd60@35.224.83.75?protocol=40400&discovery=40404
+21:15:43.160 [grpc-io-42] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://d72709acf604c439f80868580acaf36dd2c16e93@34.65.179.123?protocol=40400&discovery=40404
+21:15:43.160 [grpc-io-42] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://8cf127e72ce0ff6f4971b3e7f98a188de22bbed0@34.92.77.110?protocol=40400&discovery=40404
+21:15:43.160 [grpc-io-42] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://58d5166ad1ea6d8fe767c6339ae70481b19a86b6@34.92.16.137?protocol=40400&discovery=40404
+21:15:43.160 [grpc-io-42] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://9ce8f39f94e15180364bd00f10963f1418a5fead@130.211.195.231?protocol=40400&discovery=40404
+21:15:43.160 [grpc-io-42] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://74cc1e7ff1814464ad0588a9b2e8e474a689e5e8@104.155.183.74?protocol=40400&discovery=40404
+21:15:43.160 [grpc-io-42] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://4be6312d6673f6880ccb8819d3092a51302f35a3@34.65.79.67?protocol=40400&discovery=40404
+21:15:43.160 [grpc-io-42] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://a6fbe017829306efb7fe439d8f9bea5d40bf2fda@34.92.200.31?protocol=40400&discovery=40404
+21:15:43.160 [grpc-io-42] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://b74021c9eb74548f03f7ef28742c439c2d67cbf9@3.16.244.129?protocol=40400&discovery=40404
+21:15:43.160 [grpc-io-42] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://a7872da15fa8adf08932a67d1c09ff30440d0245@35.238.69.155?protocol=40400&discovery=40404
+21:15:43.160 [grpc-io-42] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://4df9203c006b485a605819ef8975fd0b1ab8a866@34.65.109.128?protocol=40400&discovery=40404
+21:15:43.160 [grpc-io-42] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://3863f11a1a4b00016d1fbe3fb0dd9fafb3c7c8c8@34.65.220.194?protocol=40400&discovery=40404
+21:15:43.160 [grpc-io-42] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://f7ac1f33f86479c044efb0f55f1cc6e1f0425375@34.92.24.106?protocol=40400&discovery=40404
+21:15:43.160 [grpc-io-42] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://1382668c90c13fb0a74d54e01103d04e4f4a67a9@35.222.104.196?protocol=40400&discovery=40404
+21:16:02.261 [node-runner-28] INFO  i.c.c.gossiping.GossipServiceServer - Received notification about 1 new blocks from casperlabs://b74021c9eb74548f03f7ef28742c439c2d67cbf9@3.16.244.129?protocol=40400&discovery=40404.
+21:16:03.058 [node-runner-27] INFO  i.c.c.MultiParentCasperImpl$StatelessExecutor - Attempting to add Block bf919a3f59... to DAG.
+Effects applied. New state hash is: Blake2bHash([221, 163, 169, 14, 202, 22, 191, 224, 165, 146, 40, 183, 166, 160, 240, 244, 21, 195, 24, 181, 137, 131, 90, 166, 93, 240, 145, 245, 2, 6, 156, 18])
+21:16:03.846 [grpc-default-executor-1] INFO  i.c.c.MultiParentCasperImpl$StatelessExecutor - Added bf919a3f59...
+21:16:03.850 [grpc-default-executor-1] INFO  i.c.casper.MultiParentCasperImpl - New fork-choice tip is block bf919a3f59....
+21:16:03.851 [grpc-default-executor-1] INFO  i.c.casper.MultiParentCasperImpl - Fault tolerance for block bf919a3f59... is 1.0; threshold is 0.0
+21:16:03.854 [grpc-default-executor-1] INFO  i.c.casper.MultiParentCasperImpl - Removed 0 deploys from deploy history as we finalized block bf919a3f59....
+21:16:03.855 [grpc-default-executor-1] INFO  i.c.casper.MultiParentCasperImpl - New last finalized block hash is bf919a3f59....
+21:16:04.589 [node-runner-28] INFO  i.c.c.gossiping.GossipServiceServer - Synced 2 blocks with casperlabs://b74021c9eb74548f03f7ef28742c439c2d67cbf9@3.16.244.129?protocol=40400&discovery=40404.
+21:16:43.488 [grpc-io-47] INFO  i.c.node.casper.gossiping.package$ - Peers: 19
+21:16:43.489 [grpc-io-47] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://88b9e405c724602b387ff39ffb90c5e76dd4938f@35.222.48.115?protocol=40400&discovery=40404
+21:16:43.489 [grpc-io-47] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://6825ee864ab05d722454a54ffe17cabcc895e72b@34.92.143.162?protocol=40400&discovery=40404
+21:16:43.489 [grpc-io-47] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://1cb6515e4df08c2c2508b0d62362fcebaa9be4fb@34.92.191.239?protocol=40400&discovery=40404
+21:16:43.489 [grpc-io-47] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://ff2961528f902b0894405b25fbb44d961f63fa1e@34.65.38.228?protocol=40400&discovery=40404
+21:16:43.489 [grpc-io-47] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://2035a0f3bb76516d0185888c5fb3669b1647d0c3@35.238.120.158?protocol=40400&discovery=40404
+21:17:00.186 [node-runner-27] INFO  i.c.c.gossiping.GossipServiceServer - Received notification about 1 new blocks from casperlabs://58d5166ad1ea6d8fe767c6339ae70481b19a86b6@34.92.16.137?protocol=40400&discovery=40404.
+21:17:05.898 [node-runner-27] INFO  i.c.c.gossiping.GossipServiceServer - Received notification about 1 new blocks from casperlabs://88b9e405c724602b387ff39ffb90c5e76dd4938f@35.222.48.115?protocol=40400&discovery=40404.
+21:17:05.959 [node-runner-28] INFO  i.c.c.MultiParentCasperImpl$StatelessExecutor - Attempting to add Block 66c9ff93a4... to DAG.
+21:17:09.957 [node-runner-28] INFO  i.c.c.gossiping.GossipServiceServer - Received notification about 1 new blocks from casperlabs://4df9203c006b485a605819ef8975fd0b1ab8a866@34.65.109.128?protocol=40400&discovery=40404.
+Effects applied. New state hash is: Blake2bHash([124, 236, 165, 57, 229, 120, 35, 87, 21, 17, 235, 11, 114, 49, 157, 128, 111, 141, 75, 29, 167, 225, 219, 152, 255, 59, 163, 200, 42, 157, 5, 67])
+21:17:14.304 [grpc-default-executor-1] INFO  i.c.c.MultiParentCasperImpl$StatelessExecutor - Added 66c9ff93a4...
+21:17:14.306 [grpc-default-executor-1] INFO  i.c.casper.MultiParentCasperImpl - New fork-choice tip is block 66c9ff93a4....
+21:17:14.307 [grpc-default-executor-1] INFO  i.c.casper.MultiParentCasperImpl - Fault tolerance for block 66c9ff93a4... is 1.0; threshold is 0.0
+21:17:14.387 [grpc-default-executor-1] INFO  i.c.casper.MultiParentCasperImpl - Removed 0 deploys from deploy history as we finalized block 66c9ff93a4....
+21:17:14.388 [grpc-default-executor-1] INFO  i.c.casper.MultiParentCasperImpl - New last finalized block hash is 66c9ff93a4....
+21:17:17.070 [node-runner-27] INFO  i.c.c.gossiping.GossipServiceServer - Synced 2 blocks with casperlabs://4df9203c006b485a605819ef8975fd0b1ab8a866@34.65.109.128?protocol=40400&discovery=40404.
+21:17:17.071 [node-runner-28] INFO  i.c.c.gossiping.GossipServiceServer - Synced 2 blocks with casperlabs://88b9e405c724602b387ff39ffb90c5e76dd4938f@35.222.48.115?protocol=40400&discovery=40404.
+21:17:17.071 [node-runner-27] INFO  i.c.c.gossiping.GossipServiceServer - Synced 2 blocks with casperlabs://58d5166ad1ea6d8fe767c6339ae70481b19a86b6@34.92.16.137?protocol=40400&discovery=40404.
+21:17:35.002 [node-runner-27] INFO  i.c.c.gossiping.GossipServiceServer - Received notification about 1 new blocks from casperlabs://88b9e405c724602b387ff39ffb90c5e76dd4938f@35.222.48.115?protocol=40400&discovery=40404.
+21:17:40.073 [node-runner-27] INFO  i.c.c.MultiParentCasperImpl$StatelessExecutor - Attempting to add Block ac7bb68813... to DAG.
+21:17:43.980 [grpc-io-47] INFO  i.c.node.casper.gossiping.package$ - Peers: 22
+21:17:43.981 [grpc-io-47] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://7e9a0b95da40550c95d6aef40baf16b59bfb96f9@34.65.241.240?protocol=40400&discovery=40404
+21:17:43.981 [grpc-io-47] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://e2c4b6d62aeb63e1fb52036a077ebd7633e09339@35.222.119.149?protocol=40400&discovery=40404
+21:17:43.983 [grpc-io-47] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://941fd0d0e104e98aa18dc33d0d40e562bfa0529a@34.92.187.128?protocol=40400&discovery=40404
+Effects applied. New state hash is: Blake2bHash([151, 65, 52, 109, 39, 68, 101, 89, 249, 95, 159, 254, 26, 102, 115, 200, 255, 121, 57, 94, 122, 136, 103, 46, 113, 193, 226, 154, 237, 76, 52, 20])
+21:17:54.270 [grpc-default-executor-4] INFO  i.c.c.MultiParentCasperImpl$StatelessExecutor - Added ac7bb68813...
+21:17:54.272 [grpc-default-executor-4] INFO  i.c.casper.MultiParentCasperImpl - New fork-choice tip is block ac7bb68813....
+21:17:54.273 [grpc-default-executor-4] INFO  i.c.casper.MultiParentCasperImpl - Fault tolerance for block ac7bb68813... is 1.0; threshold is 0.0
+21:17:54.365 [grpc-default-executor-4] INFO  i.c.casper.MultiParentCasperImpl - Removed 0 deploys from deploy history as we finalized block ac7bb68813....
+21:17:54.366 [grpc-default-executor-4] INFO  i.c.casper.MultiParentCasperImpl - New last finalized block hash is ac7bb68813....
+21:17:55.502 [node-runner-27] INFO  i.c.c.gossiping.GossipServiceServer - Synced 2 blocks with casperlabs://88b9e405c724602b387ff39ffb90c5e76dd4938f@35.222.48.115?protocol=40400&discovery=40404.
+21:18:44.504 [grpc-io-48] INFO  i.c.node.casper.gossiping.package$ - Peers: 26
+21:18:44.505 [grpc-io-48] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://1a6b0bff4ccac044bff17d236f8f233b159bd010@34.92.143.30?protocol=40400&discovery=40404
+21:18:44.505 [grpc-io-48] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://c4aea0af47c57049af6ecf98d186a928f03509a2@34.92.151.36?protocol=40400&discovery=40404
+21:18:44.505 [grpc-io-48] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://01ca1ffb0a9c1f5c3a5e51880ca43a333ccd4076@34.65.117.31?protocol=40400&discovery=40404
+21:18:44.505 [grpc-io-48] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://b9262c59ea9ae446dd0437abf45cd29c484511d1@34.65.176.206?protocol=40400&discovery=40404
+21:18:50.221 [node-runner-27] INFO  i.c.c.gossiping.GossipServiceServer - Received notification about 1 new blocks from casperlabs://b74021c9eb74548f03f7ef28742c439c2d67cbf9@3.16.244.129?protocol=40400&discovery=40404.
+21:19:19.080 [node-runner-27] INFO  i.c.c.MultiParentCasperImpl$StatelessExecutor - Attempting to add Block 1b63e98e17... to DAG.
+Effects applied. New state hash is: Blake2bHash([52, 107, 237, 204, 30, 210, 56, 97, 220, 248, 228, 13, 150, 114, 0, 235, 125, 144, 171, 6, 222, 77, 213, 24, 94, 8, 138, 74, 94, 181, 231, 101])
+21:19:38.413 [grpc-default-executor-4] INFO  i.c.c.MultiParentCasperImpl$StatelessExecutor - Added 1b63e98e17...
+21:19:38.415 [grpc-default-executor-4] INFO  i.c.casper.MultiParentCasperImpl - New fork-choice tip is block 1b63e98e17....
+21:19:38.415 [grpc-default-executor-4] INFO  i.c.casper.MultiParentCasperImpl - Fault tolerance for block 1b63e98e17... is 1.0; threshold is 0.0
+21:19:38.669 [grpc-default-executor-4] INFO  i.c.casper.MultiParentCasperImpl - Removed 0 deploys from deploy history as we finalized block 1b63e98e17....
+21:19:38.670 [grpc-default-executor-4] INFO  i.c.casper.MultiParentCasperImpl - New last finalized block hash is 1b63e98e17....
+21:19:45.099 [grpc-io-41] INFO  i.c.node.casper.gossiping.package$ - Peers: 28
+21:19:45.100 [grpc-io-41] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://344b7219049bdf0c5fd4e0adf298c72d0eaefec0@34.92.121.14?protocol=40400&discovery=40404
+21:19:45.100 [grpc-io-41] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://eacc5a3e49a8ab65d407d9e03413a8854f7fb6b6@34.65.217.8?protocol=40400&discovery=40404
+21:19:55.307 [node-runner-28] ERROR i.c.shared.UncaughtExceptionLogger$ - Uncaught Exception : Java heap space
+java.lang.OutOfMemoryError: Java heap space
+	at java.base/java.util.Arrays.copyOfRange(Arrays.java:4030)
+	at com.google.protobuf.ByteString$ArraysByteArrayCopier.copyFrom(ByteString.java:121)
+	at com.google.protobuf.ByteString.copyFrom(ByteString.java:298)
+	at com.google.protobuf.CodedInputStream$ArrayDecoder.readBytes(CodedInputStream.java:927)
+	at io.casperlabs.casper.consensus.Deploy$Code.mergeFrom(Deploy.scala:537)
+	at io.casperlabs.casper.consensus.Deploy$Code.mergeFrom(Deploy.scala:494)
+	at scalapb.LiteParser$.readMessage(LiteParser.scala:15)
+	at io.casperlabs.casper.consensus.Deploy$Body.mergeFrom(Deploy.scala:407)
+	at io.casperlabs.casper.consensus.Deploy$Body.mergeFrom(Deploy.scala:366)
+	at scalapb.LiteParser$.readMessage(LiteParser.scala:15)
+	at io.casperlabs.casper.consensus.Deploy.mergeFrom(Deploy.scala:78)
+	at io.casperlabs.casper.consensus.Deploy.mergeFrom(Deploy.scala:16)
+	at scalapb.LiteParser$.readMessage(LiteParser.scala:15)
+	at io.casperlabs.casper.consensus.Block$ProcessedDeploy.mergeFrom(Block.scala:760)
+	at io.casperlabs.casper.consensus.Block$ProcessedDeploy.mergeFrom(Block.scala:700)
+	at scalapb.LiteParser$.readMessage(LiteParser.scala:15)
+	at io.casperlabs.casper.consensus.Block$Body.mergeFrom(Block.scala:522)
+	at io.casperlabs.casper.consensus.Block$Body.mergeFrom(Block.scala:489)
+	at scalapb.LiteParser$.readMessage(LiteParser.scala:15)
+	at io.casperlabs.casper.consensus.Block.mergeFrom(Block.scala:78)
+	at io.casperlabs.casper.consensus.Block.mergeFrom(Block.scala:16)
+	at scalapb.LiteParser$.parseFrom(LiteParser.scala:9)
+	at scalapb.GeneratedMessageCompanion.parseFrom(GeneratedMessageCompanion.scala:188)
+	at scalapb.GeneratedMessageCompanion.parseFrom$(GeneratedMessageCompanion.scala:188)
+	at io.casperlabs.casper.consensus.Block$.parseFrom(Block.scala:125)
+	at scalapb.GeneratedMessageCompanion.parseFrom(GeneratedMessageCompanion.scala:204)
+	at scalapb.GeneratedMessageCompanion.parseFrom$(GeneratedMessageCompanion.scala:204)
+	at io.casperlabs.casper.consensus.Block$.parseFrom(Block.scala:125)
+	at io.casperlabs.comm.gossiping.DownloadManagerImpl.$anonfun$fetchAndRestore$10(DownloadManager.scala:490)
+	at io.casperlabs.comm.gossiping.DownloadManagerImpl$$Lambda$2212/0x0000000840b21440.apply(Unknown Source)
+	at cats.effect.Sync.$anonfun$delay$1(Sync.scala:54)
+	at cats.effect.Sync$$Lambda$1167/0x0000000840583840.apply(Unknown Source)
+21:20:45.484 [grpc-io-51] INFO  i.c.node.casper.gossiping.package$ - Peers: 29
+21:20:45.484 [grpc-io-51] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://037122ceaec2ff0f34e932cbda626b5bf69f3a13@34.65.250.141?protocol=40400&discovery=40404
+21:22:47.951 [node-runner-28] INFO  i.c.node.casper.gossiping.package$ - Peers: 30
+21:22:47.951 [node-runner-28] INFO  i.c.node.casper.gossiping.package$ - Disconnected from casperlabs://b74021c9eb74548f03f7ef28742c439c2d67cbf9@3.16.244.129?protocol=40400&discovery=40404
+21:22:47.951 [node-runner-28] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://cadd0ccfe81fbf91f5e0c30d61b6239853847cd1@35.226.19.99?protocol=40400&discovery=40404
+21:22:47.952 [node-runner-28] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://0bdf96b04af3cfb7d60187a88d6d6d80506ee2ee@35.224.146.19?protocol=40400&discovery=40404
+21:23:48.132 [grpc-io-56] INFO  i.c.node.casper.gossiping.package$ - Peers: 32
+21:23:48.133 [grpc-io-56] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://9c01b45a6ab670e39eb244c2dda1f459954bc0c1@35.238.175.135?protocol=40400&discovery=40404
+21:23:48.133 [grpc-io-56] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://b74021c9eb74548f03f7ef28742c439c2d67cbf9@3.16.244.129?protocol=40400&discovery=40404
+21:24:48.706 [grpc-io-56] INFO  i.c.node.casper.gossiping.package$ - Peers: 37
+21:24:48.707 [grpc-io-56] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://388e29932909b20ab720204dc774bc120410ecbb@34.92.251.251?protocol=40400&discovery=40404
+21:24:48.707 [grpc-io-56] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://e30d9d43b6261f330f25e3bd82bfe9dd0d37a4e9@34.92.245.237?protocol=40400&discovery=40404
+21:24:48.707 [grpc-io-56] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://9a465e33b347134c41a2e78a6da50551e8616cb4@34.92.46.136?protocol=40400&discovery=40404
+21:24:48.707 [grpc-io-56] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://5fb849294a3f8be25ad5c0c16454b449230880c9@34.92.206.39?protocol=40400&discovery=40404
+21:24:48.707 [grpc-io-56] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://3b3203bed3bf0d570032f4dabbf2b05bfc1ecc76@34.92.113.218?protocol=40400&discovery=40404
+21:25:48.899 [grpc-io-56] INFO  i.c.node.casper.gossiping.package$ - Peers: 40
+21:25:48.900 [grpc-io-56] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://1dce8d3143d77454b6d19d1f43602816cf77b699@104.197.68.103?protocol=40400&discovery=40404
+21:25:48.900 [grpc-io-56] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://e3e77c29f4c8db2bab1ba6a430e2b6dcfd57e70e@35.192.111.75?protocol=40400&discovery=40404
+21:25:48.900 [grpc-io-56] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://5871b62d3c68afbb1b5e0adf07a487a8acc77aee@162.222.177.187?protocol=40400&discovery=40404
+21:26:49.093 [grpc-io-55] INFO  i.c.node.casper.gossiping.package$ - Disconnected from casperlabs://01ca1ffb0a9c1f5c3a5e51880ca43a333ccd4076@34.65.117.31?protocol=40400&discovery=40404
+21:26:49.093 [grpc-io-55] INFO  i.c.node.casper.gossiping.package$ - Connected to casperlabs://1aeeb3f8931052047faae3f8debd1a33a453e9e3@34.65.192.15?protocol=40400&discovery=40404

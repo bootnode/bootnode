@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "hanzo-ai",
+  "private_key_id": "377249f3876e0a98fc53567a2b7fcaef2410871c",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDVJbSXW5nYYr8M\njD2rERV6U7kgXmmy+6pjl2W6UGgMdhncZmnHDrvG7Ww/g7xI3H+Dy1HbmAQAbnKl\nTji+4bONAMeFZowbjPLoqMkz+svjVOteJ8HdPswUkj2lGP4VZj7ViP1qoFCHp5T8\nk4q4zHisvJfsvJCv2YmfffgSSN8U3eIhFm7oFa0d0ATN1ey1B7rQ60T/8/2fczRl\nxjU76uDpmOVGWp5yk05uqlmuwjeD9HstgbP4/EcSJt8QnftIYoznLhw5ZDIF38VS\nBnt1LrNOKb8wgD9jF+tILVyFCW/2UG9Jii+F3ETkmej/rSiyV2ZKHJKKBvsTTjL5\n1e0D6Tf1AgMBAAECggEAAtictn/M2hrXcyE4tusr7Oo81wskli3qjzVwjPk8HDkn\nflwlEBy6soBtjLgDYkk9r/1IX23XxvKWKcNcvbpvlnPANkrqekAlWOGIGO2XD9Ni\nBMEs7fmZIrKExKcoVkqXq0+c+ccSPf16318zpwFlvOUwrpgicSFZnKgKZqJTW8/y\npXfd10X3MEQ3YWa2I9XzbIPOGl3tv6LYL8Qv5IVHCOGggLQlMjxtMtS7nJ4FKGub\n01WqYh6FwtDheYpezz3SMZa1L49cLo+lXtbq33HLnjnsG0X8eavimWj21+Vg8QRM\nWjR4Y3CZIGa3Uhy/MPEnDQBU3EBft2Z7/2hUGmXWgQKBgQD4Wqbb4U+MMAlSw240\n6xX59gk2GvqQEdUhukIe3q0PgH1Gs4WZwGpep8hxvWV67n7Bzv3G2dJHA1kK6ZN7\nRCnn7H4cbQo6gxlOz0QJY4Mf7pPbTmpgpr0fE5iPZ7HXQ12WksnNtvNyb5mNW6y4\n/W+wcXiktPIgXVGBLq9ZzmcLfQKBgQDbtZQuQZjxeGqeMffHbPT11HpR/zpm2s2U\nklBPn7oc1oRlmFz6ghmADQu014gpmk5jN9rLQC7YiB2SslUoC3KZ+Hk7M68SgxXs\nGPkSNPgJ8OHJZnqTTAvMm0p9CJrUU0jn+TVqzjsWCFrMxYae7Z8Ir5sxh58R50Tm\nKAQiVp1X2QKBgQDHpL/bo+y5aegkwvt1yME61gCjoN5pMByf50W94Q1Hl+edDTVJ\n2rbnboMgg7rvLodxLv8see+irFtI/WlUPwBc8uyR10nQrZCLnOw5i+hdpADx28CB\n/6eqMquCJD5/KCU0pL1bBEYBaRsL2nUnpHvDYAQ2i0rUn4+khC3ryJNnVQKBgF6/\nMUW5WCFZ0nCiD75aiFCy7oUJ0b+lP96AMk4EDZh+Ed5WFFKbZC/KcG/uOnPmbUNw\nRNQ9u3X5TPeEHCEGvscTVgRnx2nuSbflFRP677QpwtS9csKumrADj93Xph1GRTx0\nRcrnYKehtrZzwBgtVNXEFOMJH1nzJ80xGIdOXtARAoGAZ7PmX5y3FwXETHCNUoPa\nb0dn2S4FTWGiKgpUtG3fNxj1siLsUtIEKMcO/M70OU3r52tWkfcV8bZy5ocn33DA\npBgqrR+xBH9jX6QLqNRCMMJkjpHg3rUoLbgwVXrHRrDjmMiKzYKcqgo6ekpmsTsN\nM/JKc+H8t9hfyQ3VFbLoc7A=\n-----END PRIVATE KEY-----\n",
+  "client_email": "pull-images-from-registry@hanzo-ai.iam.gserviceaccount.com",
+  "client_id": "117525766487983735449",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/pull-images-from-registry%40hanzo-ai.iam.gserviceaccount.com"
+}

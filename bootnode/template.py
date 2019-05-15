@@ -67,10 +67,21 @@ class Resources(Dict):
         self.limits   = limits
 
 class EnvVar(Dict):
-    def __init__(self, name=None, value=None):
-        Dict.__init__(self, name=name, value=value)
+    def __init__(self, name=None, value=None, valueFrom=None):
+        Dict.__init__(self, name=name, value=value, valueFrom=valueFrom)
         self.name = name
         self.value = value
+        self.valueFrom = valueFrom
+
+class EnvVarSource(Dict):
+    def __init__(self, fieldRef=None):
+        Dict.__init__(self, fieldRef=fieldRef)
+        self.fieldRef = fieldRef
+
+class ObjectFieldSelector(Dict):
+    def __init__(self, fieldPath=None):
+        Dict.__init__(self, fieldPath=fieldPath)
+        self.fieldPath = fieldPath
 
 class Container(Dict):
     def __init__(self, name, image, command, args, resources=None,
@@ -344,7 +355,7 @@ class Blockchain(Deployment):
                 exec=ExecAction(
                     command=['./scripts/alive.sh']
                 )
-            )
+            ),
         )
 
         if requests:
@@ -355,11 +366,21 @@ class Blockchain(Deployment):
         self.podSpec.containers.append(container)
 
         # user empty dir for private cloud stuff
-        if cluster == 'casper-testnet-encloudify-test':
+        if 'encloudify' in cluster:
+            container.env=[EnvVar(
+                name='EXTERNAL_IP',
+                valueFrom=EnvVarSource(
+                    fieldRef=ObjectFieldSelector(
+                        fieldPath='status.hostIP',
+                    ),
+                ),
+            )]
+
             volume = Volume(
                 name=name + '-pv',
                 emptyDir=EmptyDir()
             )
+
             self.podSpec.volumes.append(volume)
         else:
             volume = Volume(
@@ -389,7 +410,7 @@ class Blockchain(Deployment):
                                                                     value=value))
 
     def get_service(self, ports):
-        if self.cluster == 'casper-testnet-encloudify-test':
+        if 'encloudify' in self.cluster:
             return Service(
                 metadata=Metadata(
                     name='service-' + self.name,
@@ -423,7 +444,7 @@ class Blockchain(Deployment):
             )
 
     def get_volume_claim(self, size='10Gi'):
-        if self.cluster == 'casper-testnet-encloudify-test':
+        if 'encloudify' in self.cluster:
             return None
         else:
             return PersistentVolumeClaim(
@@ -669,8 +690,8 @@ class Casper(Blockchain):
                 size = 'small'
 
         if size == 'small':
-            requests = Requests(cpu='1', memory='1Gi')
-            limits   = Limits(cpu='1',   memory='1Gi')
+            requests = Requests(cpu='1', memory='2Gi')
+            limits   = Limits(cpu='1',   memory='2Gi')
 
         elif size == 'medium':
             requests = Requests(cpu='2', memory='2Gi')

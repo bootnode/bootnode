@@ -1,0 +1,136 @@
+---------- Creating Socket File ----------
+touch /.casperlabs/.casper-node.sock
+---------- Starting Execution Engine ----------
+/root/.cargo/bin/cargo run --bin casperlabs-engine-grpc-server /.casperlabs/.casper-node.sock &
+   Compiling wasm-prep v0.1.0 (/CasperLabs/execution-engine/wasm-prep)
+   Compiling shared v0.2.0 (/CasperLabs/execution-engine/shared)
+   Compiling storage v0.1.0 (/CasperLabs/execution-engine/storage)
+   Compiling execution-engine v0.1.0 (/CasperLabs/execution-engine/engine)
+   Compiling casperlabs-engine-grpc-server v0.2.0 (/CasperLabs/execution-engine/comm)
+---------- Starting Node ----------
+./node/target/universal/stage/bin/casperlabs-node run --server-data-dir /.casperlabs --tls-certificate /.casperlabs/node.certificate.pem --tls-key /.casperlabs/node.key.pem -b "casperlabs://99f9d2b6876385d0bbd88d9c60b57b9c4c0619a0@13.59.27.228?protocol=40400&discovery=40404" --server-host 104.197.47.175
+18:38:21.876 [main] INFO  io.casperlabs.node.Main$ - CasperLabs node 0.2 (cb4e6b941646630d7ad6c40d44790177a0e07ce0)
+18:38:21.954 [main] INFO  io.casperlabs.node.NodeEnvironment$ - Using data dir: /.casperlabs
+18:38:21.964 [main] INFO  i.c.c.t.GenerateCertificateIfAbsent - No certificate found at path /.casperlabs/node.certificate.pem
+18:38:21.965 [main] INFO  i.c.c.t.GenerateCertificateIfAbsent - Generating a X.509 certificate for the node
+18:38:21.969 [main] INFO  i.c.c.t.GenerateCertificateIfAbsent - Generating a PEM secret key for the node
+18:38:22.764 [main] INFO  io.casperlabs.comm.UPnP$ - trying to open ports using UPnP....
+    Finished dev [unoptimized + debuginfo] target(s) in 26.47s
+     Running `target/debug/casperlabs-engine-grpc-server /.casperlabs/.casper-node.sock`
+Server is listening on socket: /.casperlabs/.casper-node.sock
+18:38:31.847 [main] INFO  io.casperlabs.comm.UPnP$ - INFO - No gateway devices found
+18:38:31.854 [main] INFO  io.casperlabs.comm.UPnP$ - No need to open any port
+18:38:33.300 [main] WARN  i.c.b.BlockDagFileStorage$ - CRC file /.casperlabs/dagstorage/latest-messages-crc did not contain a valid CRC value
+18:38:33.317 [main] WARN  i.c.b.BlockDagFileStorage$ - CRC file /.casperlabs/dagstorage/block-metadata-crc did not contain a valid CRC value
+18:38:33.949 [main] INFO  io.casperlabs.node.api.Servers$ - gRPC diagnostics service started on port 40402.
+18:38:34.196 [main] INFO  io.casperlabs.node.api.Servers$ - gRPC deployment service started on port 40401.
+18:38:34.305 [main] INFO  io.casperlabs.node.MetricsRuntime - No Influx configuration found
+18:38:34.315 [main] INFO  io.casperlabs.node.MetricsRuntime - Reporting metrics to InfluxDB disabled.
+18:38:34.316 [main] INFO  io.casperlabs.node.MetricsRuntime - Reporting metrics to Prometheus disabled.
+18:38:34.319 [main] INFO  io.casperlabs.node.MetricsRuntime - Reporting metrics to Zipkin disabled.
+18:38:34.346 [main] INFO  io.casperlabs.node.MetricsRuntime - Reporting metrics to JMX.
+18:38:34.368 [main] INFO  kamon.metrics.SystemMetrics - Starting the Kamon(SystemMetrics) module
+18:38:34.583 [main] INFO  io.casperlabs.node.api.Servers$ - HTTP server started on port 40403.
+18:38:34.847 [main] INFO  i.c.c.util.comm.CasperPacketHandler$ - Starting in default mode
+18:38:36.055 [main] WARN  i.casperlabs.casper.genesis.Genesis$ - Specified bonds file None does not exist. Falling back on generating random validators.
+18:38:36.160 [main] INFO  i.casperlabs.casper.genesis.Genesis$ - Created validator 31d18ab029bd224e03449812a827bb5245be70d5753633a50bb2adfe62c062fa with bond 2
+18:38:36.163 [main] INFO  i.casperlabs.casper.genesis.Genesis$ - Created validator b2633edf0f22a398919636e13470c0b683d0ecccf4f3b3a256dca1b58ad1b7ee with bond 5
+18:38:36.165 [main] INFO  i.casperlabs.casper.genesis.Genesis$ - Created validator e1539a1330f2aa4873f75008d47710e8001a621e5a7489616aaba724ba22d71b with bond 4
+18:38:36.167 [main] INFO  i.casperlabs.casper.genesis.Genesis$ - Created validator c9c2e73d33efcc660b7818539117f2ee35b6758656d88f1d588e90fe71725122 with bond 1
+18:38:36.169 [main] INFO  i.casperlabs.casper.genesis.Genesis$ - Created validator bfab3c7f6915bd1d53dff14a03a14c8fe7dcb73675ea20e17b4bb5a9d746226e with bond 3
+18:38:36.179 [main] WARN  i.c.casper.ValidatorIdentity$ - No private key detected, cannot create validator identification.
+18:38:38.945 [node-runner-27] INFO  i.c.node.casper.transport.package$ - Started transport layer on port 40400.
+18:38:38.968 [node-runner-27] INFO  io.casperlabs.node.NodeRuntime - Starting node that will bootstrap from Node(<ByteString@15e12420 size=20>,13.59.27.228,40400,40404)
+18:38:39.050 [node-runner-27] INFO  io.casperlabs.node.NodeRuntime - Listening for traffic on casperlabs://4df0ed52259446bf8887ef13baadfe7c580c5429@104.197.47.175?protocol=40400&discovery=40404.
+18:43:40.552 [tl-dispatcher-49] INFO  io.casperlabs.comm.rp.Connect$ - Peers: 1.
+18:43:40.554 [tl-dispatcher-49] INFO  i.casperlabs.comm.rp.HandleMessages$ - Responded to protocol handshake request from Node(<ByteString@7160cad size=20>,104.197.68.103,40400,40404)
+18:43:51.251 [tl-dispatcher-49] INFO  io.casperlabs.comm.rp.Connect$ - Peers: 2.
+18:43:51.252 [tl-dispatcher-49] INFO  i.casperlabs.comm.rp.HandleMessages$ - Responded to protocol handshake request from Node(<ByteString@4691a044 size=20>,34.92.13.52,40400,40404)
+18:43:51.510 [tl-dispatcher-49] INFO  io.casperlabs.comm.rp.Connect$ - Peers: 3.
+18:43:51.510 [tl-dispatcher-49] INFO  i.casperlabs.comm.rp.HandleMessages$ - Responded to protocol handshake request from Node(<ByteString@28d61774 size=20>,34.92.187.128,40400,40404)
+18:43:54.363 [tl-dispatcher-49] INFO  io.casperlabs.comm.rp.Connect$ - Peers: 4.
+18:43:54.364 [tl-dispatcher-49] INFO  i.casperlabs.comm.rp.HandleMessages$ - Responded to protocol handshake request from Node(<ByteString@45e28b92 size=20>,35.238.5.230,40400,40404)
+18:43:56.217 [tl-dispatcher-50] INFO  io.casperlabs.comm.rp.Connect$ - Peers: 5.
+18:43:56.218 [tl-dispatcher-50] INFO  i.casperlabs.comm.rp.HandleMessages$ - Responded to protocol handshake request from Node(<ByteString@31be876a size=20>,35.220.156.128,40400,40404)
+18:43:57.256 [tl-dispatcher-49] INFO  io.casperlabs.comm.rp.Connect$ - Peers: 6.
+18:43:57.256 [tl-dispatcher-49] INFO  i.casperlabs.comm.rp.HandleMessages$ - Responded to protocol handshake request from Node(<ByteString@5d9759ed size=20>,34.65.187.48,40400,40404)
+18:44:00.977 [tl-dispatcher-50] INFO  io.casperlabs.comm.rp.Connect$ - Peers: 7.
+18:44:00.978 [tl-dispatcher-50] INFO  i.casperlabs.comm.rp.HandleMessages$ - Responded to protocol handshake request from Node(<ByteString@499edb0f size=20>,35.224.146.19,40400,40404)
+18:44:01.407 [tl-dispatcher-50] INFO  io.casperlabs.comm.rp.Connect$ - Peers: 8.
+18:44:01.408 [tl-dispatcher-50] INFO  i.casperlabs.comm.rp.HandleMessages$ - Responded to protocol handshake request from Node(<ByteString@60dacc47 size=20>,104.154.233.240,40400,40404)
+18:44:01.595 [tl-dispatcher-50] INFO  io.casperlabs.comm.rp.Connect$ - Peers: 9.
+18:44:01.596 [tl-dispatcher-50] INFO  i.casperlabs.comm.rp.HandleMessages$ - Responded to protocol handshake request from Node(<ByteString@251a92e1 size=20>,34.65.138.196,40400,40404)
+18:44:03.648 [node-runner-27] INFO  io.casperlabs.comm.rp.Connect$ - Peers: 10.
+18:44:03.649 [node-runner-27] INFO  io.casperlabs.comm.rp.Connect$ - Connected to casperlabs://098710aa10e435bec8f679bcb008a02ca2879221@34.92.251.251?protocol=40400&discovery=40404.
+18:44:04.586 [node-runner-26] INFO  io.casperlabs.comm.rp.Connect$ - Peers: 11.
+18:44:04.587 [node-runner-26] INFO  io.casperlabs.comm.rp.Connect$ - Connected to casperlabs://656ba5d0f40eaa25dd3e4c9a7917eb99a716a7e2@34.65.217.8?protocol=40400&discovery=40404.
+18:44:04.610 [node-runner-27] INFO  io.casperlabs.comm.rp.Connect$ - Peers: 12.
+18:44:04.610 [node-runner-27] INFO  io.casperlabs.comm.rp.Connect$ - Connected to casperlabs://b1a7a7df726c79c931f8b21e3e1938723e95a2ff@35.202.82.192?protocol=40400&discovery=40404.
+18:44:04.634 [node-runner-26] INFO  io.casperlabs.comm.rp.Connect$ - Peers: 13.
+18:44:04.635 [node-runner-26] INFO  io.casperlabs.comm.rp.Connect$ - Connected to casperlabs://3d5364b7f1104c0c39d94c74eb10a1be5f9b4a7a@35.222.169.51?protocol=40400&discovery=40404.
+18:44:04.659 [node-runner-26] INFO  io.casperlabs.comm.rp.Connect$ - Peers: 14.
+18:44:04.659 [node-runner-26] INFO  io.casperlabs.comm.rp.Connect$ - Connected to casperlabs://cea294e3a58e5d57162a0d0f83ebb34daa74e2dd@34.66.111.194?protocol=40400&discovery=40404.
+18:44:05.246 [node-runner-27] INFO  io.casperlabs.comm.rp.Connect$ - Peers: 15.
+18:44:05.246 [node-runner-27] INFO  io.casperlabs.comm.rp.Connect$ - Connected to casperlabs://c55be6c79c093298feae97505f91b09b2438640a@34.65.103.15?protocol=40400&discovery=40404.
+18:44:06.284 [node-runner-26] INFO  io.casperlabs.comm.rp.Connect$ - Peers: 16.
+18:44:06.285 [node-runner-26] INFO  io.casperlabs.comm.rp.Connect$ - Connected to casperlabs://0de7f257a7cd0d0b8bd5577ebbef5af159dccf87@34.65.176.206?protocol=40400&discovery=40404.
+18:44:06.312 [node-runner-27] INFO  io.casperlabs.comm.rp.Connect$ - Peers: 17.
+18:44:06.312 [node-runner-27] INFO  io.casperlabs.comm.rp.Connect$ - Connected to casperlabs://408c573ab8d85b3cce204e6001d637990403e040@35.238.120.158?protocol=40400&discovery=40404.
+18:44:06.413 [node-runner-26] INFO  io.casperlabs.comm.rp.Connect$ - Peers: 18.
+18:44:06.414 [node-runner-26] INFO  io.casperlabs.comm.rp.Connect$ - Connected to casperlabs://398300cc2213744576778d2b301082e654372ff0@104.154.119.155?protocol=40400&discovery=40404.
+18:44:06.996 [node-runner-27] INFO  io.casperlabs.comm.rp.Connect$ - Peers: 19.
+18:44:06.997 [node-runner-27] INFO  io.casperlabs.comm.rp.Connect$ - Connected to casperlabs://b1897f7430b43ffc1e06bc92b39e3c61cc6b0f4d@34.65.236.132?protocol=40400&discovery=40404.
+18:44:07.158 [node-runner-26] INFO  io.casperlabs.comm.rp.Connect$ - Peers: 20.
+18:44:07.159 [node-runner-26] INFO  io.casperlabs.comm.rp.Connect$ - Connected to casperlabs://b74021c9eb74548f03f7ef28742c439c2d67cbf9@3.16.244.129?protocol=40400&discovery=40404.
+18:44:07.205 [node-runner-27] INFO  io.casperlabs.comm.rp.Connect$ - Peers: 21.
+18:44:07.205 [node-runner-27] INFO  io.casperlabs.comm.rp.Connect$ - Connected to casperlabs://a7872da15fa8adf08932a67d1c09ff30440d0245@35.238.69.155?protocol=40400&discovery=40404.
+18:44:07.789 [node-runner-27] INFO  io.casperlabs.comm.rp.Connect$ - Peers: 22.
+18:44:07.789 [node-runner-27] INFO  io.casperlabs.comm.rp.Connect$ - Connected to casperlabs://4f8db3a0d5362eefbd50ac196186af0f35efbb0c@34.65.109.128?protocol=40400&discovery=40404.
+18:44:08.656 [node-runner-26] INFO  io.casperlabs.comm.rp.Connect$ - Peers: 23.
+18:44:08.656 [node-runner-26] INFO  io.casperlabs.comm.rp.Connect$ - Connected to casperlabs://4d5721900763640315057a94b7ca3ca401421ac1@34.92.108.255?protocol=40400&discovery=40404.
+18:44:09.521 [node-runner-27] INFO  io.casperlabs.comm.rp.Connect$ - Peers: 24.
+18:44:09.522 [node-runner-27] INFO  io.casperlabs.comm.rp.Connect$ - Connected to casperlabs://cc99d78018bad764184853506bba56ec2ff35d94@34.92.40.171?protocol=40400&discovery=40404.
+18:44:10.467 [node-runner-26] INFO  io.casperlabs.comm.rp.Connect$ - Peers: 25.
+18:44:10.467 [node-runner-26] INFO  io.casperlabs.comm.rp.Connect$ - Connected to casperlabs://de0008fa968b17e74aad0764374745b101d792f7@34.92.200.122?protocol=40400&discovery=40404.
+18:44:11.885 [node-runner-27] INFO  io.casperlabs.comm.rp.Connect$ - Peers: 26.
+18:44:11.886 [node-runner-27] INFO  io.casperlabs.comm.rp.Connect$ - Connected to casperlabs://9788508a1f037196cc36121f1022bf6475911322@34.92.57.221?protocol=40400&discovery=40404.
+18:44:12.525 [node-runner-26] INFO  io.casperlabs.comm.rp.Connect$ - Peers: 27.
+18:44:12.526 [node-runner-26] INFO  io.casperlabs.comm.rp.Connect$ - Connected to casperlabs://3039690df9313fc247f08b4e4da78842378f059d@34.65.250.141?protocol=40400&discovery=40404.
+18:44:12.699 [node-runner-27] INFO  io.casperlabs.comm.rp.Connect$ - Peers: 28.
+18:44:12.699 [node-runner-27] INFO  io.casperlabs.comm.rp.Connect$ - Connected to casperlabs://99f9d2b6876385d0bbd88d9c60b57b9c4c0619a0@13.59.27.228?protocol=40400&discovery=40404.
+18:44:41.409 [node-runner-26] WARN  i.c.casper.MultiParentCasperRef$ - Could not show blocks.. Casper instance was not available yet.
+18:45:53.574 [node-runner-26] WARN  i.c.casper.MultiParentCasperRef$ - Could not show blocks.. Casper instance was not available yet.
+18:47:05.349 [node-runner-26] WARN  i.c.casper.MultiParentCasperRef$ - Could not show blocks.. Casper instance was not available yet.
+18:48:15.581 [node-runner-27] WARN  i.c.casper.MultiParentCasperRef$ - Could not show blocks.. Casper instance was not available yet.
+18:49:25.075 [node-runner-26] WARN  i.c.casper.MultiParentCasperRef$ - Could not show blocks.. Casper instance was not available yet.
+18:50:35.248 [node-runner-27] WARN  i.c.casper.MultiParentCasperRef$ - Could not show blocks.. Casper instance was not available yet.
+18:51:44.983 [node-runner-27] WARN  i.c.casper.MultiParentCasperRef$ - Could not show blocks.. Casper instance was not available yet.
+18:52:55.376 [node-runner-27] WARN  i.c.casper.MultiParentCasperRef$ - Could not show blocks.. Casper instance was not available yet.
+18:54:06.962 [node-runner-27] WARN  i.c.casper.MultiParentCasperRef$ - Could not show blocks.. Casper instance was not available yet.
+18:55:16.591 [node-runner-26] WARN  i.c.casper.MultiParentCasperRef$ - Could not show blocks.. Casper instance was not available yet.
+18:56:27.085 [node-runner-27] WARN  i.c.casper.MultiParentCasperRef$ - Could not show blocks.. Casper instance was not available yet.
+18:57:36.475 [node-runner-27] WARN  i.c.casper.MultiParentCasperRef$ - Could not show blocks.. Casper instance was not available yet.
+18:58:46.973 [node-runner-27] WARN  i.c.casper.MultiParentCasperRef$ - Could not show blocks.. Casper instance was not available yet.
+18:59:57.855 [node-runner-27] WARN  i.c.casper.MultiParentCasperRef$ - Could not show blocks.. Casper instance was not available yet.
+19:01:07.544 [node-runner-26] WARN  i.c.casper.MultiParentCasperRef$ - Could not show blocks.. Casper instance was not available yet.
+19:02:17.281 [node-runner-26] WARN  i.c.casper.MultiParentCasperRef$ - Could not show blocks.. Casper instance was not available yet.
+19:13:29.901 [node-runner-26] WARN  i.c.casper.MultiParentCasperRef$ - Could not show blocks.. Casper instance was not available yet.
+19:13:29.965 [node-runner-27] WARN  i.c.casper.MultiParentCasperRef$ - Could not visualize graph.. Casper instance was not available yet.
+19:14:09.650 [node-runner-27] WARN  i.c.casper.MultiParentCasperRef$ - Could not show blocks.. Casper instance was not available yet.
+19:14:09.746 [node-runner-27] WARN  i.c.casper.MultiParentCasperRef$ - Could not visualize graph.. Casper instance was not available yet.
+19:14:16.786 [node-runner-26] WARN  i.c.casper.MultiParentCasperRef$ - Could not show blocks.. Casper instance was not available yet.
+19:14:16.786 [node-runner-27] WARN  i.c.casper.MultiParentCasperRef$ - Could not visualize graph.. Casper instance was not available yet.
+19:15:04.276 [node-runner-26] WARN  i.c.casper.MultiParentCasperRef$ - Could not visualize graph.. Casper instance was not available yet.
+19:15:04.276 [node-runner-27] WARN  i.c.casper.MultiParentCasperRef$ - Could not show blocks.. Casper instance was not available yet.
+19:15:14.278 [node-runner-26] WARN  i.c.casper.MultiParentCasperRef$ - Could not show blocks.. Casper instance was not available yet.
+19:15:16.275 [node-runner-26] WARN  i.c.casper.MultiParentCasperRef$ - Could not show blocks.. Casper instance was not available yet.
+19:15:40.252 [node-runner-27] WARN  i.c.casper.MultiParentCasperRef$ - Could not show blocks.. Casper instance was not available yet.
+19:15:44.996 [node-runner-27] WARN  i.c.casper.MultiParentCasperRef$ - Could not show blocks.. Casper instance was not available yet.
+19:15:51.418 [node-runner-27] WARN  i.c.casper.MultiParentCasperRef$ - Could not visualize graph.. Casper instance was not available yet.
+19:15:51.418 [node-runner-26] WARN  i.c.casper.MultiParentCasperRef$ - Could not show blocks.. Casper instance was not available yet.
+19:15:56.115 [node-runner-27] WARN  i.c.casper.MultiParentCasperRef$ - Could not show blocks.. Casper instance was not available yet.
+19:15:56.186 [node-runner-27] WARN  i.c.casper.MultiParentCasperRef$ - Could not visualize graph.. Casper instance was not available yet.
+19:16:39.641 [node-runner-26] WARN  i.c.casper.MultiParentCasperRef$ - Could not show blocks.. Casper instance was not available yet.
+19:16:39.642 [node-runner-27] WARN  i.c.casper.MultiParentCasperRef$ - Could not visualize graph.. Casper instance was not available yet.
+19:17:25.774 [node-runner-27] WARN  i.c.casper.MultiParentCasperRef$ - Could not show blocks.. Casper instance was not available yet.
+19:17:25.774 [node-runner-26] WARN  i.c.casper.MultiParentCasperRef$ - Could not visualize graph.. Casper instance was not available yet.

@@ -20,7 +20,9 @@ class Bootnode(object):
             raise Exception('Blockchain "" does not exist' % chain)
 
         if provider == 'private-cloud':
-            self.cluster = 'casper-testnet-encloudify-test'
+            self.cluster = '{0}-{1}-encloudify-{2}'.format(self.chain.get_name(),
+                                            network,
+                                            zone)
         else:
             self.cluster = '{0}-{1}-{2}'.format(self.chain.get_name(),
                                             network,
@@ -28,8 +30,8 @@ class Bootnode(object):
 
         try:
             self.kube    = Kubernetes('config/{0}/cluster.yaml'.format(self.cluster))
-        except:
-            print('{0} is a new cluster'.format(self.cluster))
+        except Exception as e:
+            print('{0} is a new cluster: '.format(self.cluster) + str(e))
 
     # Disks
     def list_disks(self, network=None):
@@ -196,14 +198,12 @@ class Bootnode(object):
 
         service = self.kube.create_service(config.get_service())
 
-        if self.cluster == 'casper-testnet-encloudify-test':
-            config.set_env('EXTERNAL_IP', '199.47.196.151')
-        else:
+        if 'encloudify' not in self.cluster:
             service = self.kube.get_service('service-'+name)
             while service.ip == '':
                 print('NO IP!', service.ip)
                 service = self.kube.get_service('service-'+name)
-                await asyncio.sleep(1)
+                await asyncio.sleep(5)
             print('IP!', service.ip)
 
             config.set_env('EXTERNAL_IP', service.ip)

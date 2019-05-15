@@ -16,7 +16,7 @@ cors(app)
 SUPPORTED_PROVIDERS = ['private-cloud', 'google']
 SUPPORTED_ZONES = {
     'google': ['us-central1-a', 'europe-west6-a', 'asia-east2-a'],
-    'private-cloud': ['test'],
+    'private-cloud': ['london1', 'kansascity1', 'munich1', 'oslo1', 'tokyo1'],
 }
 
 # connect to mongo and set up database vars
@@ -24,6 +24,7 @@ mongo_client = MongoClient()
 bootnode_db = mongo_client.bootnode
 nodes_collection = bootnode_db.nodes
 updates_collection = bootnode_db.updates
+node_statuses = bootnode_db.node_statuses
 
 # set up system update loop
 async def update_nodes_lambda():
@@ -52,18 +53,24 @@ async def update_nodes_lambda():
                 try:
                     if node['blockchain'] == 'casper' and node['ip'] is not None:
                         ip = node['ip']
+                        port = 9001
                         if provider == 'private-cloud':
-                            ip = '199.47.196.151'
+                            for p in node['ports']:
+                                if p['port'] == 9001:
+                                    port = p['nodePort']
 
                         node['provider'] = provider
 
                         start = datetime.datetime.now()
 
+                        print(' WHATATATAT https://{0}:{1}/show/blocks'.format(ip, port))
+
                         reqs = [
-                            requests.put('https://{0}:9001/show/blocks'.format(ip),
+                            requests.put('https://{0}:{1}/show/blocks'.format(ip, port),
                                              json={'depth': 1},
                                              verify=False),
-                            requests.put('https://{0}:9001/show/dag'.format(ip),
+                            requests.put('https://{0}:{1}/show/dag'.format(ip,
+                                                                           port),
                                              json={'depth': 10,
                                                    'showJustifications':
                                                    True}, verify=False)
@@ -135,7 +142,7 @@ async def login():
 
         print('login', json)
 
-        if json['email'] == 'test@hanzo.ai' and json['password'] == 'demo-test-12345':
+        if json['email'] == 'test@bootnode.io' and json['password'] == 'testtest':
             return jsonify({'token': 'fLcLu7OLD81aR9jf'})
 
         return jsonify({
@@ -171,6 +178,28 @@ async def get_nodes():
             'error': 'could not get nodes: ' + str(e),
         })
 
+@app.route('/nodes', methods=['DELETE'])
+@auth_required
+async def delete_nodes():
+    try:
+        print('deleting everything!')
+
+        update = updates_collection.find_one({ 'name': 'nodes' })
+        nodes = nodes_collection.find({'lastUpdated': update['date']})
+
+        for node in nodes:
+            print('deleting ' + str(await delete_node(node['id'], node['provider'],
+                                    node['zone'])))
+
+        return jsonify({
+            'status': 'success',
+        })
+    except Exception as e:
+         return jsonify({
+            'status': 'failed',
+             'error': 'could not delete a nodes: ' + str(e)
+        })
+
 @app.route('/nodes', methods=['PUT'])
 @auth_required
 async def put_node():
@@ -202,7 +231,12 @@ async def put_node():
 
         ds = []
         for i in range(number):
-            ds.append(bootnode.create_deployment())
+
+            async def create_deployment():
+                data = await bootnode.create_deployment()
+                print('deployment created', data.deployment)
+
+            ds.append(create_deployment())
 
         asyncio.ensure_future(asyncio.gather(*ds))
 
@@ -218,11 +252,14 @@ async def put_node():
 
 @app.route('/nodes/<node_id>', methods=['GET'])
 @auth_required
-async def get_node(node_id, zone='us-central1-a'):
+async def get_node(node_id, provider=None, zone=None):
     try:
         json = await request.get_json()
 
-        provider = json['provider']
+        if provider is None:
+            provider = json['provider']
+        if zone is None:
+            zone = json['zone']
 
         bootnode = Bootnode('casper', 'testnet', provider, zone)
 
@@ -240,16 +277,18 @@ async def get_node(node_id, zone='us-central1-a'):
 
 @app.route('/nodes/<node_id>', methods=['DELETE'])
 @auth_required
-async def delete_node(node_id, zone='us-central1-a'):
+async def delete_node(node_id, provider=None, zone=None):
     try:
-        json = await request.get_json()
-        print('deleting ' + node_id + ' from zone ' + json['zone'])
+        if provider is None:
+            json = await request.get_json()
+            provider = json['provider']
+            zone = json['zone']
 
-        provider = json['provider']
-        zone = json['zone']
+        print('deleting ' + node_id + ' from provider ' + provider + ' and zone ' + zone)
 
         bootnode = Bootnode('casper', 'testnet', provider, zone)
         bootnode.delete_deployment(node_id)
+
         return jsonify({
             'status': 'ok',
         })

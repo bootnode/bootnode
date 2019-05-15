@@ -24,7 +24,7 @@ class Pod(object):
         self.name = name
 
         self.status = pod.status.phase
-        self.ip     = pod.status.pod_ip
+        self.ip     = pod.status.host_ip
 
         try:
             # Pod names should follow client-network-number scheme
@@ -56,6 +56,7 @@ class Pod(object):
             'network': self.network,
             'number': self.number,
             'status': self.status,
+            'ip': self.ip,
         }
 
 class Service(object):
@@ -93,13 +94,19 @@ class Service(object):
             self.number = -1
 
     def to_dict(self):
+        ports = []
+        for port in self.ports:
+            p =  {'port': port.port, 'name': port.name}
+            if hasattr(port, 'node_port'):
+                p['nodePort'] = port.node_port
+            ports.append(p)
         return {
             'name': self.name,
             'blockchain': self.client,
             'network': self.network,
             'number': self.number,
             'ip': self.ip,
-            'ports': [{'port': p.port, 'name': p.name} for p in self.ports],
+            'ports': ports,
         }
 
     # def exec(self, js):
