@@ -120,4 +120,4 @@ static_resources:                      #(config.bootstrap.v2.Bootstrap.StaticRes
      http2_protocol_options: { }       #(core.Http2ProtocolOptions) this is required to make the upstream connection be http2 (required because it's grpc)
      connect_timeout: { seconds: 2 }   #(Duration:R) this is a protobuf datatype
      hosts:                            #([core.Address])   this is deprecated in favor of ClusterLoadAssignment
-     - socket_address: { address: 0.0.0.0, port_value: 40401 }   #([core.Address]:R if static) casper node port
+     - socket_address: { address: 0.0.0.0, port_value: $GRPC_PORT }   #([core.Address]:R if static) casper node port

@@ -6,10 +6,11 @@ import secrets
 import asyncio
 
 blockchains = [Ethereum, Casper]
+gcloud = Gcloud()
 
 class Bootnode(object):
     def __init__(self, chain, network, provider, zone):
-        self.gcloud = Gcloud()
+        self.gcloud = gcloud
 
         self.chain = self.find_blockchain(chain)
         self.network, id = self.chain.normalize_network(network)
@@ -57,16 +58,16 @@ class Bootnode(object):
     def get_last_snapshot(self, network=None):
         table(self.gcloud.get_last_snapshot(network=network), 'name', 'status', 'link')
 
-    def snapshot_disk(self, name):
+    async def snapshot_disk(self, name):
         disk = self.gcloud.get_disk(name)
-        pod  = self.kube.get_pod(disk.pod)
+        pod  = await self.kube.get_pod(disk.pod)
         print(self.gcloud.snapshot_pod(pod))
 
-    def snapshot_pod(self, name):
-        pod = self.kube.get_pod(name)
+    async def snapshot_pod(self, name):
+        pod = await self.kube.get_pod(name)
         print(self.gcloud.snapshot_pod(pod))
 
-    def update_snapshot(self):
+    async def update_snapshot(self):
         if not network:
             raise Exception('Network must be specified')
 
@@ -74,9 +75,9 @@ class Bootnode(object):
         # otherwise find any sync'd pod and start there
         snap = self.gcloud.get_last_snapshot(network=self.network)
         if snap:
-            pod = self.kube.get_pod(snap.pod)
+            pod = await self.kube.get_pod(snap.pod)
         else:
-            pod = self.kube.get_synced_pod(self.network)
+            pod = await self.kube.get_synced_pod(self.network)
 
         if not pod or pod.syncing():
             raise Exception('Pod not synced: ""' % pod.name)
@@ -93,7 +94,7 @@ class Bootnode(object):
             if blockchain.is_blockchain(chain):
                 return blockchain
 
-    def create_load_balancer(self, name=None):
+    async def create_load_balancer(self, name=None):
         """
         Create a new load balancer for a given set of pods.
         """
@@ -124,11 +125,15 @@ class Bootnode(object):
             )
         )
 
-        self.kube.create_service(service)
-        self.kube.create_ingress(ingress)
+        creates = [
+            self.kube.create_service(service),
+            self.kube.create_ingress(ingress),
+        ]
+
+        await asyncio.gather(*creates)
 
 
-    def create_pod(self, name=None):
+    async def create_pod(self, name=None):
         """
         Create a new pod for a specific chain on a specific network of that
         chain.  Ex. geth-mainnet
@@ -150,28 +155,28 @@ class Bootnode(object):
         # pool = self.kube.get_pool(network)
         # if not pool:
         #     self.kube.create_pool(network)
-        print(self.kube.create_pod(config))
+        print(await self.kube.create_pod(config))
 
-    def delete_pod(self, name):
-        self.kube.delete_pod(name)
+    async def delete_pod(self, name):
+        await self.kube.delete_pod(name)
 
-    def list_pods(self, label_selector=None, network=None):
+    async def list_pods(self, label_selector=None, network=None):
         if network is None:
             network = self.network
 
-        pods = self.kube.list_pods(label_selector=label_selector, network=self.network)
+        pods = await self.kube.list_pods(label_selector=label_selector, network=self.network)
         #table(pods, 'name', 'status')
 
         return pods
 
-    def get_pod(self, name):
-        table(self.kube.get_pod(name), 'name', 'phase', 'ip')
+    async def get_pod(self, name):
+        table(await self.kube.get_pod(name), 'name', 'phase', 'ip')
 
-    def get_last_pod(self):
-        table(self.kube.get_last_pod(network=self.network), 'name', 'phase', 'block_number', 'ip')
+    async def get_last_pod(self):
+        table(await self.kube.get_last_pod(network=self.network), 'name', 'phase', 'block_number', 'ip')
 
-    def get_synced_pod(self):
-        table(self.kube.get_synced_pod(network=self.network), 'name', 'phase', 'block_number', 'ip')
+    async def get_synced_pod(self):
+        table(await self.kube.get_synced_pod(network=self.network), 'name', 'phase', 'block_number', 'ip')
 
     async def create_deployment(self, name=None):
         """
@@ -196,13 +201,13 @@ class Bootnode(object):
         #     self.kube.create_pool(network)
         print('Creating service for {0}'.format(name))
 
-        service = self.kube.create_service(config.get_service())
+        service = await self.kube.create_service(config.get_service())
 
         if 'encloudify' not in self.cluster:
-            service = self.kube.get_service('service-'+name)
+            service = await self.kube.get_service('service-'+name)
             while service.ip == '':
                 print('NO IP!', service.ip)
-                service = self.kube.get_service('service-'+name)
+                service = await self.kube.get_service('service-'+name)
                 await asyncio.sleep(5)
             print('IP!', service.ip)
 
@@ -212,10 +217,10 @@ class Bootnode(object):
 
         if volume is not None:
             print('Creating volume for {0}'.format(name))
-            pvc = self.kube.create_volume(volume)
+            pvc = await self.kube.create_volume(volume)
 
         print('Creating deployment for {0}'.format(name))
-        deployment = self.kube.create_deployment(config)
+        deployment = await self.kube.create_deployment(config)
 
         return {
             'service': service,
@@ -223,51 +228,51 @@ class Bootnode(object):
             'deployment': deployment,
         }
 
-    def delete_deployment(self, name):
+    async def delete_deployment(self, name):
         try:
-            self.kube.delete_service('service-' + name)
+            await self.kube.delete_service('service-' + name)
         except Exception as e:
             print('warning: could not delete service ' + 'service-' + name + ': ' +
                   str(e))
         try:
-            self.kube.delete_volume_claim(name+'-pd')
+            await self.kube.delete_volume_claim(name+'-pd')
         except Exception as e:
             print('warning: could not delete volume claim ' + name + '-pd : ' +
                   str(e))
-        self.kube.delete_deployment(name)
+        await self.kube.delete_deployment(name)
 
-    def list_deployments(self, network=None):
+    async def list_deployments(self, network=None):
         if network is None:
             network = self.network
 
-        deployments = self.kube.list_deployments(network=network)
+        deployments = await self.kube.list_deployments(network=network)
         #table(deployments, 'name')
 
         return deployments
 
-    def get_deployment(self, name):
-        deployment = self.kube.get_deployment(name)
+    async def get_deployment(self, name):
+        deployment = await self.kube.get_deployment(name)
         table([deployment], 'name')
 
         return deployment
 
-    def list_services(self, network=None):
+    async def list_services(self, network=None):
         if network is None:
             network = self.network
 
-        services = self.kube.list_services(network=network)
+        services = await self.kube.list_services(network=network)
         #table(services, 'name', 'ip', 'ports')
 
         return services
 
-    def get_service(self, name):
-        service = self.kube.get_service('service-' + name)
+    async def get_service(self, name):
+        service = await self.kube.get_service('service-' + name)
         table([service], 'name', 'ip', 'ports')
 
         return service
 
-    def get_block_number(self, name):
-        pod = self.kube.get_pod(name)
+    async def get_block_number(self, name):
+        pod = await self.kube.get_pod(name)
         print(pod.block_number())
 
     # Cluster

@@ -1,5 +1,5 @@
 import os.path
-
+import secrets
 
 class Dict(dict):
     def __init__(self, **kwargs):
@@ -160,11 +160,11 @@ class Backend(Dict):
 
 class ServicePort(Dict):
     def __init__(self, name=None, node_port=None, port=None, protocol='TCP',
-            targetPort=None):
+            targetPort=None, nodePort=None):
         Dict.__init__(self, port=port, protocol=protocol,
-                targetPort=targetPort)
+                targetPort=targetPort, nodePort=nodePort)
         self.name       = name
-        self.node_port  = node_port
+        self.nodePort   = nodePort
         self.port       = port
         self.protocol   = protocol
         self.targetPort = targetPort
@@ -701,11 +701,32 @@ class Casper(Blockchain):
         super(Casper, self).__init__(name, cluster, 'casper', network, image,
                                        command, args, None, path, requests, limits)
 
+        grpc_port = 40401
+        # user empty dir for private cloud stuff
+        if 'encloudify' in cluster:
+            # self.grpc_port_external = secrets.randbelow(2767) + 30000
+            # self.server_port = secrets.randbelow(2767) + 30000
+            # self.discovery_port = secrets.randbelow(2767) + 30000
+
+            self.grpc_port_external = secrets.randbelow(2767) + 30000
+            self.server_port = secrets.randbelow(2767) + 30000
+            self.discovery_port = secrets.randbelow(2767) + 30000
+
+            grpc_port = self.grpc_port_external
+
+            self.podSpec.containers[0].env.append(EnvVar(
+                name='PORTS',
+                value='--grpc-port-external {0} --server-port {1} --server-kademlia-port {2}'.format(self.grpc_port_external,
+                                                   self.server_port,
+                                                   self.discovery_port)
+            ))
+
         envoyContainer = Container(
             name=name+'-envoy',
             image='gcr.io/hanzo-ai/casper-envoy:latest',
-            command=['envoy'],
+            command=['/scripts/start.sh'],
             args=['--config-path envoyConfig.yaml'],
+            env=[EnvVar(name='GRPC_PORT', value='{0}'.format(grpc_port))],
             resources=Resources(limits=Limits(cpu='0.1', memory='0.1Gi')),
         )
 
@@ -713,27 +734,50 @@ class Casper(Blockchain):
 
     def get_service(self):
         ports = []
-        ports.append(
-            ServicePort(
-                name='grpc',
-                protocol='TCP',
-                port=40401,
-                targetPort=40401
-            ))
-        ports.append(
-            ServicePort(
-                name='server',
-                protocol='TCP',
-                port=40400,
-                targetPort=40400
-            ))
-        ports.append(
-            ServicePort(
-                name='discovery',
-                protocol='TCP',
-                port=40404,
-                targetPort=40404
-            ))
+        if 'encloudify' in self.cluster:
+            ports.append(
+                ServicePort(
+                    name='grpc',
+                    protocol='TCP',
+                    port=self.grpc_port_external,
+                    nodePort=self.grpc_port_external,
+                ))
+            ports.append(
+                ServicePort(
+                    name='server',
+                    protocol='TCP',
+                    port=self.server_port,
+                    nodePort=self.server_port,
+                ))
+            ports.append(
+                ServicePort(
+                    name='discovery',
+                    protocol='TCP',
+                    port=self.discovery_port,
+                    nodePort=self.discovery_port,
+                ))
+        else:
+            ports.append(
+                ServicePort(
+                    name='grpc',
+                    protocol='TCP',
+                    port=40401,
+                    targetPort=40401
+                ))
+            ports.append(
+                ServicePort(
+                    name='server',
+                    protocol='TCP',
+                    port=40400,
+                    targetPort=40400
+                ))
+            ports.append(
+                ServicePort(
+                    name='discovery',
+                    protocol='TCP',
+                    port=40404,
+                    targetPort=40404
+                ))
         ports.append(
             ServicePort(
                 name='rpc',
