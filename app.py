@@ -14,7 +14,7 @@ import nest_asyncio
 nest_asyncio.apply()
 
 app = Quart(__name__)
-app = cors(app)
+cors(app)
 
 SUPPORTED_PROVIDERS = ['private-cloud', 'google']
 SUPPORTED_ZONES = {
@@ -145,7 +145,10 @@ def auth_required(fn):
 @app.route('/login', methods=['POST'])
 async def login():
     try:
-        json = await request.get_json()
+        loop = asyncio.get_event_loop()
+        task = asyncio.create_task(request.get_json())
+        loop.run_until_complete(task)
+        json = task.result()
 
         # print('login', json)
 
