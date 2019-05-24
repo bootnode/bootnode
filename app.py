@@ -133,7 +133,7 @@ Thread(target=update_nodes_thread).start()
 def auth_required(fn):
     @wraps(fn)
     async def wrapped_fn(*args, **kwargs):
-        print(request.headers.get('Authorization'))
+        # print(request.headers.get('Authorization'))
         if request.headers.get('Authorization') != 'Bearer fLcLu7OLD81aR9jf':
             return jsonify({
                 'status': 'failed',
@@ -147,7 +147,7 @@ async def login():
     try:
         json = await request.get_json()
 
-        print('login', json)
+        # print('login', json)
 
         if json['email'] == 'test@bootnode.io' and json['password'] == 'testtest':
             return jsonify({'token': 'fLcLu7OLD81aR9jf'})
@@ -168,8 +168,8 @@ async def login():
 async def get_nodes():
     try:
         update = updates_collection.find_one({ 'name': 'nodes' })
-        print(update)
-        print('getting node data as of ' + str(update['date']))
+        # print(update)
+        # print('getting node data as of ' + str(update['date']))
         nodes = nodes_collection.find({'lastUpdated': update['date']})
 
         ns = []
@@ -195,8 +195,7 @@ async def delete_nodes():
         nodes = nodes_collection.find({'lastUpdated': update['date']})
 
         for node in nodes:
-            print('deleting ' + str(await delete_node(node['id'], node['provider'],
-                                    node['zone'])))
+            print('deleting ' + str(await delete_node(node['id'], node['provider'], node['zone'])))
 
         return jsonify({
             'status': 'success',
