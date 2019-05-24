@@ -14,7 +14,7 @@ import nest_asyncio
 nest_asyncio.apply()
 
 app = Quart(__name__)
-cors(app)
+app = cors(app)
 
 SUPPORTED_PROVIDERS = ['private-cloud', 'google']
 SUPPORTED_ZONES = {
