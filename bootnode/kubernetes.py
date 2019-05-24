@@ -173,7 +173,7 @@ class Kubernetes(object):
         self.config_path = config_path
 
         loop = asyncio.get_event_loop()
-        task = asyncio.create_task(config.new_client_from_config(config_path))
+        task = loop.create_task(config.new_client_from_config(config_path))
         loop.run_until_complete(task)
         api_client = task.result()
 
