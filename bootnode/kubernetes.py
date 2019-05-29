@@ -171,25 +171,28 @@ class Deployment(object):
 class Kubernetes(object):
     def __init__(self, config_path='config/ethereum-testnet/cluster.yaml'):
         self.config_path = config_path
+        self.api = None
 
-        loop = asyncio.get_event_loop()
-        task = loop.create_task(config.new_client_from_config(config_path))
-        loop.run_until_complete(task)
-        api_client = task.result()
+    async def init_apis(self):
+        if self.api is None:
+            api_client = await config.new_client_from_config(self.config_path)
 
-        self.api = client.CoreV1Api(api_client)
-        self.appsApi = client.AppsV1Api(api_client)
+            self.api = client.CoreV1Api(api_client)
+            self.apps_api = client.AppsV1Api(api_client)
 
     async def exec(self, pod_name, command, namespace=NAMESPACE, stdin=False,
              stderr=True, stdout=True, tty=False):
+        await self.init_apis()
         return await stream(self.api.connect_get_namespaced_pod_exec, pod_name,
                       namespace, command=command, stdin=stdin, stderr=stderr,
                       stdout=stdout, tty=tty)
 
     async def create_volume(self, config):
+        await self.init_apis()
         return await self.api.create_namespaced_persistent_volume_claim(NAMESPACE, body=config)
 
     async def delete_volume(self, name):
+        await self.init_apis()
         return await self.api.delete_namespaced_persistent_volume_claim(name,
                                                                   NAMESPACE,
                                                                   body=client.V1DeleteOptions(),
@@ -197,12 +200,15 @@ class Kubernetes(object):
                                                                   propagation_policy='Background')
 
     async def create_service(self, config):
+        await self.init_apis()
         return Service(await self.api.create_namespaced_service(NAMESPACE, body=config), self)
 
     async def delete_service(self, name):
+        await self.init_apis()
         return await self.api.delete_namespaced_service(name, NAMESPACE, body=client.V1DeleteOptions())
 
     async def list_services(self, network=None):
+        await self.init_apis()
         services = [Service(p, self) for p in
                 (await self.api.list_namespaced_service(NAMESPACE)).items]
 
@@ -212,15 +218,19 @@ class Kubernetes(object):
         return [p for p in services if p.network == network]
 
     async def get_service(self, name):
+        await self.init_apis()
         return Service(await self.api.read_namespaced_service(name, NAMESPACE), self)
 
     async def create_pod(self, config):
+        await self.init_apis()
         return await self.api.create_namespaced_pod(NAMESPACE, body=config)
 
     async def delete_pod(self, name):
+        await self.init_apis()
         return await self.api.delete_namespaced_pod(name, NAMESPACE, body=client.V1DeleteOptions())
 
     async def list_pods(self, label_selector=None, network=None):
+        await self.init_apis()
         if label_selector is None:
             pods = [Pod(p, self) for p in
                     (await self.api.list_namespaced_pod(NAMESPACE)).items]
@@ -234,19 +244,23 @@ class Kubernetes(object):
         return [p for p in pods if p.network == network]
 
     async def get_pod(self, name):
+        await self.init_apis()
         for pod in await self.list_pods():
             if pod.name == name:
                 return pod
         raise Exception('Pod not found: "%s"' % name)
 
     async def create_deployment(self, config):
-        return await self.appsApi.create_namespaced_deployment(NAMESPACE, body=config)
+        await self.init_apis()
+        return await self.apps_api.create_namespaced_deployment(NAMESPACE, body=config)
 
     async def delete_deployment(self, name):
-        return await self.appsApi.delete_namespaced_deployment(name, NAMESPACE, body=client.V1DeleteOptions())
+        await self.init_apis()
+        return await self.apps_api.delete_namespaced_deployment(name, NAMESPACE, body=client.V1DeleteOptions())
 
     async def list_deployments(self, network=None):
-        deployments = [Deployment(p, self) for p in (await self.appsApi.list_namespaced_deployment(NAMESPACE)).items]
+        await self.init_apis()
+        deployments = [Deployment(p, self) for p in (await self.apps_api.list_namespaced_deployment(NAMESPACE)).items]
 
         if not network:
             return deployments
@@ -254,16 +268,20 @@ class Kubernetes(object):
         return [p for p in deployments if p.network == network]
 
     async def get_deployment(self, name):
-        return Deployment(await self.appsApi.read_namespaced_deployment(name, NAMESPACE), self)
+        await self.init_apis()
+        return Deployment(await self.apps_api.read_namespaced_deployment(name, NAMESPACE), self)
 
     async def get_last_pod(self, network=None):
+        await self.init_apis()
         return max(await self.list_pods(network), key=lambda x: x.number)
 
     async def get_synced_pod(self, network=None):
+        await self.init_apis()
         pods = await self.list_pods(network)
         for pod in sorted(pods, key=lambda x: x.number):
             if not pod.syncing():
                 return pod
 
     async def create_ingress(self, config):
+        await self.init_apis()
         await self.api.create_namespaced_ingress(NAMESPACE, config)

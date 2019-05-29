@@ -84,22 +84,22 @@ class ObjectFieldSelector(Dict):
         self.fieldPath = fieldPath
 
 class Container(Dict):
-    def __init__(self, name, image, command, args, resources=None,
+    def __init__(self, name, image, command, args, imagePullPolicy='Always', resources=None,
                  volumeMounts=None, livenessProbe=None, readinessProbe=None,
                  env=None):
-        Dict.__init__(self, name=name, image=image, command=command, args=args,
-                      resources=resources, livenessProbe=livenessProbe,
+        Dict.__init__(self, name=name, image=image,command=command, args=args,
+                      imagePullPolicy=imagePullPolicy, resources=resources, livenessProbe=livenessProbe,
                       readinessProbe=readinessProbe, env=env)
         self.name            = name
         self.image           = image
         self.command         = command
         self.args            = args
+        self.imagePullPolicy = imagePullPolicy
         self.env             = env
         self.resources       = resources
         self.volumeMounts    = volumeMounts
         self.livenessProbe   = livenessProbe
         self.readinessProbe  = readinessProbe
-
 
 class Requests(Dict):
     def __init__(self, cpu=None, memory=None):

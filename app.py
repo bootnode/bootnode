@@ -1,10 +1,11 @@
 from threading import Thread
 from functools import wraps
-from quart import jsonify, Quart, request
+from quart import Quart, request, Response
 from quart_cors import cors
 from bootnode import Bootnode
-from util import asynctools, convert
+from util import convert
 from pymongo import MongoClient
+import json
 import datetime
 import asyncio
 import requests_async as requests
@@ -32,6 +33,13 @@ nodes_collection = bootnode_db.nodes
 updates_collection = bootnode_db.updates
 node_statuses = bootnode_db.node_statuses
 
+def default(o):
+    if isinstance(o, (datetime.date, datetime.datetime)):
+        return o.isoformat()
+def jsonify(obj):
+    return Response(json.dumps(obj, indent = 2, separators = (', ', ': '), default=default),
+        content_type='application/json')
+
 # set up system update loop
 async def update_nodes_lambda(date, zone, provider):
     print('updating', date, zone, provider)
@@ -47,8 +55,8 @@ async def update_nodes_lambda(date, zone, provider):
     for node in nodes:
         node['lastUpdated'] = date
 
-        try:
-            if node['blockchain'] == 'casper' and node['ip'] is not None:
+        if node['blockchain'] == 'casper' and node['ip'] is not None:
+            try:
                 ip = node['ip']
                 port = 9001
                 if provider == 'private-cloud':
@@ -86,12 +94,12 @@ async def update_nodes_lambda(date, zone, provider):
                 }
                 node['latencyMillis'] = (end - start).microseconds / 1000
 
-                nodes_collection.insert_one(node)
 
-        except Exception as e:
-            print('cannot get metadata for ' + node['id'] + ': ' +
-                  str(e))
+            except Exception as e:
+                print('cannot get metadata for ' + node['id'] + ': ' +
+                      str(e))
 
+            nodes_collection.insert_one(node)
     # except Exception as e:
     #     print('update nodes loop error: ' + str(e))
     # finally:
@@ -145,10 +153,7 @@ def auth_required(fn):
 @app.route('/login', methods=['POST'])
 async def login():
     try:
-        loop = asyncio.get_event_loop()
-        task = asyncio.create_task(request.get_json())
-        loop.run_until_complete(task)
-        json = task.result()
+        await request.get_json()
 
         # print('login', json)
 
@@ -197,8 +202,13 @@ async def delete_nodes():
         update = updates_collection.find_one({ 'name': 'nodes' })
         nodes = nodes_collection.find({'lastUpdated': update['date']})
 
+        dns = []
         for node in nodes:
-            print('deleting ' + str(await delete_node(node['id'], node['provider'], node['zone'])))
+            dns.append(delete_node(node['id'], node['provider'], node['zone']))
+
+        await asyncio.gather(*dns)
+
+        print('deleted ' + str(len(dns)) + ' nodes')
 
         return jsonify({
             'status': 'success',
@@ -213,10 +223,7 @@ async def delete_nodes():
 @auth_required
 async def put_node():
     try:
-        loop = asyncio.get_event_loop()
-        task = asyncio.create_task(request.get_json())
-        loop.run_until_complete(task)
-        json = task.result()
+        json = await request.get_json()
 
         print('launching ' + str(json['number']) + ' nodes in ' + str(json['zone']))
 
@@ -251,7 +258,7 @@ async def put_node():
 
             ds.append(create_deployment())
 
-        asyncio.ensure_future(asyncio.gather(*ds))
+        await asyncio.gather(*ds)
 
         return jsonify({
             'status': 'success',
@@ -267,10 +274,7 @@ async def put_node():
 @auth_required
 async def get_node(node_id, provider=None, zone=None):
     try:
-        loop = asyncio.get_event_loop()
-        task = asyncio.create_task(request.get_json())
-        loop.run_until_complete(task)
-        json = task.result()
+        json = await request.get_json()
 
         if provider is None:
             provider = json['provider']
@@ -294,14 +298,13 @@ async def get_node(node_id, provider=None, zone=None):
 @app.route('/nodes/<node_id>', methods=['DELETE'])
 @auth_required
 async def delete_node(node_id, provider=None, zone=None):
+    is_called = provider is not None
+
     try:
         print('deleting ' + node_id + ' from provider ' + provider + ' and zone ' + zone)
 
         if provider is None:
-            loop = asyncio.get_event_loop()
-            task = asyncio.create_task(request.get_json())
-            loop.run_until_complete(task)
-            json = task.result()
+            json = await request.get_json()
 
             provider = json['provider']
             zone = json['zone']
@@ -313,11 +316,12 @@ async def delete_node(node_id, provider=None, zone=None):
             'status': 'ok',
         })
     except Exception as e:
+        print('delete_node error', e)
+
         return jsonify({
             'status': 'failed',
             'error': 'could not delete: ' + str(e)
         })
-
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port='4000')
