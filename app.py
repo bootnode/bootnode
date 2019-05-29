@@ -9,9 +9,6 @@ import datetime
 import asyncio
 import requests_async as requests
 import datetime
-import nest_asyncio
-
-nest_asyncio.apply()
 
 loop = asyncio.new_event_loop()
 asyncio.get_child_watcher().attach_loop(loop)
@@ -125,6 +122,8 @@ async def update_nodes_loop():
         await asyncio.sleep(1)
 
 def update_nodes_thread():
+    print('starting update thread')
+
     asyncio.set_event_loop(loop)
     loop.run_until_complete(update_nodes_loop())
 
@@ -145,9 +144,9 @@ def auth_required(fn):
 @app.route('/login', methods=['POST'])
 async def login():
     try:
-        await request.get_json()
+        json = await request.get_json()
 
-        # print('login', json)
+        print('login', json)
 
         if json['email'] == 'test@bootnode.io' and json['password'] == 'testtest':
             return jsonify({'token': 'fLcLu7OLD81aR9jf'})
