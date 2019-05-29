@@ -1,11 +1,10 @@
 from threading import Thread
 from functools import wraps
-from quart import Quart, request, Response
+from quart import Quart, request
 from quart_cors import cors
 from bootnode import Bootnode
-from util import convert
+from util import to_nodes, jsonify
 from pymongo import MongoClient
-import json
 import datetime
 import asyncio
 import requests_async as requests
@@ -33,13 +32,6 @@ nodes_collection = bootnode_db.nodes
 updates_collection = bootnode_db.updates
 node_statuses = bootnode_db.node_statuses
 
-def default(o):
-    if isinstance(o, (datetime.date, datetime.datetime)):
-        return o.isoformat()
-def jsonify(obj):
-    return Response(json.dumps(obj, indent = 2, separators = (', ', ': '), default=default),
-        content_type='application/json')
-
 # set up system update loop
 async def update_nodes_lambda(date, zone, provider):
     print('updating', date, zone, provider)
@@ -50,12 +42,12 @@ async def update_nodes_lambda(date, zone, provider):
     services = [s.to_dict() for s in await bootnode.list_services()]
     pods = [p.to_dict() for p in await bootnode.list_pods()]
 
-    nodes = convert.to_nodes(deployments, services, pods, zone)
+    nodes = to_nodes(deployments, services, pods, zone)
 
     for node in nodes:
         node['lastUpdated'] = date
 
-        if node['blockchain'] == 'casper' and node['ip'] is not None:
+        if node.get('blockchain', None) == 'casper' and node.get('ip', None) is not None:
             try:
                 ip = node['ip']
                 port = 9001
@@ -287,7 +279,7 @@ async def get_node(node_id, provider=None, zone=None):
         service = await bootnode.get_service(node_id)
         pods = [p.to_dict() for p in await bootnode.list_pods(label_selector='app=' + node_id)]
 
-        return jsonify(convert.to_nodes([deployment.to_dict()],
+        return jsonify(to_nodes([deployment.to_dict()],
                                 [service.to_dict()], pods, zone))
     except Exception as e:
         return jsonify({
@@ -301,7 +293,7 @@ async def delete_node(node_id, provider=None, zone=None):
     is_called = provider is not None
 
     try:
-        print('deleting ' + node_id + ' from provider ' + provider + ' and zone ' + zone)
+        print('deleting ' + str(node_id) + ' from provider ' + str(provider) + ' and zone ' + str(zone))
 
         if provider is None:
             json = await request.get_json()
