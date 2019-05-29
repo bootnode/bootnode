@@ -13,6 +13,9 @@ import nest_asyncio
 
 nest_asyncio.apply()
 
+loop = asyncio.new_event_loop()
+asyncio.get_child_watcher().attach_loop(loop)
+
 app = Quart(__name__)
 cors(app)
 
@@ -83,18 +86,15 @@ async def update_nodes_lambda(date, zone, provider):
                 }
                 node['latencyMillis'] = (end - start).microseconds / 1000
 
+                nodes_collection.insert_one(node)
+
         except Exception as e:
             print('cannot get metadata for ' + node['id'] + ': ' +
                   str(e))
 
-        nodes_collection.insert_one(node)
-
     # except Exception as e:
     #     print('update nodes loop error: ' + str(e))
     # finally:
-
-loop = asyncio.new_event_loop()
-asyncio.get_child_watcher().attach_loop(loop)
 
 # function to spin off thread
 async def update_nodes_loop():
@@ -213,7 +213,11 @@ async def delete_nodes():
 @auth_required
 async def put_node():
     try:
-        json = await request.get_json()
+        loop = asyncio.get_event_loop()
+        task = asyncio.create_task(request.get_json())
+        loop.run_until_complete(task)
+        json = task.result()
+
         print('launching ' + str(json['number']) + ' nodes in ' + str(json['zone']))
 
         provider = json['provider']
@@ -263,7 +267,10 @@ async def put_node():
 @auth_required
 async def get_node(node_id, provider=None, zone=None):
     try:
-        json = await request.get_json()
+        loop = asyncio.get_event_loop()
+        task = asyncio.create_task(request.get_json())
+        loop.run_until_complete(task)
+        json = task.result()
 
         if provider is None:
             provider = json['provider']
@@ -288,12 +295,16 @@ async def get_node(node_id, provider=None, zone=None):
 @auth_required
 async def delete_node(node_id, provider=None, zone=None):
     try:
+        print('deleting ' + node_id + ' from provider ' + provider + ' and zone ' + zone)
+
         if provider is None:
-            json = await request.get_json()
+            loop = asyncio.get_event_loop()
+            task = asyncio.create_task(request.get_json())
+            loop.run_until_complete(task)
+            json = task.result()
+
             provider = json['provider']
             zone = json['zone']
-
-        print('deleting ' + node_id + ' from provider ' + provider + ' and zone ' + zone)
 
         bootnode = Bootnode('casper', 'testnet', provider, zone)
         await bootnode.delete_deployment(node_id)
