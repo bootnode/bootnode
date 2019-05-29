@@ -212,7 +212,7 @@ class Kubernetes(object):
         return [p for p in services if p.network == network]
 
     async def get_service(self, name):
-        return await Service(self.api.read_namespaced_service(name, NAMESPACE), self)
+        return Service(await self.api.read_namespaced_service(name, NAMESPACE), self)
 
     async def create_pod(self, config):
         return await self.api.create_namespaced_pod(NAMESPACE, body=config)
