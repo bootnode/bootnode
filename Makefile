@@ -116,4 +116,4 @@ serve: kubeconfig
 	python app.py
 
 serve-prod: kubeconfig
-	~/.local/bin/hypercorn app:app -b 0.0.0.0:80
+	hypercorn app:app -b 0.0.0.0:80
