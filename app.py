@@ -96,30 +96,33 @@ async def update_nodes_lambda(date, zone, provider):
 # function to spin off thread
 async def update_nodes_loop():
     while True:
-        date = datetime.datetime.utcnow()
+        try:
+            date = datetime.datetime.utcnow()
 
-        updates = []
-        for provider in SUPPORTED_PROVIDERS:
-            zones = SUPPORTED_ZONES[provider]
+            updates = []
+            for provider in SUPPORTED_PROVIDERS:
+                zones = SUPPORTED_ZONES[provider]
 
-            for zone in zones:
-                updates.append(update_nodes_lambda(date, zone, provider))
+                for zone in zones:
+                    updates.append(update_nodes_lambda(date, zone, provider))
 
-        await asyncio.gather(*updates)
+            await asyncio.gather(*updates)
 
-        updates_collection.update_one(
-            {
-                'name': 'nodes',
-            },
-            {
-                '$set': {
-                    'date': date
+            updates_collection.update_one(
+                {
+                    'name': 'nodes',
                 },
-            },
-            True
-        )
+                {
+                    '$set': {
+                        'date': date
+                    },
+                },
+                True
+            )
 
-        await asyncio.sleep(1)
+            await asyncio.sleep(1)
+        except Exception as e:
+            print('update_nodes_loop error' + str(e))
 
 def update_nodes_thread():
     print('starting update thread')

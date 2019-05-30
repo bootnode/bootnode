@@ -12,4 +12,3 @@ asyncio
 pymongo
 hypercorn
 requests_async
-nest_asyncio
