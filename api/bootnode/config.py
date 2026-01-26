@@ -1,0 +1,101 @@
+"""Application configuration."""
+
+from functools import lru_cache
+from typing import Literal
+
+from pydantic import Field, PostgresDsn, RedisDsn
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    """Application settings loaded from environment variables."""
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore",
+    )
+
+    # Application
+    app_name: str = "Bootnode"
+    app_env: Literal["development", "staging", "production"] = "development"
+    debug: bool = False
+    api_prefix: str = "/v1"
+
+    # Database
+    database_url: PostgresDsn = Field(
+        default="postgresql+asyncpg://bootnode:bootnode@localhost:5432/bootnode"
+    )
+    db_pool_size: int = 20
+    db_max_overflow: int = 10
+
+    # Redis
+    redis_url: RedisDsn = Field(default="redis://localhost:6379/0")
+
+    # Authentication
+    jwt_secret: str = Field(default="change-me-in-production")
+    jwt_algorithm: str = "HS256"
+    jwt_expire_minutes: int = 60 * 24  # 24 hours
+    api_key_salt: str = Field(default="change-me-in-production")
+
+    # Hanzo IAM Integration (hanzo.id, zoo.id, lux.id, pars.id)
+    iam_url: str = "https://iam.hanzo.ai"
+    iam_client_id: str = ""
+    iam_client_secret: str = ""
+    enable_multi_tenant: bool = True
+    allowed_orgs: list[str] = ["hanzo", "zoo", "lux", "pars"]
+
+    # Rate Limiting
+    rate_limit_requests: int = 100  # per minute
+    rate_limit_compute_units: int = 1000  # per minute
+
+    # Chain RPCs (upstream nodes)
+    eth_mainnet_rpc: str = ""
+    eth_sepolia_rpc: str = ""
+    eth_holesky_rpc: str = ""
+    polygon_mainnet_rpc: str = ""
+    polygon_amoy_rpc: str = ""
+    arbitrum_mainnet_rpc: str = ""
+    arbitrum_sepolia_rpc: str = ""
+    optimism_mainnet_rpc: str = ""
+    optimism_sepolia_rpc: str = ""
+    base_mainnet_rpc: str = ""
+    base_sepolia_rpc: str = ""
+    avalanche_mainnet_rpc: str = ""
+    avalanche_fuji_rpc: str = ""
+    bsc_mainnet_rpc: str = ""
+    bsc_testnet_rpc: str = ""
+    lux_mainnet_rpc: str = ""
+    lux_testnet_rpc: str = ""
+    solana_mainnet_rpc: str = ""
+    solana_devnet_rpc: str = ""
+
+    # DataStore (ClickHouse)
+    datastore_url: str = "clickhouse://bootnode:bootnode@localhost:8123/bootnode"
+    datastore_pool_size: int = 10
+
+    # Message Queue (Redis-based, @hanzo/mq compatible)
+    # Uses the same Redis instance as cache - different db index for isolation
+    mq_redis_db: int = 1  # Redis DB index for MQ (separate from cache at db 0)
+
+    # External Services
+    ipfs_gateway: str = "https://ipfs.io/ipfs/"
+
+    # Webhooks
+    webhook_timeout: int = 30
+    webhook_max_retries: int = 5
+
+    # ERC-4337 Bundler
+    bundler_private_key: str = ""
+    bundler_beneficiary: str = ""
+
+    @property
+    def is_production(self) -> bool:
+        return self.app_env == "production"
+
+
+@lru_cache
+def get_settings() -> Settings:
+    """Get cached settings instance."""
+    return Settings()

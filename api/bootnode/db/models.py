@@ -1,0 +1,206 @@
+"""Database models."""
+
+import uuid
+from datetime import datetime
+from typing import Any
+
+from sqlalchemy import (
+    Boolean,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    func,
+)
+from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+
+
+class Base(DeclarativeBase):
+    """Base class for all models."""
+
+    type_annotation_map = {
+        dict[str, Any]: JSONB,
+    }
+
+
+class Project(Base):
+    """Project/Organization model."""
+
+    __tablename__ = "projects"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    owner_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    settings: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    # Relationships
+    api_keys: Mapped[list["ApiKey"]] = relationship(back_populates="project")
+    webhooks: Mapped[list["Webhook"]] = relationship(back_populates="project")
+
+
+class ApiKey(Base):
+    """API Key model."""
+
+    __tablename__ = "api_keys"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False
+    )
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    key_hash: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
+    key_prefix: Mapped[str] = mapped_column(String(12), nullable=False)  # First chars for display
+    rate_limit: Mapped[int] = mapped_column(Integer, default=100)  # requests per minute
+    compute_units_limit: Mapped[int] = mapped_column(Integer, default=1000)  # CU per minute
+    allowed_origins: Mapped[list[str] | None] = mapped_column(JSONB, nullable=True)
+    allowed_chains: Mapped[list[str] | None] = mapped_column(JSONB, nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+    # Relationships
+    project: Mapped["Project"] = relationship(back_populates="api_keys")
+
+
+class Webhook(Base):
+    """Webhook subscription model."""
+
+    __tablename__ = "webhooks"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False
+    )
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    url: Mapped[str] = mapped_column(Text, nullable=False)
+    chain: Mapped[str] = mapped_column(String(50), nullable=False)
+    network: Mapped[str] = mapped_column(String(50), nullable=False, default="mainnet")
+    event_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    filters: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    secret: Mapped[str] = mapped_column(String(255), nullable=False)  # For HMAC signing
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    failure_count: Mapped[int] = mapped_column(Integer, default=0)
+    last_triggered_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+    # Relationships
+    project: Mapped["Project"] = relationship(back_populates="webhooks")
+    deliveries: Mapped[list["WebhookDelivery"]] = relationship(back_populates="webhook")
+
+
+class WebhookDelivery(Base):
+    """Webhook delivery attempt model."""
+
+    __tablename__ = "webhook_deliveries"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    webhook_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("webhooks.id", ondelete="CASCADE"), nullable=False
+    )
+    payload: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    status_code: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    response_body: Mapped[str | None] = mapped_column(Text, nullable=True)
+    attempt_count: Mapped[int] = mapped_column(Integer, default=1)
+    success: Mapped[bool] = mapped_column(Boolean, default=False)
+    error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    delivered_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+    # Relationships
+    webhook: Mapped["Webhook"] = relationship(back_populates="deliveries")
+
+
+class Usage(Base):
+    """API usage tracking model."""
+
+    __tablename__ = "usage"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False
+    )
+    api_key_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("api_keys.id", ondelete="SET NULL"), nullable=True
+    )
+    chain: Mapped[str] = mapped_column(String(50), nullable=False)
+    network: Mapped[str] = mapped_column(String(50), nullable=False)
+    method: Mapped[str] = mapped_column(String(100), nullable=False)
+    compute_units: Mapped[int] = mapped_column(Integer, default=1)
+    response_time_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    status_code: Mapped[int] = mapped_column(Integer, default=200)
+    timestamp: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
+class SmartWallet(Base):
+    """ERC-4337 Smart Wallet model."""
+
+    __tablename__ = "smart_wallets"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False
+    )
+    address: Mapped[str] = mapped_column(String(42), nullable=False, unique=True)
+    owner_address: Mapped[str] = mapped_column(String(42), nullable=False)
+    factory_address: Mapped[str] = mapped_column(String(42), nullable=False)
+    chain: Mapped[str] = mapped_column(String(50), nullable=False)
+    network: Mapped[str] = mapped_column(String(50), nullable=False, default="mainnet")
+    salt: Mapped[str] = mapped_column(String(66), nullable=False)  # bytes32 hex
+    is_deployed: Mapped[bool] = mapped_column(Boolean, default=False)
+    metadata: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
+class GasPolicy(Base):
+    """Gas sponsorship policy model."""
+
+    __tablename__ = "gas_policies"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False
+    )
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    chain: Mapped[str] = mapped_column(String(50), nullable=False)
+    network: Mapped[str] = mapped_column(String(50), nullable=False, default="mainnet")
+    rules: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    max_gas_per_op: Mapped[int] = mapped_column(Integer, default=1000000)  # gas units
+    max_spend_per_day_usd: Mapped[int] = mapped_column(Integer, default=100)  # in cents
+    allowed_contracts: Mapped[list[str] | None] = mapped_column(JSONB, nullable=True)
+    allowed_methods: Mapped[list[str] | None] = mapped_column(JSONB, nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
