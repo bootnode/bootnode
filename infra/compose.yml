@@ -330,6 +330,196 @@ services:
     profiles:
       - hanzo
 
+  # Hanzo KMS - Secrets Management and Encryption
+  # Enterprise secrets platform for secure key management
+  kms:
+    image: ghcr.io/hanzoai/kms:latest
+    container_name: bootnode-kms
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DB_CONNECTION_URI: postgres://bootnode:${POSTGRES_PASSWORD:-bootnode_secret}@postgres:5432/hanzo_kms
+      REDIS_URL: redis://redis:6379
+      ENCRYPTION_KEY: ${KMS_ENCRYPTION_KEY:-change_me_in_production}
+      AUTH_SECRET: ${KMS_AUTH_SECRET:-change_me_in_production}
+      SITE_URL: ${KMS_SITE_URL:-https://kms.hanzo.ai}
+    ports:
+      - "8002:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - bootnode
+    profiles:
+      - hanzo
+
+  # Hanzo Platform - Service orchestration and deployment
+  platform:
+    image: ghcr.io/hanzoai/platform:latest
+    container_name: bootnode-platform
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgres://bootnode:${POSTGRES_PASSWORD:-bootnode_secret}@postgres:5432/hanzo_platform
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:-change_me_in_production}
+      IAM_SERVER_URL: http://iam:8000
+    ports:
+      - "8003:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - bootnode
+    profiles:
+      - hanzo
+
+  # Hanzo Console (Cloud) - Admin dashboard with AI backend
+  console:
+    image: ghcr.io/hanzoai/console:latest
+    container_name: bootnode-console
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgres://bootnode:${POSTGRES_PASSWORD:-bootnode_secret}@postgres:5432/hanzo_console
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      CLICKHOUSE_URL: http://datastore:8123
+      CLICKHOUSE_USER: bootnode
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-bootnode_secret}
+      NEXTAUTH_URL: ${CONSOLE_URL:-https://console.hanzo.ai}
+      NEXTAUTH_SECRET: ${CONSOLE_SECRET:-change_me_in_production}
+      ENCRYPTION_KEY: ${CONSOLE_ENCRYPTION_KEY:-change_me_in_production}
+      SALT: ${CONSOLE_SALT:-change_me_in_production}
+      HANZO_IAM_SERVER_URL: http://iam:8000
+    ports:
+      - "8004:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      datastore:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - bootnode
+    profiles:
+      - hanzo
+
+  # Hanzo Console Worker - Background job processor
+  console-worker:
+    image: ghcr.io/hanzoai/console:latest
+    container_name: bootnode-console-worker
+    restart: unless-stopped
+    command: ["node", "dist/worker.js"]
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgres://bootnode:${POSTGRES_PASSWORD:-bootnode_secret}@postgres:5432/hanzo_console
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      CLICKHOUSE_URL: http://datastore:8123
+      CLICKHOUSE_USER: bootnode
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-bootnode_secret}
+      ENCRYPTION_KEY: ${CONSOLE_ENCRYPTION_KEY:-change_me_in_production}
+      SALT: ${CONSOLE_SALT:-change_me_in_production}
+    depends_on:
+      - console
+    networks:
+      - bootnode
+    profiles:
+      - hanzo
+
+  # Hanzo Commerce - Multi-tenant e-commerce platform
+  # Serves: hanzo, lux, zoo, pars commerce needs
+  commerce:
+    image: ghcr.io/hanzoai/commerce:latest
+    container_name: bootnode-commerce
+    restart: unless-stopped
+    environment:
+      COMMERCE_DEV: "false"
+      PORT: "8001"
+      DATABASE_URL: postgres://bootnode:${POSTGRES_PASSWORD:-bootnode_secret}@postgres:5432/hanzo_commerce
+      REDIS_URL: redis://redis:6379/3
+      DATASTORE_URL: http://datastore:8123
+      IAM_SERVER_URL: http://iam:8000
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+    volumes:
+      - commerce_data:/app/data
+    ports:
+      - "8005:8001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - bootnode
+    profiles:
+      - hanzo
+
+  # Hanzo Analytics - Multi-tenant analytics platform
+  # Serves: hanzo, lux, zoo, pars analytics needs
+  analytics:
+    image: ghcr.io/hanzoai/analytics:latest
+    container_name: bootnode-analytics
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgres://bootnode:${POSTGRES_PASSWORD:-bootnode_secret}@postgres:5432/hanzo_analytics
+      CLICKHOUSE_URL: http://datastore:8123
+      CLICKHOUSE_USER: bootnode
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-bootnode_secret}
+      REDIS_URL: redis://redis:6379/4
+      IAM_SERVER_URL: http://iam:8000
+    ports:
+      - "8006:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      datastore:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/heartbeat"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - bootnode
+    profiles:
+      - hanzo
+
   # =============================================================================
   # BLOCKCHAIN NODES
   # =============================================================================
@@ -481,6 +671,7 @@ volumes:
   bitcoin_data:
   solana_data:
   iam_logs:
+  commerce_data:
 
 networks:
   bootnode:
