@@ -1,0 +1,487 @@
+# Bootnode Infrastructure - Full Stack
+# Usage: docker compose up -d
+# Scale: docker compose up -d --scale api=3
+
+name: bootnode
+
+services:
+  # =============================================================================
+  # DATABASES
+  # =============================================================================
+
+  # PostgreSQL - Operational database
+  # TODO: Switch to ghcr.io/hanzoai/postgres when available (Hanzo's Supabase fork)
+  postgres:
+    image: postgres:16-alpine
+    container_name: bootnode-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: bootnode
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bootnode_secret}
+      POSTGRES_DB: bootnode
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init/postgres:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bootnode"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bootnode
+
+  # Redis - Cache, rate limiting, and message queue (@hanzo/mq compatible)
+  # Used for: caching, rate limiting, pub/sub, job queue (BullMQ/arq compatible)
+  redis:
+    image: redis:7-alpine
+    container_name: bootnode-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 1gb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bootnode
+
+  # DataStore (ClickHouse) - High-performance analytics & blockchain indexing
+  datastore:
+    image: clickhouse/clickhouse-server:24.1
+    container_name: bootnode-datastore
+    restart: unless-stopped
+    environment:
+      CLICKHOUSE_DB: bootnode
+      CLICKHOUSE_USER: bootnode
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-bootnode_secret}
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+    volumes:
+      - datastore_data:/var/lib/clickhouse
+      - datastore_logs:/var/log/clickhouse-server
+      - ./init/datastore:/docker-entrypoint-initdb.d
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    healthcheck:
+      test: ["CMD", "clickhouse-client", "--query", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bootnode
+
+  # =============================================================================
+  # BOOTNODE API
+  # =============================================================================
+
+  api:
+    build:
+      context: ../api
+      dockerfile: Dockerfile
+    image: bootnode/api:latest
+    container_name: bootnode-api
+    restart: unless-stopped
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      DATABASE_URL: postgresql+asyncpg://bootnode:${POSTGRES_PASSWORD:-bootnode_secret}@postgres:5432/bootnode
+      REDIS_URL: redis://redis:6379/0
+      DATASTORE_URL: clickhouse://bootnode:${CLICKHOUSE_PASSWORD:-bootnode_secret}@datastore:8123/bootnode
+      JWT_SECRET: ${JWT_SECRET:-change_me_in_production}
+      API_KEY_SALT: ${API_KEY_SALT:-change_me_in_production}
+      ETH_MAINNET_RPC: ${ETH_MAINNET_RPC:-https://eth.llamarpc.com}
+      ETH_SEPOLIA_RPC: ${ETH_SEPOLIA_RPC:-https://ethereum-sepolia-rpc.publicnode.com}
+      SOL_MAINNET_RPC: ${SOL_MAINNET_RPC:-https://api.mainnet-beta.solana.com}
+      BASE_MAINNET_RPC: ${BASE_MAINNET_RPC:-https://mainnet.base.org}
+      ARB_MAINNET_RPC: ${ARB_MAINNET_RPC:-https://arb1.arbitrum.io/rpc}
+      POLYGON_MAINNET_RPC: ${POLYGON_MAINNET_RPC:-https://polygon-rpc.com}
+      LUX_MAINNET_RPC: ${LUX_MAINNET_RPC:-https://api.lux.network/ext/bc/C/rpc}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      datastore:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - bootnode
+
+  # =============================================================================
+  # INDEXER (Multi-chain blockchain indexer)
+  # =============================================================================
+
+  indexer:
+    build:
+      context: ../indexer
+      dockerfile: Dockerfile
+    image: bootnode/indexer:latest
+    container_name: bootnode-indexer
+    restart: unless-stopped
+    environment:
+      CONFIG_PATH: /app/config/chains.yaml
+      DATABASE_URL: postgres://bootnode:${POSTGRES_PASSWORD:-bootnode_secret}@postgres:5432/bootnode
+      DATASTORE_URL: clickhouse://bootnode:${CLICKHOUSE_PASSWORD:-bootnode_secret}@datastore:8123/bootnode
+      REDIS_URL: redis://redis:6379/1
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      MAX_CHAINS: ${MAX_CHAINS:-100}
+    volumes:
+      - indexer_data:/app/data
+      - ./config:/app/config:ro
+    ports:
+      - "5000:5000"
+      - "9090:9090"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      datastore:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - bootnode
+
+  # =============================================================================
+  # WEBHOOK WORKER (Redis-based queue, @hanzo/mq compatible)
+  # =============================================================================
+
+  webhook-worker:
+    build:
+      context: ../api
+      dockerfile: Dockerfile
+    image: bootnode/api:latest
+    container_name: bootnode-webhook-worker
+    restart: unless-stopped
+    command: ["python", "-m", "bootnode.workers.webhook"]
+    environment:
+      DATABASE_URL: postgresql+asyncpg://bootnode:${POSTGRES_PASSWORD:-bootnode_secret}@postgres:5432/bootnode
+      REDIS_URL: redis://redis:6379/0
+      DATASTORE_URL: clickhouse://bootnode:${CLICKHOUSE_PASSWORD:-bootnode_secret}@datastore:8123/bootnode
+    depends_on:
+      - api
+      - redis
+    networks:
+      - bootnode
+
+  # =============================================================================
+  # BUNDLER (ERC-4337)
+  # =============================================================================
+
+  bundler:
+    build:
+      context: ../bundler
+      dockerfile: Dockerfile
+    image: bootnode/bundler:latest
+    container_name: bootnode-bundler
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://bootnode:${POSTGRES_PASSWORD:-bootnode_secret}@postgres:5432/bootnode
+      REDIS_URL: redis://redis:6379/2
+      BUNDLER_PRIVATE_KEY: ${BUNDLER_PRIVATE_KEY:-}
+      ETH_MAINNET_RPC: ${ETH_MAINNET_RPC:-https://eth.llamarpc.com}
+    ports:
+      - "4337:4337"
+    depends_on:
+      - redis
+    networks:
+      - bootnode
+    profiles:
+      - bundler
+
+  # =============================================================================
+  # WEB DASHBOARD
+  # =============================================================================
+
+  web:
+    build:
+      context: ../web
+      dockerfile: Dockerfile
+    image: bootnode/web:latest
+    container_name: bootnode-web
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: ${API_URL:-http://localhost:8000}
+    ports:
+      - "3001:3000"
+    depends_on:
+      - api
+    networks:
+      - bootnode
+
+  # =============================================================================
+  # MONITORING (VictoriaMetrics - hanzo/metrics fork)
+  # =============================================================================
+
+  # VictoriaMetrics - time series database and monitoring
+  # Prometheus-compatible, but faster and more efficient
+  victoriametrics:
+    image: victoriametrics/victoria-metrics:v1.96.0
+    container_name: bootnode-victoriametrics
+    restart: unless-stopped
+    command:
+      - "-storageDataPath=/storage"
+      - "-httpListenAddr=:8428"
+      - "-retentionPeriod=90d"
+      - "-selfScrapeInterval=15s"
+    volumes:
+      - victoriametrics_data:/storage
+    ports:
+      - "8428:8428"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8428/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - bootnode
+    profiles:
+      - monitoring
+
+  # VMAgent - metrics collection (replaces Prometheus scraper)
+  vmagent:
+    image: victoriametrics/vmagent:v1.96.0
+    container_name: bootnode-vmagent
+    restart: unless-stopped
+    command:
+      - "-promscrape.config=/etc/vmagent/scrape.yml"
+      - "-remoteWrite.url=http://victoriametrics:8428/api/v1/write"
+    volumes:
+      - ./monitoring/scrape.yml:/etc/vmagent/scrape.yml:ro
+      - vmagent_data:/vmagentdata
+    depends_on:
+      - victoriametrics
+    networks:
+      - bootnode
+    profiles:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:10.1.0
+    container_name: bootnode-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-bootnode}
+      GF_INSTALL_PLUGINS: grafana-clickhouse-datasource
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+    ports:
+      - "3000:3000"
+    depends_on:
+      - victoriametrics
+    networks:
+      - bootnode
+    profiles:
+      - monitoring
+
+  # =============================================================================
+  # HANZO SERVICES
+  # =============================================================================
+
+  # Hanzo IAM - Identity and Access Management
+  # Multi-tenant: hanzo.id, lux.id, zoo.id, pars.id
+  iam:
+    image: ghcr.io/hanzoai/iam:latest
+    container_name: bootnode-iam
+    restart: unless-stopped
+    environment:
+      RUNNING_IN_DOCKER: "true"
+      IAM_DB_HOST: postgres
+      IAM_DB_PASSWORD: ${POSTGRES_PASSWORD:-bootnode_secret}
+      IAM_REDIS_HOST: redis
+    volumes:
+      - iam_logs:/logs
+    ports:
+      - "8001:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - bootnode
+    profiles:
+      - hanzo
+
+  # =============================================================================
+  # BLOCKCHAIN NODES
+  # =============================================================================
+
+  # Ethereum Node (Reth - Rust Ethereum)
+  # Full node with JSON-RPC and WebSocket APIs
+  # Initial sync: ~24h on NVMe SSD, ~2TB disk at full sync
+  ethereum-node:
+    image: ghcr.io/paradigmxyz/reth:v1.3.12
+    container_name: bootnode-ethereum
+    restart: unless-stopped
+    command:
+      - node
+      - --chain=mainnet
+      - --http
+      - --http.addr=0.0.0.0
+      - --http.port=8545
+      - --http.api=eth,net,web3,txpool,debug,trace
+      - --http.corsdomain=*
+      - --ws
+      - --ws.addr=0.0.0.0
+      - --ws.port=8546
+      - --ws.api=eth,net,web3,txpool
+      - --authrpc.addr=0.0.0.0
+      - --authrpc.port=8551
+      - --metrics=0.0.0.0:9001
+      - --log.stdout.format=json
+      - --datadir=/data
+    volumes:
+      - ethereum_data:/data
+    ports:
+      - "18545:8545"  # HTTP JSON-RPC
+      - "18546:8546"  # WebSocket
+      - "18551:8551"  # Auth RPC (for consensus client)
+      - "30303:30303" # P2P
+      - "30303:30303/udp"
+      - "9001:9001"   # Metrics
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "-X", "POST", "-H", "Content-Type: application/json", "-d", "{\"jsonrpc\":\"2.0\",\"method\":\"eth_syncing\",\"params\":[],\"id\":1}", "http://localhost:8545"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - bootnode
+    profiles:
+      - nodes
+
+  # Bitcoin Node (Bitcoin Core)
+  # Full node with JSON-RPC API, pruned to save disk space
+  # Pruned sync: ~12h, ~10GB disk / Full: ~600GB
+  bitcoin-node:
+    image: lncm/bitcoind:v28.0
+    container_name: bootnode-bitcoin
+    restart: unless-stopped
+    command:
+      - -server=1
+      - -rpcallowip=0.0.0.0/0
+      - -rpcbind=0.0.0.0
+      - -rpcport=8332
+      - -rpcuser=${BTC_RPC_USER:-bootnode}
+      - -rpcpassword=${BTC_RPC_PASSWORD:-bootnode_btc_secret}
+      - -zmqpubrawblock=tcp://0.0.0.0:28332
+      - -zmqpubrawtx=tcp://0.0.0.0:28333
+      - -prune=10000
+      - -txindex=0
+      - -dbcache=2048
+      - -maxconnections=50
+      - -printtoconsole=1
+    volumes:
+      - bitcoin_data:/home/bitcoin/.bitcoin
+    ports:
+      - "8332:8332"   # JSON-RPC
+      - "8333:8333"   # P2P
+      - "28332:28332" # ZMQ blocks
+      - "28333:28333" # ZMQ transactions
+    healthcheck:
+      test: ["CMD", "bitcoin-cli", "-rpcuser=bootnode", "-rpcpassword=bootnode_btc_secret", "getblockchaininfo"]
+      interval: 60s
+      timeout: 15s
+      retries: 3
+      start_period: 120s
+    networks:
+      - bootnode
+    profiles:
+      - nodes
+
+  # Solana Node (Agave Validator - RPC mode)
+  # WARNING: Requires 128GB+ RAM, fast NVMe SSD, high bandwidth
+  # Recommended: Dedicated hardware or bare-metal server
+  # For local dev, use public RPC endpoints instead
+  solana-node:
+    image: solanalabs/solana:v2.2.4
+    container_name: bootnode-solana
+    restart: unless-stopped
+    entrypoint: ["solana-validator"]
+    command:
+      - --no-voting
+      - --identity=/data/validator-keypair.json
+      - --ledger=/data/ledger
+      - --rpc-port=8899
+      - --rpc-bind-address=0.0.0.0
+      - --dynamic-port-range=8000-8020
+      - --entrypoint=entrypoint.mainnet-beta.solana.com:8001
+      - --entrypoint=entrypoint2.mainnet-beta.solana.com:8001
+      - --entrypoint=entrypoint3.mainnet-beta.solana.com:8001
+      - --known-validator=7Np41oeYqPefeNQEHSv1UDhYrehxin3NStELsSKCT4K2
+      - --known-validator=GdnSyH3YtwcxFvQrVVJMm1JhTS4QVX7MFsX56uJLUfiZ
+      - --known-validator=DE1bawNcRJB9rVm3buyMVfr8mBEoyyu73NBovf2oXJsJ
+      - --expected-genesis-hash=5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d
+      - --wal-recovery-mode=skip_any_corrupted_record
+      - --limit-ledger-size=50000000
+      - --log=-
+      - --full-rpc-api
+      - --no-port-check
+    volumes:
+      - solana_data:/data
+    ports:
+      - "8899:8899"   # JSON-RPC
+      - "8900:8900"   # WebSocket
+      - "8001:8001"   # Gossip
+      - "8000-8020:8000-8020" # Dynamic ports
+      - "8000-8020:8000-8020/udp"
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8899/health"]
+      interval: 60s
+      timeout: 15s
+      retries: 3
+      start_period: 300s
+    deploy:
+      resources:
+        limits:
+          memory: 128G
+    networks:
+      - bootnode
+    profiles:
+      - nodes
+
+volumes:
+  postgres_data:
+  redis_data:
+  datastore_data:
+  datastore_logs:
+  indexer_data:
+  victoriametrics_data:
+  vmagent_data:
+  grafana_data:
+  ethereum_data:
+  bitcoin_data:
+  solana_data:
+  iam_logs:
+
+networks:
+  bootnode:
+    driver: bridge
