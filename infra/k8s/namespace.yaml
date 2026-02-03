@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: bootnode
+  labels:
+    app.kubernetes.io/name: bootnode
+    app.kubernetes.io/managed-by: kubectl

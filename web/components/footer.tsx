@@ -1,0 +1,149 @@
+import Link from "next/link"
+import { Blocks } from "lucide-react"
+import { Separator } from "@/components/ui/separator"
+
+const footerLinks = {
+  products: [
+    { name: "Node (RPC)", href: "/products/node" },
+    { name: "Token API", href: "/products/data" },
+    { name: "NFT API", href: "/products/data" },
+    { name: "Smart Wallets", href: "/products/wallets" },
+    { name: "Webhooks", href: "/products/webhooks" },
+    { name: "Rollups", href: "/products/rollups" },
+  ],
+  chains: [
+    { name: "Ethereum", href: "/chains/ethereum" },
+    { name: "Solana", href: "/chains/solana" },
+    { name: "Base", href: "/chains/base" },
+    { name: "Arbitrum", href: "/chains/arbitrum" },
+    { name: "Polygon", href: "/chains/polygon" },
+    { name: "View All", href: "/chains" },
+  ],
+  developers: [
+    { name: "Documentation", href: "/docs" },
+    { name: "API Reference", href: "/docs/api" },
+    { name: "Quickstart", href: "/docs/quickstart" },
+    { name: "SDKs", href: "/docs/sdks" },
+    { name: "Tutorials", href: "/docs/tutorials" },
+    { name: "llms.txt", href: "/llms.txt" },
+  ],
+  company: [
+    { name: "About", href: "/about" },
+    { name: "Blog", href: "/blog" },
+    { name: "Careers", href: "/careers" },
+    { name: "Contact", href: "/contact" },
+    { name: "Status", href: "https://status.bootnode.dev" },
+    { name: "Security", href: "/security" },
+  ],
+}
+
+export function Footer() {
+  return (
+    <footer className="border-t bg-muted/30">
+      <div className="container py-12 md:py-16">
+        <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-5">
+          {/* Brand */}
+          <div className="md:col-span-1">
+            <Link href="/" className="flex items-center space-x-2">
+              <Blocks className="h-6 w-6" />
+              <span className="text-xl font-bold">Bootnode</span>
+            </Link>
+            <p className="mt-4 text-sm text-muted-foreground">
+              The complete blockchain development platform for builders.
+            </p>
+          </div>
+
+          {/* Products */}
+          <div>
+            <h3 className="font-semibold">Products</h3>
+            <ul className="mt-4 space-y-2">
+              {footerLinks.products.map((link) => (
+                <li key={link.name}>
+                  <Link
+                    href={link.href}
+                    className="text-sm text-muted-foreground hover:text-foreground"
+                  >
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Chains */}
+          <div>
+            <h3 className="font-semibold">Chains</h3>
+            <ul className="mt-4 space-y-2">
+              {footerLinks.chains.map((link) => (
+                <li key={link.name}>
+                  <Link
+                    href={link.href}
+                    className="text-sm text-muted-foreground hover:text-foreground"
+                  >
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Developers */}
+          <div>
+            <h3 className="font-semibold">Developers</h3>
+            <ul className="mt-4 space-y-2">
+              {footerLinks.developers.map((link) => (
+                <li key={link.name}>
+                  <Link
+                    href={link.href}
+                    className="text-sm text-muted-foreground hover:text-foreground"
+                  >
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Company */}
+          <div>
+            <h3 className="font-semibold">Company</h3>
+            <ul className="mt-4 space-y-2">
+              {footerLinks.company.map((link) => (
+                <li key={link.name}>
+                  <Link
+                    href={link.href}
+                    className="text-sm text-muted-foreground hover:text-foreground"
+                  >
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        <Separator className="my-8" />
+
+        <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
+          <p className="text-sm text-muted-foreground">
+            © {new Date().getFullYear()} Bootnode. All rights reserved.
+          </p>
+          <div className="flex gap-4">
+            <Link
+              href="/privacy"
+              className="text-sm text-muted-foreground hover:text-foreground"
+            >
+              Privacy
+            </Link>
+            <Link
+              href="/terms"
+              className="text-sm text-muted-foreground hover:text-foreground"
+            >
+              Terms
+            </Link>
+          </div>
+        </div>
+      </div>
+    </footer>
+  )
+}

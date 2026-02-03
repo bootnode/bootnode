@@ -9,8 +9,8 @@ from pydantic import BaseModel
 from sqlalchemy import select
 
 from bootnode.api.deps import ApiKeyDep, DbDep, ProjectDep
-from bootnode.db.models import SmartWallet
 from bootnode.core.chains import ChainRegistry, RPCClient
+from bootnode.db.models import SmartWallet
 
 router = APIRouter()
 
@@ -340,11 +340,18 @@ async def _compute_wallet_address(
         except Exception:
             pass
 
-        # Fallback: compute CREATE2 address manually
-        import hashlib
-        from eth_account._utils.structured_data.hashing import hash_domain
+        # Fallback: compute CREATE2 address
+        # CREATE2: keccak256(0xff ++ factory ++ salt ++ keccak256(initCode))
+        from web3 import Web3
 
-        # This is a simplified version - real implementation needs init code hash
-        combined = f"{factory_address}{owner_address}{salt}"
-        address_hash = hashlib.sha256(combined.encode()).hexdigest()[-40:]
-        return f"0x{address_hash}"
+        # SimpleAccount initCode = abi.encodePacked(factory, createAccount(owner, salt))
+        # For the address prediction, we use the salt directly as the CREATE2 salt
+        salt_bytes = bytes.fromhex(salt[2:] if salt.startswith("0x") else salt).rjust(32, b"\x00")
+        # SimpleAccountFactory uses owner as part of init code hash
+        owner_bytes = bytes.fromhex(owner_address[2:]).rjust(32, b"\x00")
+        init_code_hash = Web3.keccak(owner_bytes)
+
+        factory_bytes = bytes.fromhex(factory_address[2:])
+        create2_input = b"\xff" + factory_bytes + salt_bytes + init_code_hash
+        address_hash = Web3.keccak(create2_input).hex()
+        return Web3.to_checksum_address("0x" + address_hash[-40:])

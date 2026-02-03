@@ -45,6 +45,7 @@ class Settings(BaseSettings):
     iam_client_secret: str = ""
     enable_multi_tenant: bool = True
     allowed_orgs: list[str] = ["hanzo", "zoo", "lux", "pars"]
+    frontend_url: str = "http://localhost:3001"
 
     # Rate Limiting
     rate_limit_requests: int = 100  # per minute
@@ -70,6 +71,10 @@ class Settings(BaseSettings):
     lux_testnet_rpc: str = ""
     solana_mainnet_rpc: str = ""
     solana_devnet_rpc: str = ""
+    btc_mainnet_rpc: str = ""
+    btc_testnet_rpc: str = ""
+    btc_rpc_user: str = "bootnode"
+    btc_rpc_password: str = ""
 
     # DataStore (ClickHouse)
     datastore_url: str = "clickhouse://bootnode:bootnode@localhost:8123/bootnode"

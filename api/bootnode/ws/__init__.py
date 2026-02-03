@@ -2,11 +2,11 @@
 
 import asyncio
 import json
-from typing import Any
 from collections import defaultdict
+from typing import Any
 
 import structlog
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query
+from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
 
 from bootnode.core.chains import ChainRegistry, RPCClient
 

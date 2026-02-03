@@ -1,0 +1,135 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bootnode-indexer
+  namespace: bootnode
+  labels:
+    app: bootnode-indexer
+    component: indexer
+spec:
+  replicas: 1  # Single indexer instance for data consistency
+  selector:
+    matchLabels:
+      app: bootnode-indexer
+  strategy:
+    type: Recreate  # Don't run multiple indexers
+  template:
+    metadata:
+      labels:
+        app: bootnode-indexer
+        component: indexer
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: bootnode-indexer
+      containers:
+        - name: indexer
+          image: bootnode/indexer:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 5000
+              protocol: TCP
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
+          env:
+            - name: CONFIG_PATH
+              value: "/app/config/chains.yaml"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: bootnode-secrets
+                  key: database-url-go
+            - name: DATASTORE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: bootnode-secrets
+                  key: datastore-url
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: bootnode-secrets
+                  key: redis-url
+            - name: LOG_LEVEL
+              value: "info"
+            - name: MAX_CHAINS
+              value: "100"
+          resources:
+            requests:
+              cpu: "1000m"
+              memory: "2Gi"
+            limits:
+              cpu: "4000m"
+              memory: "8Gi"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - name: config
+              mountPath: /app/config
+              readOnly: true
+            - name: data
+              mountPath: /app/data
+      volumes:
+        - name: config
+          configMap:
+            name: bootnode-chains-config
+        - name: data
+          persistentVolumeClaim:
+            claimName: bootnode-indexer-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bootnode-indexer
+  namespace: bootnode
+  labels:
+    app: bootnode-indexer
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 5000
+      targetPort: http
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: metrics
+      protocol: TCP
+  selector:
+    app: bootnode-indexer
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: bootnode-indexer
+  namespace: bootnode
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: bootnode-indexer-data
+  namespace: bootnode
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: ssd

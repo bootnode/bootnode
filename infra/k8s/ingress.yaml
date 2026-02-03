@@ -1,0 +1,75 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: bootnode-ingress
+  namespace: bootnode
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1s"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - web3.hanzo.ai
+        - api.web3.hanzo.ai
+      secretName: bootnode-tls
+  rules:
+    - host: web3.hanzo.ai
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: bootnode-web
+                port:
+                  number: 3001
+    - host: api.web3.hanzo.ai
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: bootnode-api
+                port:
+                  number: 80
+---
+# WebSocket Ingress (separate for proper upgrade handling)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: bootnode-ws-ingress
+  namespace: bootnode
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/upstream-hash-by: "$remote_addr"
+    # WebSocket upgrade headers enabled via nginx-ingress ConfigMap
+    nginx.ingress.kubernetes.io/websocket-services: "bootnode-api"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - ws.web3.hanzo.ai
+      secretName: bootnode-ws-tls
+  rules:
+    - host: ws.web3.hanzo.ai
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: bootnode-api
+                port:
+                  number: 80

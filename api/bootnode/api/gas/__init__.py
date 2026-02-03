@@ -9,8 +9,8 @@ from pydantic import BaseModel
 from sqlalchemy import select
 
 from bootnode.api.deps import ApiKeyDep, DbDep, ProjectDep
-from bootnode.db.models import GasPolicy
 from bootnode.core.chains import ChainRegistry, RPCClient
+from bootnode.db.models import GasPolicy
 
 router = APIRouter()
 
@@ -41,7 +41,7 @@ class CreateGasPolicyRequest(BaseModel):
     name: str
     chain: str
     network: str = "mainnet"
-    rules: dict[str, Any]
+    rules: dict[str, Any] = {}
     max_gas_per_op: int = 1000000
     max_spend_per_day_usd: int = 100  # in cents
     allowed_contracts: list[str] | None = None
@@ -330,17 +330,36 @@ async def sponsor_user_operation(
             detail=f"Gas exceeds policy limit ({total_gas} > {policy.max_gas_per_op})",
         )
 
-    # In production, this would:
-    # 1. Sign the UserOp with the paymaster's key
-    # 2. Return proper paymasterAndData with signature
-    # 3. Track spending against daily limits
+    # Build paymasterAndData: paymaster address (20 bytes) + validUntil (6 bytes)
+    # + validAfter (6 bytes) + signature (65 bytes)
+    # For now we use the Hanzo paymaster address and a time-bounded validity window
+    import time as _time
 
-    # Simplified response
+    from web3 import Web3
+
+    paymaster_address = get_settings().bundler_beneficiary or "0x" + "0" * 40
+    valid_after = int(_time.time())
+    valid_until = valid_after + 3600  # 1 hour validity
+
+    # Construct paymasterAndData with validity window
+    # Real signing would use the paymaster's private key via eth_account
+    paymaster_data = (
+        paymaster_address[2:]  # 20 bytes address
+        + hex(valid_until)[2:].zfill(12)  # 6 bytes validUntil
+        + hex(valid_after)[2:].zfill(12)  # 6 bytes validAfter
+        + "0" * 130  # 65 bytes placeholder signature (to be signed by paymaster key)
+    )
+
+    # Adjust gas limits for paymaster verification overhead
+    pre_ver_gas = max(int(user_op.get("preVerificationGas", "0x5208"), 16), 21000 + 5000)
+    ver_gas = max(int(user_op.get("verificationGasLimit", "0x186a0"), 16), 150000)
+    call_gas = max(int(user_op.get("callGasLimit", "0x186a0"), 16), 50000)
+
     return SponsorResponse(
-        paymaster_and_data="0x",  # Would be actual paymaster + signature
-        pre_verification_gas=user_op.get("preVerificationGas", "0x5208"),
-        verification_gas_limit=user_op.get("verificationGasLimit", "0x186a0"),
-        call_gas_limit=user_op.get("callGasLimit", "0x186a0"),
+        paymaster_and_data=f"0x{paymaster_data}",
+        pre_verification_gas=hex(pre_ver_gas),
+        verification_gas_limit=hex(ver_gas),
+        call_gas_limit=hex(call_gas),
     )
 
 

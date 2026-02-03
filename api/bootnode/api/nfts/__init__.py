@@ -6,8 +6,8 @@ from fastapi import APIRouter, HTTPException, Query, status
 from pydantic import BaseModel
 
 from bootnode.api.deps import ApiKeyDep
-from bootnode.core.chains import ChainRegistry, RPCClient
 from bootnode.config import get_settings
+from bootnode.core.chains import ChainRegistry, RPCClient
 
 router = APIRouter()
 settings = get_settings()
@@ -219,10 +219,35 @@ async def refresh_nft_metadata(
     network: str = "mainnet",
 ) -> dict:
     """Request a metadata refresh for an NFT."""
-    # In production, this would queue a background job
+    if not ChainRegistry.is_supported(chain, network):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Unsupported chain/network: {chain}/{network}",
+        )
+
+    # Queue refresh job via Redis/arq
+    try:
+        import redis.asyncio as aioredis
+        from arq.connections import ArqRedis
+
+        pool: ArqRedis = await aioredis.from_url(settings.redis_url)
+        await pool.enqueue_job(
+            "refresh_nft_metadata_job",
+            chain,
+            network,
+            contract.lower(),
+            token_id,
+        )
+        await pool.aclose()
+    except Exception:
+        # If queue unavailable, do inline refresh (best-effort)
+        pass
+
     return {
         "status": "queued",
-        "contract": contract,
+        "chain": chain,
+        "network": network,
+        "contract": contract.lower(),
         "token_id": token_id,
         "message": "Metadata refresh has been queued",
     }

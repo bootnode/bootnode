@@ -6,12 +6,12 @@ import uuid
 from datetime import datetime
 
 from fastapi import APIRouter, HTTPException, status
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from sqlalchemy import select
 
 from bootnode.api.deps import DbDep
-from bootnode.db.models import Project, ApiKey
 from bootnode.config import get_settings
+from bootnode.db.models import ApiKey, Project
 
 router = APIRouter()
 settings = get_settings()

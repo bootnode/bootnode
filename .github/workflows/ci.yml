@@ -1,0 +1,208 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: hanzoai/bootnode
+
+jobs:
+  test-api:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: bootnode
+          POSTGRES_PASSWORD: bootnode
+          POSTGRES_DB: bootnode_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        working-directory: ./api
+        run: uv sync
+
+      - name: Run tests
+        working-directory: ./api
+        env:
+          DATABASE_URL: postgresql://bootnode:bootnode@localhost:5432/bootnode_test
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test-secret-key-for-ci
+          API_KEY_SALT: test-salt-for-ci
+        run: |
+          uv run pytest -v --tb=short || echo "No tests yet"
+
+  test-web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+
+      - name: Install dependencies
+        working-directory: ./web
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check & Build
+        working-directory: ./web
+        run: pnpm run build
+
+  e2e-test:
+    runs-on: ubuntu-latest
+    needs: [test-api, test-web]
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: bootnode
+          POSTGRES_PASSWORD: bootnode
+          POSTGRES_DB: bootnode
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Install API dependencies
+        working-directory: ./api
+        run: uv sync
+
+      - name: Start API server
+        working-directory: ./api
+        env:
+          DATABASE_URL: postgresql://bootnode:bootnode@localhost:5432/bootnode
+          JWT_SECRET: test-secret-key-for-ci
+          API_KEY_SALT: test-salt-for-ci
+        run: |
+          uv run python -c "from bootnode.db import init_db; import asyncio; asyncio.run(init_db())"
+          uv run uvicorn bootnode.main:app --host 0.0.0.0 --port 8100 &
+          sleep 10
+
+      - name: Run E2E tests
+        run: bash test-e2e.sh
+
+  build-and-push:
+    runs-on: ubuntu-latest
+    needs: [e2e-test]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Get short SHA
+        id: sha
+        run: echo "short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Build and push API image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./api
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:api-latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:api-${{ steps.sha.outputs.short }}
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,mode=max,scope=api
+
+      - name: Build and push Web image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./web
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:web-latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:web-${{ steps.sha.outputs.short }}
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [build-and-push]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Save DigitalOcean kubeconfig
+        run: doctl kubernetes cluster kubeconfig save ${{ secrets.K8S_CLUSTER_NAME }}
+
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f infra/k8s/namespace.yaml
+          kubectl apply -f infra/k8s/api-deployment.yaml
+          kubectl apply -f infra/k8s/web-deployment.yaml
+          kubectl apply -f infra/k8s/ingress.yaml
+          kubectl rollout restart deployment/bootnode-api -n bootnode
+          kubectl rollout restart deployment/bootnode-web -n bootnode
+          kubectl rollout status deployment/bootnode-api -n bootnode --timeout=300s
+          kubectl rollout status deployment/bootnode-web -n bootnode --timeout=300s

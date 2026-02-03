@@ -1,0 +1,567 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: bootnode-operator-system
+  labels:
+    app.kubernetes.io/name: bootnode-operator
+    app.kubernetes.io/version: "2.0.0"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bootnode-operator
+  namespace: bootnode-operator-system
+  labels:
+    app.kubernetes.io/name: bootnode-operator
+    app.kubernetes.io/component: operator
+    app.kubernetes.io/version: "2.0.0"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: bootnode-operator
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: bootnode-operator
+    spec:
+      serviceAccountName: bootnode-operator
+      containers:
+      - name: operator
+        image: bootnode/operator:2.0.0
+        imagePullPolicy: Always
+        env:
+        - name: OPERATOR_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 65532
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          seccompProfile:
+            type: RuntimeDefault
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: bootnode-operator
+  namespace: bootnode-operator-system
+  labels:
+    app.kubernetes.io/name: bootnode-operator
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: bootnode-operator
+  labels:
+    app.kubernetes.io/name: bootnode-operator
+rules:
+# Bootnode resources
+- apiGroups: ["bootnode.dev"]
+  resources: ["bootnodes", "bootnodes/status", "bootnodes/finalizers"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["bootnode.dev"]
+  resources: ["blockchains", "blockchains/status", "blockchains/finalizers"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+# Core resources
+- apiGroups: [""]
+  resources: ["pods", "services", "endpoints", "persistentvolumeclaims", "events", "configmaps", "secrets"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "daemonsets", "replicasets", "statefulsets"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["networking.k8s.io"]
+  resources: ["ingresses", "networkpolicies"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["policy"]
+  resources: ["poddisruptionbudgets"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["autoscaling"]
+  resources: ["horizontalpodautoscalers"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["monitoring.coreos.com"]
+  resources: ["servicemonitors", "prometheusrules"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: bootnode-operator
+  labels:
+    app.kubernetes.io/name: bootnode-operator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: bootnode-operator
+subjects:
+- kind: ServiceAccount
+  name: bootnode-operator
+  namespace: bootnode-operator-system
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: bootnodes.bootnode.dev
+  labels:
+    app.kubernetes.io/name: bootnode-operator
+spec:
+  group: bootnode.dev
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            properties:
+              version:
+                type: string
+                default: "2.0.0"
+              replicas:
+                type: integer
+                default: 3
+                minimum: 1
+                maximum: 100
+              resources:
+                type: object
+                properties:
+                  requests:
+                    type: object
+                    properties:
+                      cpu:
+                        type: string
+                        default: "500m"
+                      memory:
+                        type: string
+                        default: "1Gi"
+                  limits:
+                    type: object
+                    properties:
+                      cpu:
+                        type: string
+                        default: "2"
+                      memory:
+                        type: string
+                        default: "4Gi"
+              storage:
+                type: object
+                properties:
+                  size:
+                    type: string
+                    default: "10Gi"
+                  storageClass:
+                    type: string
+              database:
+                type: object
+                properties:
+                  enabled:
+                    type: boolean
+                    default: true
+                  replicas:
+                    type: integer
+                    default: 1
+                  storage:
+                    type: string
+                    default: "20Gi"
+                  resources:
+                    type: object
+                    properties:
+                      requests:
+                        type: object
+                        properties:
+                          cpu:
+                            type: string
+                            default: "250m"
+                          memory:
+                            type: string
+                            default: "512Mi"
+                      limits:
+                        type: object
+                        properties:
+                          cpu:
+                            type: string
+                            default: "1"
+                          memory:
+                            type: string
+                            default: "2Gi"
+              redis:
+                type: object
+                properties:
+                  enabled:
+                    type: boolean
+                    default: true
+                  replicas:
+                    type: integer
+                    default: 1
+                  resources:
+                    type: object
+                    properties:
+                      requests:
+                        type: object
+                        properties:
+                          cpu:
+                            type: string
+                            default: "100m"
+                          memory:
+                            type: string
+                            default: "128Mi"
+                      limits:
+                        type: object
+                        properties:
+                          cpu:
+                            type: string
+                            default: "500m"
+                          memory:
+                            type: string
+                            default: "512Mi"
+              blockchains:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    network:
+                      type: string
+                      default: "mainnet"
+                    enabled:
+                      type: boolean
+                      default: true
+                    rpcUrl:
+                      type: string
+                    wsUrl:
+                      type: string
+                  required:
+                    - name
+                default:
+                  - name: ethereum
+                    network: mainnet
+                  - name: polygon
+                    network: mainnet
+                  - name: arbitrum
+                    network: mainnet
+                  - name: optimism
+                    network: mainnet
+                  - name: base
+                    network: mainnet
+              ingress:
+                type: object
+                properties:
+                  enabled:
+                    type: boolean
+                    default: false
+                  className:
+                    type: string
+                  annotations:
+                    type: object
+                    additionalProperties:
+                      type: string
+                  hosts:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        host:
+                          type: string
+                        paths:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              path:
+                                type: string
+                                default: "/"
+                              pathType:
+                                type: string
+                                default: "Prefix"
+                  tls:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        secretName:
+                          type: string
+                        hosts:
+                          type: array
+                          items:
+                            type: string
+              monitoring:
+                type: object
+                properties:
+                  enabled:
+                    type: boolean
+                    default: false
+                  prometheus:
+                    type: object
+                    properties:
+                      enabled:
+                        type: boolean
+                        default: false
+                      namespace:
+                        type: string
+                        default: "monitoring"
+                  grafana:
+                    type: object
+                    properties:
+                      enabled:
+                        type: boolean
+                        default: false
+              security:
+                type: object
+                properties:
+                  podSecurityPolicy:
+                    type: boolean
+                    default: true
+                  networkPolicy:
+                    type: boolean
+                    default: true
+                  tls:
+                    type: object
+                    properties:
+                      enabled:
+                        type: boolean
+                        default: false
+                      secretName:
+                        type: string
+            required:
+              - version
+          status:
+            type: object
+            properties:
+              conditions:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                    status:
+                      type: string
+                    lastTransitionTime:
+                      type: string
+                    reason:
+                      type: string
+                    message:
+                      type: string
+              phase:
+                type: string
+                enum: ["Pending", "Creating", "Running", "Error", "Terminating"]
+              replicas:
+                type: integer
+              readyReplicas:
+                type: integer
+              observedGeneration:
+                type: integer
+    subresources:
+      status: {}
+      scale:
+        specReplicasPath: .spec.replicas
+        statusReplicasPath: .status.replicas
+        labelSelectorPath: .status.selector
+  scope: Namespaced
+  names:
+    plural: bootnodes
+    singular: bootnode
+    kind: Bootnode
+    shortNames:
+    - bn
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: blockchains.bootnode.dev
+  labels:
+    app.kubernetes.io/name: bootnode-operator
+spec:
+  group: bootnode.dev
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            properties:
+              name:
+                type: string
+              type:
+                type: string
+                enum: ["evm", "bitcoin", "solana"]
+                default: "evm"
+              networks:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    chainId:
+                      type: integer
+                    isTestnet:
+                      type: boolean
+                      default: false
+                    rpcUrl:
+                      type: string
+                    wsUrl:
+                      type: string
+                    explorerUrl:
+                      type: string
+                    nativeCurrency:
+                      type: string
+                    nativeDecimals:
+                      type: integer
+                      default: 18
+                  required:
+                    - name
+                    - rpcUrl
+              enabled:
+                type: boolean
+                default: true
+            required:
+              - name
+              - type
+              - networks
+          status:
+            type: object
+            properties:
+              conditions:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                    status:
+                      type: string
+                    lastTransitionTime:
+                      type: string
+                    reason:
+                      type: string
+                    message:
+                      type: string
+              phase:
+                type: string
+                enum: ["Pending", "Configuring", "Ready", "Error"]
+  scope: Namespaced
+  names:
+    plural: blockchains
+    singular: blockchain
+    kind: Blockchain
+    shortNames:
+    - bc
+---
+# Example Bootnode CR
+apiVersion: bootnode.dev/v1alpha1
+kind: Bootnode
+metadata:
+  name: production-bootnode
+  namespace: bootnode-system
+spec:
+  version: "2.0.0"
+  replicas: 3
+  resources:
+    requests:
+      cpu: "1"
+      memory: "2Gi"
+    limits:
+      cpu: "4"
+      memory: "8Gi"
+  storage:
+    size: "50Gi"
+    storageClass: "fast-ssd"
+  database:
+    enabled: true
+    replicas: 3
+    storage: "100Gi"
+  redis:
+    enabled: true
+    replicas: 3
+  blockchains:
+    - name: ethereum
+      network: mainnet
+      enabled: true
+    - name: ethereum
+      network: sepolia
+      enabled: true
+    - name: polygon
+      network: mainnet
+      enabled: true
+    - name: arbitrum
+      network: mainnet
+      enabled: true
+    - name: optimism
+      network: mainnet
+      enabled: true
+    - name: base
+      network: mainnet
+      enabled: true
+    - name: avalanche
+      network: mainnet
+      enabled: true
+    - name: bsc
+      network: mainnet
+      enabled: true
+    - name: lux
+      network: mainnet
+      enabled: true
+    - name: bitcoin
+      network: mainnet
+      enabled: true
+    - name: solana
+      network: mainnet
+      enabled: true
+  ingress:
+    enabled: true
+    className: "nginx"
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      nginx.ingress.kubernetes.io/rate-limit: "1000"
+      nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    hosts:
+      - host: api.bootnode.dev
+        paths:
+          - path: /
+            pathType: Prefix
+      - host: bootnode.dev
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: bootnode-tls
+        hosts:
+          - api.bootnode.dev
+          - bootnode.dev
+  monitoring:
+    enabled: true
+    prometheus:
+      enabled: true
+      namespace: "monitoring"
+    grafana:
+      enabled: true
+  security:
+    podSecurityPolicy: true
+    networkPolicy: true
+    tls:
+      enabled: true
+      secretName: "bootnode-tls"

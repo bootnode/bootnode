@@ -1,6 +1,5 @@
 """DataStore (ClickHouse) async client."""
 
-import asyncio
 from typing import Any
 from urllib.parse import urlparse
 
@@ -50,7 +49,7 @@ class DataStoreClient:
 
         # Test connection
         try:
-            result = await self._client.fetch("SELECT 1")
+            _ = await self._client.fetch("SELECT 1")
             logger.info(
                 "DataStore connected",
                 url=self._url,

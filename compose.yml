@@ -1,0 +1,171 @@
+# Bootnode - Web3 Backend for Local Development
+# One command to run everything: docker compose up -d
+#
+# Services:
+#   - API:       http://localhost:8000 (FastAPI)
+#   - Web:       http://localhost:3001 (Next.js Dashboard)
+#   - Postgres:  localhost:5432
+#   - Redis:     localhost:6379
+#   - Datastore: localhost:8123
+
+services:
+  # =============================================================================
+  # DATABASES
+  # =============================================================================
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: bootnode-postgres
+    environment:
+      POSTGRES_USER: bootnode
+      POSTGRES_PASSWORD: bootnode
+      POSTGRES_DB: bootnode
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bootnode"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: bootnode-redis
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  datastore:
+    image: clickhouse/clickhouse-server:24-alpine
+    container_name: bootnode-datastore
+    environment:
+      CLICKHOUSE_DB: bootnode
+      CLICKHOUSE_USER: bootnode
+      CLICKHOUSE_PASSWORD: bootnode
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    volumes:
+      - datastore:/var/lib/clickhouse
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8123/ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # =============================================================================
+  # BOOTNODE SERVICES
+  # =============================================================================
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: bootnode-api
+    environment:
+      APP_ENV: development
+      DEBUG: "true"
+      DATABASE_URL: postgresql+asyncpg://bootnode:bootnode@postgres:5432/bootnode
+      REDIS_URL: redis://redis:6379/0
+      DATASTORE_URL: clickhouse://bootnode:bootnode@datastore:8123/bootnode
+      JWT_SECRET: dev-jwt-secret-change-in-production
+      API_KEY_SALT: dev-api-key-salt
+      # Multi-tenant off for local dev
+      ENABLE_MULTI_TENANT: "false"
+      # Public RPC endpoints
+      ETH_MAINNET_RPC: https://eth.llamarpc.com
+      ETH_SEPOLIA_RPC: https://ethereum-sepolia-rpc.publicnode.com
+      BASE_MAINNET_RPC: https://mainnet.base.org
+      POLYGON_MAINNET_RPC: https://polygon-rpc.com
+      ARBITRUM_MAINNET_RPC: https://arb1.arbitrum.io/rpc
+      OPTIMISM_MAINNET_RPC: https://mainnet.optimism.io
+      AVALANCHE_MAINNET_RPC: https://api.avax.network/ext/bc/C/rpc
+      BSC_MAINNET_RPC: https://bsc-dataseed.binance.org
+      SOLANA_MAINNET_RPC: https://api.mainnet-beta.solana.com
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    volumes:
+      - ./api:/app:cached
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8000
+        NEXT_PUBLIC_WS_URL: ws://localhost:8000
+    container_name: bootnode-web
+    environment:
+      NODE_ENV: production
+      PORT: "3001"
+    ports:
+      - "3001:3001"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  # =============================================================================
+  # OPTIONAL: MONITORING (docker compose --profile monitoring up -d)
+  # =============================================================================
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: bootnode-grafana
+    profiles: ["monitoring"]
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana:/var/lib/grafana
+    depends_on:
+      - api
+
+  # =============================================================================
+  # OPTIONAL: INDEXER (docker compose --profile indexer up -d)
+  # =============================================================================
+
+  indexer:
+    build:
+      context: ./indexer
+      dockerfile: Dockerfile
+    container_name: bootnode-indexer
+    profiles: ["indexer"]
+    environment:
+      DATABASE_URL: postgres://bootnode:bootnode@postgres:5432/bootnode
+      DATASTORE_URL: clickhouse://bootnode:bootnode@datastore:8123/bootnode
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      datastore:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres:
+  redis:
+  datastore:
+  grafana:

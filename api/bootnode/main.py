@@ -1,19 +1,19 @@
 """Bootnode API - Main application entry point."""
 
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
 
 import structlog
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import ORJSONResponse
 
-from bootnode.config import get_settings
 from bootnode.api import router as api_router
-from bootnode.ws import router as ws_router
-from bootnode.db.session import engine, init_db
+from bootnode.config import get_settings
 from bootnode.core.cache import redis_client
 from bootnode.core.datastore import datastore_client
+from bootnode.db.session import engine, init_db
+from bootnode.ws import router as ws_router
 
 logger = structlog.get_logger()
 settings = get_settings()

@@ -237,7 +237,7 @@ async def _handle_estimate_user_operation_gas(
         )
 
     user_op = params[0]
-    entry_point = params[1]
+    # Entry point validation will be implemented with full ERC-4337 support
 
     async with RPCClient(chain, network) as client:
         # Get gas prices
@@ -290,7 +290,7 @@ async def _handle_get_user_operation_by_hash(
             id=request_id,
         )
 
-    user_op_hash = params[0]
+    # UserOperation lookup will be implemented with database storage
 
     # In production, look up the UserOp from storage
     # For now, return null (not found)
@@ -318,7 +318,7 @@ async def _handle_get_user_operation_receipt(
             id=request_id,
         )
 
-    user_op_hash = params[0]
+    # UserOperation receipt lookup will be implemented with database storage
 
     # In production, look up the receipt from storage
     # For now, return null (not found)
@@ -335,28 +335,54 @@ def _compute_user_op_hash(
     chain: str,
     network: str,
 ) -> str:
-    """Compute the UserOperation hash."""
-    import hashlib
+    """Compute the UserOperation hash per ERC-4337 spec.
+
+    userOpHash = keccak256(abi.encode(
+        pack(userOp), entryPoint, chainId
+    ))
+    where pack(userOp) = keccak256 of ABI-encoded UserOp fields (excluding signature).
+    """
+    from eth_abi import encode
+    from web3 import Web3
 
     chain_config = ChainRegistry.get_chain(chain)
     network_config = chain_config.networks.get(network) if chain_config else None
     chain_id = network_config.chain_id if network_config else 1
 
-    # Simplified hash computation
-    # Real implementation would use proper ABI encoding
-    data = (
-        user_op.get("sender", "")
-        + user_op.get("nonce", "")
-        + user_op.get("initCode", "")
-        + user_op.get("callData", "")
-        + user_op.get("callGasLimit", "")
-        + user_op.get("verificationGasLimit", "")
-        + user_op.get("preVerificationGas", "")
-        + user_op.get("maxFeePerGas", "")
-        + user_op.get("maxPriorityFeePerGas", "")
-        + user_op.get("paymasterAndData", "")
-        + entry_point
-        + str(chain_id)
+    def _hex_to_bytes(h: str) -> bytes:
+        h = h or "0x"
+        return bytes.fromhex(h[2:] if h.startswith("0x") else h)
+
+    def _hex_to_int(h: str) -> int:
+        h = h or "0x0"
+        return int(h, 16)
+
+    # Pack the UserOperation (hash of all fields except signature)
+    packed = encode(
+        ["address", "uint256", "bytes32", "bytes32", "uint256", "uint256", "uint256", "uint256", "uint256", "bytes32"],
+        [
+            Web3.to_checksum_address(user_op.get("sender", "0x" + "0" * 40)),
+            _hex_to_int(user_op.get("nonce", "0x0")),
+            Web3.keccak(_hex_to_bytes(user_op.get("initCode", "0x"))),
+            Web3.keccak(_hex_to_bytes(user_op.get("callData", "0x"))),
+            _hex_to_int(user_op.get("callGasLimit", "0x0")),
+            _hex_to_int(user_op.get("verificationGasLimit", "0x0")),
+            _hex_to_int(user_op.get("preVerificationGas", "0x0")),
+            _hex_to_int(user_op.get("maxFeePerGas", "0x0")),
+            _hex_to_int(user_op.get("maxPriorityFeePerGas", "0x0")),
+            Web3.keccak(_hex_to_bytes(user_op.get("paymasterAndData", "0x"))),
+        ],
+    )
+    user_op_packed_hash = Web3.keccak(packed)
+
+    # Final hash: keccak256(abi.encode(userOpHash, entryPoint, chainId))
+    final = encode(
+        ["bytes32", "address", "uint256"],
+        [
+            user_op_packed_hash,
+            Web3.to_checksum_address(entry_point),
+            chain_id,
+        ],
     )
 
-    return "0x" + hashlib.sha256(data.encode()).hexdigest()
+    return "0x" + Web3.keccak(final).hex()

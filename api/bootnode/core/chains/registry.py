@@ -258,6 +258,33 @@ class ChainRegistry:
             },
         )
 
+        # Bitcoin
+        cls._chains["bitcoin"] = Chain(
+            name="Bitcoin",
+            slug="bitcoin",
+            chain_type=ChainType.BITCOIN,
+            networks={
+                "mainnet": Network(
+                    name="Mainnet",
+                    chain_id=None,
+                    is_testnet=False,
+                    rpc_env_var="btc_mainnet_rpc",
+                    explorer_url="https://mempool.space",
+                    native_currency="BTC",
+                    native_decimals=8,
+                ),
+                "testnet": Network(
+                    name="Testnet",
+                    chain_id=None,
+                    is_testnet=True,
+                    rpc_env_var="btc_testnet_rpc",
+                    explorer_url="https://mempool.space/testnet",
+                    native_currency="BTC",
+                    native_decimals=8,
+                ),
+            },
+        )
+
         # Solana
         cls._chains["solana"] = Chain(
             name="Solana",

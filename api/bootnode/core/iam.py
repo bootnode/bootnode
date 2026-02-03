@@ -9,22 +9,23 @@ Supports login via:
 Uses Casdoor-compatible OAuth2/OIDC flow.
 """
 
-import httpx
+from datetime import UTC, datetime
 from functools import lru_cache
 from typing import Any
-from datetime import datetime, timezone
+
+import httpx
 import jwt
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jwt import PyJWKClient
 from pydantic import BaseModel
-from fastapi import HTTPException, status, Depends
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from bootnode.config import get_settings
 
 
 class IAMUser(BaseModel):
     """User from Hanzo IAM."""
-    
+
     id: str
     name: str
     email: str
@@ -33,12 +34,12 @@ class IAMUser(BaseModel):
     roles: list[str] = []
     permissions: list[str] = []
     created_at: datetime | None = None
-    
+
     @property
     def is_admin(self) -> bool:
         """Check if user has admin role."""
         return "admin" in self.roles
-    
+
     @property
     def can_create_projects(self) -> bool:
         """Check if user can create projects."""
@@ -47,11 +48,11 @@ class IAMUser(BaseModel):
 
 class IAMClient:
     """Client for Hanzo IAM service."""
-    
+
     def __init__(self):
         self.settings = get_settings()
         self._jwks_client: PyJWKClient | None = None
-    
+
     @property
     def jwks_client(self) -> PyJWKClient:
         """Get JWKS client (lazy initialization)."""
@@ -59,13 +60,13 @@ class IAMClient:
             jwks_url = f"{self.settings.iam_url}/.well-known/jwks.json"
             self._jwks_client = PyJWKClient(jwks_url)
         return self._jwks_client
-    
+
     async def verify_token(self, token: str) -> IAMUser:
         """Verify JWT token from hanzo.id and return user."""
         try:
             # Get signing key from JWKS
             signing_key = self.jwks_client.get_signing_key_from_jwt(token)
-            
+
             # Decode and verify token
             payload = jwt.decode(
                 token,
@@ -74,7 +75,7 @@ class IAMClient:
                 audience=self.settings.iam_client_id,
                 issuer=self.settings.iam_url,
             )
-            
+
             # Extract user info
             return IAMUser(
                 id=payload.get("sub"),
@@ -85,10 +86,10 @@ class IAMClient:
                 roles=payload.get("roles", []),
                 permissions=payload.get("permissions", []),
                 created_at=datetime.fromtimestamp(
-                    payload.get("iat", 0), tz=timezone.utc
+                    payload.get("iat", 0), tz=UTC
                 ),
             )
-            
+
         except jwt.ExpiredSignatureError:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -99,7 +100,7 @@ class IAMClient:
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail=f"Invalid token: {str(e)}",
             )
-    
+
     async def exchange_code(self, code: str, redirect_uri: str) -> dict[str, Any]:
         """Exchange authorization code for tokens."""
         async with httpx.AsyncClient() as client:
@@ -113,15 +114,24 @@ class IAMClient:
                     "redirect_uri": redirect_uri,
                 },
             )
-            
+
             if response.status_code != 200:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     detail="Failed to exchange code for token",
                 )
-            
+
             return response.json()
-    
+
+
+# Global IAM client instance
+iam_client = IAMClient()
+
+
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer())) -> IAMUser:
+    """Dependency to get current authenticated user from Hanzo IAM."""
+    return await iam_client.verify_token(credentials.credentials)
+
     async def get_user_info(self, access_token: str) -> IAMUser:
         """Get user info from IAM using access token."""
         async with httpx.AsyncClient() as client:
@@ -129,13 +139,13 @@ class IAMClient:
                 f"{self.settings.iam_url}/api/userinfo",
                 headers={"Authorization": f"Bearer {access_token}"},
             )
-            
+
             if response.status_code != 200:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     detail="Failed to get user info",
                 )
-            
+
             data = response.json()
             return IAMUser(
                 id=data.get("sub"),
@@ -146,17 +156,17 @@ class IAMClient:
                 roles=data.get("roles", []),
                 permissions=data.get("permissions", []),
             )
-    
+
     def get_login_url(self, redirect_uri: str, org: str = "hanzo") -> str:
         """Get login URL for specific org."""
         org_domains = {
             "hanzo": "hanzo.id",
-            "zoo": "zoo.id", 
+            "zoo": "zoo.id",
             "lux": "lux.id",
             "pars": "pars.id",
         }
         domain = org_domains.get(org, "hanzo.id")
-        
+
         return (
             f"https://{domain}/login/oauth/authorize"
             f"?client_id={self.settings.iam_client_id}"
@@ -168,7 +178,7 @@ class IAMClient:
 
 
 # Dependency injection
-@lru_cache()
+@lru_cache
 def get_iam_client() -> IAMClient:
     """Get IAM client singleton."""
     return IAMClient()
@@ -189,7 +199,7 @@ async def get_current_user(
             detail="Not authenticated",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     return await iam.verify_token(credentials.credentials)
 
 
@@ -200,7 +210,7 @@ async def get_optional_user(
     """Get current user if authenticated, None otherwise."""
     if credentials is None:
         return None
-    
+
     try:
         return await iam.verify_token(credentials.credentials)
     except HTTPException:

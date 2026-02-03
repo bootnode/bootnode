@@ -3,7 +3,7 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from bootnode.core.chains import ChainRegistry, ChainType
+from bootnode.core.chains import ChainRegistry
 
 router = APIRouter()
 

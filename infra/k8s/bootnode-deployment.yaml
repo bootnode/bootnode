@@ -1,0 +1,427 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: bootnode
+  labels:
+    app: bootnode
+    environment: production
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bootnode-config
+  namespace: bootnode
+data:
+  APP_ENV: "production"
+  API_PREFIX: "/v1"
+  LOG_LEVEL: "INFO"
+  RATE_LIMIT_REQUESTS: "1000"
+  RATE_LIMIT_COMPUTE_UNITS: "10000"
+  CORS_ORIGINS: "https://bootnode.dev,https://admin.bootnode.dev"
+  TRUSTED_HOSTS: "bootnode.dev,admin.bootnode.dev"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: bootnode-secrets
+  namespace: bootnode
+type: Opaque
+stringData:
+  JWT_SECRET: "your-super-secure-jwt-secret-change-in-production"
+  API_KEY_SALT: "your-secure-api-key-salt-change-in-production"
+  DATABASE_URL: "postgresql+asyncpg://bootnode:password@postgres:5432/bootnode"
+  REDIS_URL: "redis://redis:6379/0"
+  IAM_CLIENT_SECRET: "your-iam-client-secret"
+  ETH_MAINNET_RPC: "https://eth-mainnet.g.alchemy.com/v2/your-api-key"
+  POLYGON_MAINNET_RPC: "https://polygon-mainnet.g.alchemy.com/v2/your-api-key"
+  ARBITRUM_MAINNET_RPC: "https://arb-mainnet.g.alchemy.com/v2/your-api-key"
+  OPTIMISM_MAINNET_RPC: "https://opt-mainnet.g.alchemy.com/v2/your-api-key"
+  BASE_MAINNET_RPC: "https://base-mainnet.g.alchemy.com/v2/your-api-key"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bootnode-postgres
+  namespace: bootnode
+  labels:
+    app: bootnode-postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bootnode-postgres
+  template:
+    metadata:
+      labels:
+        app: bootnode-postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:16-alpine
+        env:
+        - name: POSTGRES_DB
+          value: bootnode
+        - name: POSTGRES_USER
+          value: bootnode
+        - name: POSTGRES_PASSWORD
+          value: bootnode_production_password_change_me
+        ports:
+        - containerPort: 5432
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+        livenessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - bootnode
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - bootnode
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: postgres-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  namespace: bootnode
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: fast-ssd
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: bootnode
+spec:
+  selector:
+    app: bootnode-postgres
+  ports:
+  - port: 5432
+    targetPort: 5432
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bootnode-redis
+  namespace: bootnode
+  labels:
+    app: bootnode-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bootnode-redis
+  template:
+    metadata:
+      labels:
+        app: bootnode-redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:7-alpine
+        args: ["redis-server", "--appendonly", "yes", "--requirepass", "bootnode_redis_password"]
+        ports:
+        - containerPort: 6379
+        volumeMounts:
+        - name: redis-storage
+          mountPath: /data
+        livenessProbe:
+          tcpSocket:
+            port: 6379
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          tcpSocket:
+            port: 6379
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+      volumes:
+      - name: redis-storage
+        persistentVolumeClaim:
+          claimName: redis-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-pvc
+  namespace: bootnode
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: fast-ssd
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: bootnode
+spec:
+  selector:
+    app: bootnode-redis
+  ports:
+  - port: 6379
+    targetPort: 6379
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bootnode-api
+  namespace: bootnode
+  labels:
+    app: bootnode-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: bootnode-api
+  template:
+    metadata:
+      labels:
+        app: bootnode-api
+    spec:
+      initContainers:
+      - name: db-migrate
+        image: bootnode/api:latest
+        command: ["python", "-m", "alembic", "upgrade", "head"]
+        envFrom:
+        - configMapRef:
+            name: bootnode-config
+        - secretRef:
+            name: bootnode-secrets
+      containers:
+      - name: api
+        image: bootnode/api:latest
+        ports:
+        - containerPort: 8000
+        envFrom:
+        - configMapRef:
+            name: bootnode-config
+        - secretRef:
+            name: bootnode-secrets
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bootnode-api-service
+  namespace: bootnode
+spec:
+  selector:
+    app: bootnode-api
+  ports:
+  - port: 80
+    targetPort: 8000
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bootnode-web
+  namespace: bootnode
+  labels:
+    app: bootnode-web
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: bootnode-web
+  template:
+    metadata:
+      labels:
+        app: bootnode-web
+    spec:
+      containers:
+      - name: web
+        image: bootnode/web:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: NEXT_PUBLIC_API_URL
+          value: "https://api.bootnode.dev"
+        - name: NODE_ENV
+          value: "production"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bootnode-web-service
+  namespace: bootnode
+spec:
+  selector:
+    app: bootnode-web
+  ports:
+  - port: 80
+    targetPort: 3000
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: bootnode-ingress
+  namespace: bootnode
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, DELETE, OPTIONS"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization,X-API-Key"
+spec:
+  tls:
+  - hosts:
+    - bootnode.dev
+    - api.bootnode.dev
+    - admin.bootnode.dev
+    secretName: bootnode-tls
+  rules:
+  - host: bootnode.dev
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: bootnode-web-service
+            port:
+              number: 80
+  - host: admin.bootnode.dev
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: bootnode-web-service
+            port:
+              number: 80
+  - host: api.bootnode.dev
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: bootnode-api-service
+            port:
+              number: 80
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: bootnode-api-pdb
+  namespace: bootnode
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: bootnode-api
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: bootnode-web-pdb
+  namespace: bootnode
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: bootnode-web
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: bootnode-api-hpa
+  namespace: bootnode
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: bootnode-api
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80

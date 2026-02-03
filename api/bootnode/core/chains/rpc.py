@@ -1,6 +1,5 @@
 """RPC client for blockchain interactions."""
 
-import asyncio
 from typing import Any
 
 import httpx

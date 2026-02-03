@@ -12,8 +12,8 @@ from pydantic import BaseModel, HttpUrl
 from sqlalchemy import select
 
 from bootnode.api.deps import ApiKeyDep, DbDep, ProjectDep
-from bootnode.db.models import Webhook, WebhookDelivery
 from bootnode.core.chains import ChainRegistry
+from bootnode.db.models import Webhook, WebhookDelivery
 
 router = APIRouter()
 
@@ -295,8 +295,9 @@ async def test_webhook(
     db: DbDep,
 ) -> WebhookTestResponse:
     """Send a test event to a webhook."""
-    import httpx
     import time
+
+    import httpx
 
     result = await db.execute(
         select(Webhook).where(

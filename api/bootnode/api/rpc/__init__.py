@@ -9,9 +9,9 @@ from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 
 from bootnode.api.deps import ApiKeyDep, DbDep
-from bootnode.core.chains import ChainRegistry, RPCClient
-from bootnode.core.chains.rpc import get_compute_units, RPCError
 from bootnode.core.cache import redis_client
+from bootnode.core.chains import ChainRegistry, RPCClient
+from bootnode.core.chains.rpc import RPCError, get_compute_units
 from bootnode.db.models import Usage
 
 router = APIRouter()

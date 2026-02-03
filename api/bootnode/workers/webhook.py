@@ -8,22 +8,20 @@ import asyncio
 import hashlib
 import hmac
 import json
-import sys
 import time
 from datetime import datetime, timedelta
 from typing import Any
 
 import httpx
 import structlog
-from arq import create_pool, cron
+from arq import cron
 from arq.connections import RedisSettings
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from bootnode.config import get_settings
-from bootnode.db.session import AsyncSessionLocal
-from bootnode.db.models import Webhook, WebhookDelivery
 from bootnode.core.datastore import datastore_client
+from bootnode.db.models import Webhook, WebhookDelivery
+from bootnode.db.session import AsyncSessionLocal
 
 logger = structlog.get_logger()
 settings = get_settings()
@@ -173,7 +171,7 @@ async def process_webhook_event(
             Webhook.chain_id == chain_id,
             Webhook.network == network,
             Webhook.event_type == event_type,
-            Webhook.is_active == True,
+            Webhook.is_active,
             Webhook.failure_count < 10,  # Disable after 10 failures
         )
         result = await session.execute(query)
@@ -235,13 +233,58 @@ async def matches_filters(
     return True
 
 
+async def deliver_webhook_with_retry(
+    ctx: dict,
+    webhook_id: str,
+    event_type: str,
+    payload: dict[str, Any],
+    attempt: int = 1,
+    max_attempts: int = 5,
+) -> bool:
+    """Deliver webhook with exponential backoff retry."""
+    success = await deliver_webhook(ctx, webhook_id, event_type, payload)
+
+    if not success and attempt < max_attempts:
+        # Exponential backoff: 2^attempt seconds (2, 4, 8, 16, 32)
+        delay = min(2 ** attempt, 300)
+        logger.info(
+            "Scheduling webhook retry",
+            webhook_id=webhook_id,
+            attempt=attempt + 1,
+            delay_seconds=delay,
+        )
+        redis = ctx.get("redis")
+        if redis:
+            await redis.enqueue_job(
+                "deliver_webhook_with_retry",
+                webhook_id,
+                event_type,
+                payload,
+                attempt + 1,
+                max_attempts,
+                _defer_by=timedelta(seconds=delay),
+            )
+    return success
+
+
 async def cleanup_old_deliveries(ctx: dict) -> int:
     """Cleanup old webhook deliveries (cron job)."""
+    from sqlalchemy import delete
+
     async with AsyncSessionLocal() as session:
         cutoff = datetime.utcnow() - timedelta(days=30)
-        # In production, implement proper cleanup
-        logger.info("Cleanup job running", cutoff=cutoff)
-        return 0
+
+        # Delete deliveries older than 30 days
+        result = await session.execute(
+            delete(WebhookDelivery).where(
+                WebhookDelivery.created_at < cutoff
+            )
+        )
+        deleted_count = result.rowcount
+        await session.commit()
+
+        logger.info("Cleanup completed", deleted=deleted_count, cutoff=cutoff)
+        return deleted_count
 
 
 async def startup(ctx: dict) -> None:
@@ -267,6 +310,7 @@ class WorkerSettings:
 
     functions = [
         deliver_webhook,
+        deliver_webhook_with_retry,
         process_webhook_event,
     ]
 
