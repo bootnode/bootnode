@@ -1,0 +1,143 @@
+name: hanzo-apps
+region: nyc
+features:
+  - buildpack-stack=ubuntu-22
+
+# Managed Databases (shared by all apps)
+databases:
+  - engine: PG
+    name: postgres
+    num_nodes: 1
+    size: db-s-1vcpu-1gb
+    version: "16"
+  - engine: REDIS
+    name: redis
+    num_nodes: 1
+    size: db-s-1vcpu-1gb
+    version: "7"
+
+# Domains
+domains:
+  - domain: console.hanzo.ai
+    type: PRIMARY
+  - domain: chat.hanzo.ai
+    type: ALIAS
+  - domain: commerce.hanzo.ai
+    type: ALIAS
+
+services:
+  # ==========================================================================
+  # Console (LLM Development Environment)
+  # ==========================================================================
+  - name: console
+    image:
+      registry_type: GHCR
+      registry: hanzoai
+      repository: console
+      tag: latest
+    instance_count: 1
+    instance_size_slug: professional-xs
+    http_port: 3000
+    routes:
+      - path: /
+        preserve_path_prefix: true
+    envs:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        scope: RUN_TIME
+        value: ${postgres.DATABASE_URL}
+      - key: REDIS_HOST
+        scope: RUN_TIME
+        value: ${redis.HOSTNAME}
+      - key: REDIS_PORT
+        value: "25061"
+      - key: REDIS_AUTH
+        scope: RUN_TIME
+        value: ${redis.PASSWORD}
+      - key: NEXTAUTH_URL
+        value: https://console.hanzo.ai
+      - key: NEXTAUTH_SECRET
+        scope: RUN_TIME
+        type: SECRET
+        value: e21ae21c91df0875b5dc54ba98c3a2731a69c4284f0113ab93f1cb2919128abc
+      - key: SALT
+        value: "295f20f7c8375c04bc2c8383106f1cf855e5f9a7755144bd23e8c9530185c89b"
+      - key: ENCRYPTION_KEY
+        value: "295f20f7c8375c04bc2c8383106f1cf855e5f9a7755144bd23e8c9530185c89b"
+      - key: HOSTNAME
+        value: "0.0.0.0"
+      - key: PORT
+        value: "3000"
+      - key: HANZO_AUTO_CLICKHOUSE_MIGRATION_DISABLED
+        value: "true"
+      - key: NEXT_PUBLIC_LANGFUSE_CLOUD_REGION
+        value: US
+    health_check:
+      http_path: /api/public/health
+      initial_delay_seconds: 90
+      period_seconds: 30
+      timeout_seconds: 10
+      failure_threshold: 5
+
+  # ==========================================================================
+  # Chat (AI Chat Interface)
+  # ==========================================================================
+  - name: chat
+    image:
+      registry_type: GHCR
+      registry: hanzoai
+      repository: chat
+      tag: latest
+    instance_count: 1
+    instance_size_slug: professional-xs
+    http_port: 3000
+    routes:
+      - path: /
+        preserve_path_prefix: true
+    envs:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        scope: RUN_TIME
+        value: ${postgres.DATABASE_URL}
+      - key: REDIS_URL
+        scope: RUN_TIME
+        value: rediss://${redis.USERNAME}:${redis.PASSWORD}@${redis.HOSTNAME}:${redis.PORT}
+      - key: NEXTAUTH_URL
+        value: https://chat.hanzo.ai
+      - key: NEXTAUTH_SECRET
+        scope: RUN_TIME
+        type: SECRET
+        value: e21ae21c91df0875b5dc54ba98c3a2731a69c4284f0113ab93f1cb2919128abc
+    health_check:
+      http_path: /
+      initial_delay_seconds: 60
+      period_seconds: 15
+
+  # ==========================================================================
+  # Commerce (Multi-tenant Commerce API)
+  # ==========================================================================
+  - name: commerce
+    image:
+      registry_type: GHCR
+      registry: hanzoai
+      repository: commerce
+      tag: latest
+    instance_count: 1
+    instance_size_slug: professional-xs
+    http_port: 8000
+    routes:
+      - path: /
+        preserve_path_prefix: true
+    envs:
+      - key: DATABASE_URL
+        scope: RUN_TIME
+        value: ${postgres.DATABASE_URL}
+      - key: REDIS_URL
+        scope: RUN_TIME
+        value: rediss://${redis.USERNAME}:${redis.PASSWORD}@${redis.HOSTNAME}:${redis.PORT}
+    health_check:
+      http_path: /health
+      initial_delay_seconds: 30
+      period_seconds: 10

@@ -64,9 +64,9 @@ export default function StoragePage() {
     try {
       const headers = getAuthHeaders()
       const [volRes, snapRes, cloneRes] = await Promise.all([
-        fetch("http://localhost:8100/v1/infra/volumes", { headers }),
-        fetch("http://localhost:8100/v1/infra/snapshots", { headers }),
-        fetch("http://localhost:8100/v1/infra/clone", { headers }),
+        fetch("http://localhost:8000/v1/infra/volumes", { headers }),
+        fetch("http://localhost:8000/v1/infra/snapshots", { headers }),
+        fetch("http://localhost:8000/v1/infra/clone", { headers }),
       ])
 
       if (volRes.ok) setVolumes(await volRes.json())
@@ -87,7 +87,7 @@ export default function StoragePage() {
     if (!cloneName.trim() || !sourceId) return
     setCloning(true)
     try {
-      const res = await fetch("http://localhost:8100/v1/infra/clone", {
+      const res = await fetch("http://localhost:8000/v1/infra/clone", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

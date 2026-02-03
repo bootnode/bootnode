@@ -3,10 +3,11 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DocsLayout } from "@/components/docs-layout"
 import { ArrowRight } from "lucide-react"
+import { docsConfig } from "@/lib/docs-config"
 
 export const metadata = {
   title: "Quickstart",
-  description: "Get started with Bootnode in under 5 minutes.",
+  description: `Get started with ${docsConfig.brandName} in under 5 minutes.`,
 }
 
 export default function QuickstartPage() {
@@ -28,9 +29,9 @@ export default function QuickstartPage() {
             <h2 className="text-2xl font-semibold">Sign Up and Get Your API Key</h2>
           </div>
           <p className="text-muted-foreground">
-            Create a free Bootnode account at{" "}
-            <Link href="https://dashboard.bootnode.dev" className="text-primary underline underline-offset-4">
-              dashboard.bootnode.dev
+            Create a free {docsConfig.brandName} account at{" "}
+            <Link href={docsConfig.dashboardUrl} className="text-primary underline underline-offset-4">
+              {docsConfig.dashboardUrl.replace("https://", "")}
             </Link>
             . After signing up, navigate to <strong>Settings &rarr; API Keys</strong> and
             create a new key. Copy it -- you will need it for every request.
@@ -57,7 +58,7 @@ export default function QuickstartPage() {
             on Ethereum mainnet. This returns the latest block number in hexadecimal.
           </p>
           <pre className="overflow-x-auto rounded-lg bg-zinc-950 p-4 text-sm text-zinc-100">
-            <code>{`curl -X POST https://api.bootnode.dev/v1/rpc/ethereum/mainnet \\
+            <code>{`curl -X POST ${docsConfig.apiUrl}/v1/rpc/ethereum/mainnet \\
   -H "Content-Type: application/json" \\
   -H "X-API-Key: YOUR_API_KEY" \\
   -d '{
@@ -171,7 +172,7 @@ main();`}</code>
             <h2 className="text-2xl font-semibold">Using Fetch Directly</h2>
           </div>
           <p className="text-muted-foreground">
-            You do not need the SDK. Every Bootnode API is a standard REST or JSON-RPC
+            You do not need the SDK. Every {docsConfig.brandName} API is a standard REST or JSON-RPC
             endpoint. Here is a plain <code className="bg-muted px-1.5 py-0.5 rounded text-sm">fetch</code> example:
           </p>
           <pre className="overflow-x-auto rounded-lg bg-zinc-950 p-4 text-sm text-zinc-100">

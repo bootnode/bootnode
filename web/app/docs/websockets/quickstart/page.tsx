@@ -3,10 +3,11 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { DocsLayout } from "@/components/docs-layout"
 import { ArrowRight } from "lucide-react"
+import { docsConfig } from "@/lib/docs-config"
 
 export const metadata = {
   title: "WebSockets Quickstart",
-  description: "Subscribe to real-time blockchain data with Bootnode WebSockets.",
+  description: `Subscribe to real-time blockchain data with ${docsConfig.brandName} WebSockets.`,
 }
 
 export default function WebSocketsQuickstartPage() {
@@ -66,22 +67,22 @@ export default function WebSocketsQuickstartPage() {
             Pass your API key as a query parameter.
           </p>
           <pre className="overflow-x-auto rounded-lg bg-zinc-950 p-4 text-sm text-zinc-100">
-            <code>{`wss://api.bootnode.dev/v1/ws/{chain}/{network}?apiKey=YOUR_API_KEY
+            <code>{`${docsConfig.wsUrl}/v1/ws/{chain}/{network}?apiKey=YOUR_API_KEY
 
 // Examples:
-// wss://api.bootnode.dev/v1/ws/ethereum/mainnet?apiKey=bn_live_...
-// wss://api.bootnode.dev/v1/ws/base/mainnet?apiKey=bn_live_...
-// wss://api.bootnode.dev/v1/ws/polygon/mainnet?apiKey=bn_live_...`}</code>
+// ${docsConfig.wsUrl}/v1/ws/ethereum/mainnet?apiKey=${docsConfig.apiKeyPrefix}live_...
+// ${docsConfig.wsUrl}/v1/ws/base/mainnet?apiKey=${docsConfig.apiKeyPrefix}live_...
+// ${docsConfig.wsUrl}/v1/ws/polygon/mainnet?apiKey=${docsConfig.apiKeyPrefix}live_...`}</code>
           </pre>
           <pre className="overflow-x-auto rounded-lg bg-zinc-950 p-4 text-sm text-zinc-100">
             <code>{`// Node.js / Browser
 const ws = new WebSocket(
-  "wss://api.bootnode.dev/v1/ws/ethereum/mainnet?apiKey=" +
+  "${docsConfig.wsUrl}/v1/ws/ethereum/mainnet?apiKey=" +
   process.env.BOOTNODE_API_KEY
 );
 
 ws.onopen = () => {
-  console.log("Connected to Bootnode WebSocket");
+  console.log("Connected to ${docsConfig.brandName} WebSocket");
 };
 
 ws.onerror = (error) => {
@@ -107,7 +108,7 @@ ws.onclose = (event) => {
           </p>
           <pre className="overflow-x-auto rounded-lg bg-zinc-950 p-4 text-sm text-zinc-100">
             <code>{`const ws = new WebSocket(
-  "wss://api.bootnode.dev/v1/ws/ethereum/mainnet?apiKey=" +
+  "${docsConfig.wsUrl}/v1/ws/ethereum/mainnet?apiKey=" +
   process.env.BOOTNODE_API_KEY
 );
 
@@ -294,7 +295,7 @@ ws.onmessage = (event) => {
     onMessage: (data: any) => void
   ) {
     this.url =
-      \`wss://api.bootnode.dev/v1/ws/\${chain}/\${network}?apiKey=\${apiKey}\`;
+      \`${docsConfig.wsUrl}/v1/ws/\${chain}/\${network}?apiKey=\${apiKey}\`;
     this.onMessage = onMessage;
     this.connect();
   }

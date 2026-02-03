@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function GET(request: NextRequest) {
   try {
     // Forward request to the Bootnode API backend
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8100'}/v1/auth/api-keys/keys`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/v1/auth/api-keys/keys`, {
       headers: {
         'Authorization': request.headers.get('authorization') || '',
         'Content-Type': 'application/json',
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     
     // Forward request to the Bootnode API backend
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8100'}/v1/auth/api-keys/keys`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/v1/auth/api-keys/keys`, {
       method: 'POST',
       headers: {
         'Authorization': request.headers.get('authorization') || '',
@@ -71,7 +71,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Forward request to the Bootnode API backend
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8100'}/v1/auth/api-keys/keys/${keyId}`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/v1/auth/api-keys/keys/${keyId}`, {
       method: 'DELETE',
       headers: {
         'Authorization': request.headers.get('authorization') || '',

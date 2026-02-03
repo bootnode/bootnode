@@ -1,0 +1,23 @@
+# Grafana Datasources for Bootnode Monitoring
+apiVersion: 1
+
+datasources:
+  # VictoriaMetrics as primary metrics source
+  - name: VictoriaMetrics
+    type: prometheus
+    access: proxy
+    url: http://victoriametrics:8428
+    isDefault: true
+    editable: false
+
+  # ClickHouse/DataStore for analytics
+  - name: DataStore
+    type: grafana-clickhouse-datasource
+    access: proxy
+    url: http://datastore:8123
+    jsonData:
+      defaultDatabase: bootnode
+      username: bootnode
+    secureJsonData:
+      password: ${CLICKHOUSE_PASSWORD}
+    editable: false

@@ -1,0 +1,58 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+.pnpm-store/
+.uv/
+
+# Environment files (NEVER commit real secrets)
+.env
+.env.local
+.env.development
+.env.production
+.env*.local
+*.env
+!.env.example
+!api/.env.example
+!infra/.env.example
+!bootnode/.env.example
+
+# Build outputs
+.next/
+out/
+dist/
+build/
+*.egg-info/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Test coverage
+coverage/
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Kubernetes secrets (use kubectl create secret)
+**/secrets.local.yaml
+**/secrets.prod.yaml
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Embedded git repositories (separate projects)
+bootnode/
+bootnode-admin/
+
+# Playwright MCP screenshots
+.playwright-mcp/

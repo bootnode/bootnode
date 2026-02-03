@@ -1,0 +1,109 @@
+# AWS EKS Cluster Configuration
+# Deploy with: eksctl create cluster -f eks-cluster.yaml
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: bootnode-cluster
+  region: us-east-1
+  version: "1.29"
+  tags:
+    environment: production
+    project: bootnode
+
+iam:
+  withOIDC: true
+  serviceAccounts:
+    - metadata:
+        name: bootnode-api
+        namespace: bootnode
+      attachPolicyARNs:
+        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+    - metadata:
+        name: external-secrets
+        namespace: kube-system
+      attachPolicyARNs:
+        - arn:aws:iam::aws:policy/SecretsManagerReadWrite
+
+vpc:
+  cidr: 10.0.0.0/16
+  nat:
+    gateway: HighlyAvailable
+  clusterEndpoints:
+    publicAccess: true
+    privateAccess: true
+
+addons:
+  - name: vpc-cni
+    version: latest
+  - name: coredns
+    version: latest
+  - name: kube-proxy
+    version: latest
+  - name: aws-ebs-csi-driver
+    version: latest
+    serviceAccountRoleARN: arn:aws:iam::${AWS_ACCOUNT_ID}:role/AmazonEKS_EBS_CSI_DriverRole
+
+managedNodeGroups:
+  # API Nodes - General purpose
+  - name: api-nodes
+    instanceType: m6i.xlarge
+    desiredCapacity: 3
+    minSize: 2
+    maxSize: 10
+    volumeSize: 100
+    volumeType: gp3
+    labels:
+      role: api
+      nodegroup-type: api
+    tags:
+      nodegroup-role: api
+    iam:
+      withAddonPolicies:
+        ebs: true
+        cloudWatch: true
+
+  # Indexer Nodes - Memory optimized
+  - name: indexer-nodes
+    instanceType: r6i.2xlarge
+    desiredCapacity: 2
+    minSize: 1
+    maxSize: 5
+    volumeSize: 500
+    volumeType: gp3
+    labels:
+      role: indexer
+      nodegroup-type: indexer
+    tags:
+      nodegroup-role: indexer
+    taints:
+      - key: dedicated
+        value: indexer
+        effect: NoSchedule
+
+  # Database Nodes - Storage optimized
+  - name: db-nodes
+    instanceType: i3.xlarge
+    desiredCapacity: 3
+    minSize: 3
+    maxSize: 5
+    volumeSize: 200
+    volumeType: gp3
+    labels:
+      role: database
+      nodegroup-type: database
+    tags:
+      nodegroup-role: database
+    taints:
+      - key: dedicated
+        value: database
+        effect: NoSchedule
+
+cloudWatch:
+  clusterLogging:
+    enableTypes:
+      - api
+      - audit
+      - authenticator
+      - controllerManager
+      - scheduler

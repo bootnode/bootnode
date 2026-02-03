@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloud
+  namespace: hanzo
+  labels:
+    app: cloud
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cloud
+  template:
+    metadata:
+      labels:
+        app: cloud
+    spec:
+      containers:
+        - name: cloud
+          image: registry.digitalocean.com/hanzo/cloud:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 14000
+          env:
+            - name: RUNNING_IN_DOCKER
+              value: "true"
+            - name: httpport
+              value: "14000"
+            - name: driverName
+              value: "postgres"
+            - name: dataSourceName
+              valueFrom:
+                secretKeyRef:
+                  name: cloud-secrets
+                  key: database-url
+            - name: casdoorEndpoint
+              value: "https://hanzo.id"
+            - name: clientId
+              valueFrom:
+                secretKeyRef:
+                  name: cloud-secrets
+                  key: oauth-client-id
+            - name: clientSecret
+              valueFrom:
+                secretKeyRef:
+                  name: cloud-secrets
+                  key: oauth-client-secret
+            - name: casdoorOrganization
+              value: "hanzo"
+            - name: casdoorApplication
+              value: "app-cloud"
+            - name: redirectPath
+              value: "/callback"
+            - name: publicDomain
+              value: "https://cloud.hanzo.ai"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 14000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 14000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      imagePullSecrets:
+        - name: registry-hanzo
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cloud
+  namespace: hanzo
+  labels:
+    app: cloud
+spec:
+  selector:
+    app: cloud
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 14000
+  type: ClusterIP
+# Note: cloud-secrets must be created separately with real OAuth credentials:
+# kubectl create secret generic cloud-secrets -n hanzo \
+#   --from-literal=oauth-client-id="hanzo-cloud-client-id" \
+#   --from-literal=oauth-client-secret="<real-secret>" \
+#   --from-literal=database-url="postgres://hanzo:<password>@postgres:5432/hanzo_cloud?sslmode=disable"

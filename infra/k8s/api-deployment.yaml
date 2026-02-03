@@ -29,7 +29,7 @@ spec:
       serviceAccountName: bootnode-api
       containers:
         - name: api
-          image: ghcr.io/hanzoai/bootnode:api-latest
+          image: hanzoai/bootnode:api-latest
           imagePullPolicy: Always
           ports:
             - name: http
@@ -63,6 +63,32 @@ spec:
                 secretKeyRef:
                   name: bootnode-secrets
                   key: api-key-salt
+            # Hanzo KMS Configuration
+            - name: HANZO_KMS_URL
+              value: "https://kms.hanzo.ai"
+            - name: HANZO_KMS_ORG
+              value: "hanzo"
+            - name: HANZO_KMS_PROJECT
+              value: "bootnode"
+            - name: HANZO_KMS_ENV
+              value: "production"
+            - name: HANZO_KMS_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: hanzo-kms-secrets
+                  key: client-id
+                  optional: true
+            - name: HANZO_KMS_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: hanzo-kms-secrets
+                  key: client-secret
+                  optional: true
+            # Hanzo IAM Configuration
+            - name: HANZO_IAM_URL
+              value: "https://hanzo.id"
+            - name: HANZO_IAM_ORG
+              value: "HANZO"
           resources:
             requests:
               cpu: "500m"

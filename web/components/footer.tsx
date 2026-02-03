@@ -1,6 +1,8 @@
+"use client"
+
 import Link from "next/link"
-import { Blocks } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
+import { BrandLogo, useBrand } from "@/components/brand-logo"
 
 const footerLinks = {
   products: [
@@ -38,18 +40,19 @@ const footerLinks = {
 }
 
 export function Footer() {
+  const brand = useBrand()
+
   return (
     <footer className="border-t bg-muted/30">
       <div className="container py-12 md:py-16">
         <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-5">
           {/* Brand */}
           <div className="md:col-span-1">
-            <Link href="/" className="flex items-center space-x-2">
-              <Blocks className="h-6 w-6" />
-              <span className="text-xl font-bold">Bootnode</span>
+            <Link href="/">
+              <BrandLogo />
             </Link>
             <p className="mt-4 text-sm text-muted-foreground">
-              The complete blockchain development platform for builders.
+              {brand.tagline}
             </p>
           </div>
 
@@ -126,7 +129,7 @@ export function Footer() {
 
         <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Bootnode. All rights reserved.
+            © {new Date().getFullYear()} {brand.name}. All rights reserved.
           </p>
           <div className="flex gap-4">
             <Link

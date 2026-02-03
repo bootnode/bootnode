@@ -82,6 +82,13 @@ services:
       API_KEY_SALT: dev-api-key-salt
       # Multi-tenant off for local dev
       ENABLE_MULTI_TENANT: "false"
+      # Hanzo KMS (optional for local dev - uses env vars directly)
+      HANZO_KMS_URL: ${HANZO_KMS_URL:-https://kms.hanzo.ai}
+      HANZO_KMS_ORG: ${HANZO_KMS_ORG:-hanzo}
+      HANZO_KMS_PROJECT: ${HANZO_KMS_PROJECT:-bootnode}
+      HANZO_KMS_ENV: ${HANZO_KMS_ENV:-development}
+      HANZO_KMS_CLIENT_ID: ${HANZO_KMS_CLIENT_ID:-}
+      HANZO_KMS_CLIENT_SECRET: ${HANZO_KMS_CLIENT_SECRET:-}
       # Public RPC endpoints
       ETH_MAINNET_RPC: https://eth.llamarpc.com
       ETH_SEPOLIA_RPC: https://ethereum-sepolia-rpc.publicnode.com
@@ -106,6 +113,10 @@ services:
       retries: 3
     volumes:
       - ./api:/app:cached
+      # Mount Docker socket for node deployment
+      - /var/run/docker.sock:/var/run/docker.sock
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     restart: unless-stopped
 
   web:

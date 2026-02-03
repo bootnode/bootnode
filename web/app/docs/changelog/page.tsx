@@ -1,10 +1,11 @@
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DocsLayout } from "@/components/docs-layout"
+import { docsConfig } from "@/lib/docs-config"
 
 export const metadata = {
   title: "Changelog",
-  description: "Bootnode platform changelog and release notes.",
+  description: `${docsConfig.brandName} platform changelog and release notes.`,
 }
 
 export default function ChangelogPage() {
@@ -15,7 +16,7 @@ export default function ChangelogPage() {
         <div>
           <h1 className="text-4xl font-bold mb-4">Changelog</h1>
           <p className="text-lg text-muted-foreground">
-            All notable changes to the Bootnode platform, API, and SDKs.
+            All notable changes to the {docsConfig.brandName} platform, API, and SDKs.
           </p>
         </div>
 
@@ -33,7 +34,7 @@ export default function ChangelogPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               <p className="text-muted-foreground">
-                General availability of the Bootnode platform. This is a complete rewrite
+                General availability of the {docsConfig.brandName} platform. This is a complete rewrite
                 with a unified API, new product lines, and multi-chain support from day one.
               </p>
 
@@ -116,7 +117,7 @@ export default function ChangelogPage() {
               <div>
                 <h3 className="font-semibold mb-3">Platform</h3>
                 <ul className="list-disc list-inside text-muted-foreground space-y-1.5">
-                  <li>New dashboard at dashboard.bootnode.dev with usage analytics, API key management, and webhook monitoring</li>
+                  <li>New dashboard at {docsConfig.dashboardUrl.replace("https://", "")} with usage analytics, API key management, and webhook monitoring</li>
                   <li>Unified authentication via X-API-Key or Bearer token</li>
                   <li>Scoped API keys for least-privilege access</li>
                   <li>Rate limiting with per-plan compute unit budgets</li>
@@ -138,7 +139,7 @@ export default function ChangelogPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               <p className="text-muted-foreground">
-                Beta launch of the Bootnode platform with core RPC proxy and Token API functionality.
+                Beta launch of the {docsConfig.brandName} platform with core RPC proxy and Token API functionality.
               </p>
 
               <div>

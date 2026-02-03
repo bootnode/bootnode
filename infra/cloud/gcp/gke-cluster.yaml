@@ -1,0 +1,161 @@
+# GCP GKE Cluster Configuration
+# Deploy with: gcloud container clusters create --config gke-cluster.yaml
+# Or use Terraform with google_container_cluster resource
+
+apiVersion: container.cnrm.cloud.google.com/v1beta1
+kind: ContainerCluster
+metadata:
+  name: bootnode-cluster
+  namespace: bootnode-infra
+spec:
+  location: us-central1
+  releaseChannel:
+    channel: REGULAR
+
+  # Network config
+  networkRef:
+    name: bootnode-vpc
+  subnetworkRef:
+    name: bootnode-subnet
+  ipAllocationPolicy:
+    clusterSecondaryRangeName: pods
+    servicesSecondaryRangeName: services
+
+  # Cluster features
+  workloadIdentityConfig:
+    workloadPool: ${PROJECT_ID}.svc.id.goog
+
+  addonsConfig:
+    horizontalPodAutoscaling:
+      disabled: false
+    httpLoadBalancing:
+      disabled: false
+    gcePersistentDiskCsiDriverConfig:
+      enabled: true
+
+  # Logging and monitoring
+  loggingConfig:
+    enableComponents:
+      - SYSTEM_COMPONENTS
+      - WORKLOADS
+  monitoringConfig:
+    enableComponents:
+      - SYSTEM_COMPONENTS
+    managedPrometheus:
+      enabled: true
+
+  # Security
+  masterAuth:
+    clientCertificateConfig:
+      issueClientCertificate: false
+  privateClusterConfig:
+    enablePrivateNodes: true
+    enablePrivateEndpoint: false
+    masterIpv4CidrBlock: 172.16.0.0/28
+
+---
+# API Node Pool
+apiVersion: container.cnrm.cloud.google.com/v1beta1
+kind: ContainerNodePool
+metadata:
+  name: bootnode-api-pool
+  namespace: bootnode-infra
+spec:
+  clusterRef:
+    name: bootnode-cluster
+  location: us-central1
+
+  initialNodeCount: 1
+  autoscaling:
+    minNodeCount: 2
+    maxNodeCount: 10
+
+  nodeConfig:
+    machineType: e2-standard-4
+    diskSizeGb: 100
+    diskType: pd-ssd
+    imageType: COS_CONTAINERD
+    labels:
+      role: api
+      nodegroup-type: api
+    oauthScopes:
+      - https://www.googleapis.com/auth/cloud-platform
+    workloadMetadataConfig:
+      mode: GKE_METADATA
+
+  management:
+    autoRepair: true
+    autoUpgrade: true
+
+---
+# Indexer Node Pool
+apiVersion: container.cnrm.cloud.google.com/v1beta1
+kind: ContainerNodePool
+metadata:
+  name: bootnode-indexer-pool
+  namespace: bootnode-infra
+spec:
+  clusterRef:
+    name: bootnode-cluster
+  location: us-central1
+
+  initialNodeCount: 1
+  autoscaling:
+    minNodeCount: 1
+    maxNodeCount: 5
+
+  nodeConfig:
+    machineType: n2-highmem-8
+    diskSizeGb: 500
+    diskType: pd-ssd
+    imageType: COS_CONTAINERD
+    labels:
+      role: indexer
+      nodegroup-type: indexer
+    taints:
+      - key: dedicated
+        value: indexer
+        effect: NO_SCHEDULE
+    oauthScopes:
+      - https://www.googleapis.com/auth/cloud-platform
+
+  management:
+    autoRepair: true
+    autoUpgrade: true
+
+---
+# Database Node Pool
+apiVersion: container.cnrm.cloud.google.com/v1beta1
+kind: ContainerNodePool
+metadata:
+  name: bootnode-db-pool
+  namespace: bootnode-infra
+spec:
+  clusterRef:
+    name: bootnode-cluster
+  location: us-central1
+
+  initialNodeCount: 3
+  autoscaling:
+    minNodeCount: 3
+    maxNodeCount: 5
+
+  nodeConfig:
+    machineType: n2-standard-8
+    diskSizeGb: 200
+    diskType: pd-ssd
+    localSsdCount: 2
+    imageType: COS_CONTAINERD
+    labels:
+      role: database
+      nodegroup-type: database
+    taints:
+      - key: dedicated
+        value: database
+        effect: NO_SCHEDULE
+    oauthScopes:
+      - https://www.googleapis.com/auth/cloud-platform
+
+  management:
+    autoRepair: true
+    autoUpgrade: true

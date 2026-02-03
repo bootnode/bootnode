@@ -1,0 +1,44 @@
+name: hanzo-platform
+region: nyc
+features:
+  - buildpack-stack=ubuntu-22
+
+databases:
+  - engine: PG
+    name: db
+    num_nodes: 1
+    size: db-s-1vcpu-2gb
+    version: "16"
+
+domains:
+  - domain: platform.hanzo.ai
+    type: PRIMARY
+
+services:
+  - name: platform
+    image:
+      registry_type: DOCKER_HUB
+      registry: hanzoai
+      repository: platform
+      tag: latest
+    instance_count: 2
+    instance_size_slug: professional-xs
+    http_port: 3000
+    envs:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        scope: RUN_TIME
+        value: ${db.DATABASE_URL}
+      - key: NEXTAUTH_URL
+        value: https://platform.hanzo.ai
+      - key: NEXTAUTH_SECRET
+        scope: RUN_TIME
+        type: SECRET
+        value: e21ae21c91df0875b5dc54ba98c3a2731a69c4284f0113ab93f1cb2919128abc
+      - key: HOSTNAME
+        value: "0.0.0.0"
+    health_check:
+      http_path: /
+      initial_delay_seconds: 30
+      period_seconds: 10

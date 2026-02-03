@@ -38,7 +38,7 @@ export default function SettingsPage() {
     setProjectName(localStorage.getItem("bootnode_project_name") || "")
     setProjectDescription(localStorage.getItem("bootnode_project_description") || "")
     setApiKey(localStorage.getItem("bootnode_api_key") || "")
-    setApiUrl(process.env.NEXT_PUBLIC_API_URL || "http://localhost:8100")
+    setApiUrl(process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000")
   }, [])
 
   function handleSaveProject() {

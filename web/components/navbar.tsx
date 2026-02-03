@@ -15,7 +15,6 @@ import {
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu"
 import {
-  Blocks,
   Database,
   Globe,
   Layers,
@@ -24,6 +23,7 @@ import {
   Wallet,
   X,
 } from "lucide-react"
+import { BrandLogo } from "@/components/brand-logo"
 
 const products = [
   {
@@ -69,9 +69,8 @@ export function Navbar() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center">
         {/* Logo */}
-        <Link href="/" className="mr-6 flex items-center space-x-2">
-          <Blocks className="h-6 w-6" />
-          <span className="text-xl font-bold">Bootnode</span>
+        <Link href="/" className="mr-6">
+          <BrandLogo />
         </Link>
 
         {/* Desktop Navigation */}

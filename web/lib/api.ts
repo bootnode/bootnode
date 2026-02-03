@@ -2,7 +2,7 @@
 // Uses auth token from localStorage for authenticated requests
 
 const getApiConfig = () => {
-  let API_URL = "http://localhost:8100"
+  let API_URL = "http://localhost:8000"
 
   if (typeof window !== 'undefined') {
     API_URL = process.env.NEXT_PUBLIC_API_URL ||

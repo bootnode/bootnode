@@ -8,8 +8,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Blocks, Loader2 } from "lucide-react"
+import { Loader2 } from "lucide-react"
 import { useAuth, HanzoLoginButton } from "@/lib/auth"
+import { BrandLogo, useBrand } from "@/components/brand-logo"
 
 function LoginForm() {
   const router = useRouter()
@@ -59,18 +60,19 @@ function LoginForm() {
     )
   }
 
+  const brand = useBrand()
+
   // Production mode: Show IAM login options
   if (isProduction) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-background to-muted/20 px-4">
-        <Link href="/" className="mb-8 flex items-center space-x-2">
-          <Blocks className="h-8 w-8" />
-          <span className="text-2xl font-bold">Bootnode</span>
+        <Link href="/" className="mb-8">
+          <BrandLogo size="large" />
         </Link>
 
         <Card className="w-full max-w-sm">
           <CardHeader className="text-center">
-            <CardTitle className="text-xl">Sign in to Bootnode</CardTitle>
+            <CardTitle className="text-xl">Sign in to {brand.name}</CardTitle>
             <CardDescription>
               Choose your identity provider to continue
             </CardDescription>
@@ -109,9 +111,8 @@ function LoginForm() {
   // Development mode: Show email/password form
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-background to-muted/20 px-4">
-      <Link href="/" className="mb-8 flex items-center space-x-2">
-        <Blocks className="h-8 w-8" />
-        <span className="text-2xl font-bold">Bootnode</span>
+      <Link href="/" className="mb-8">
+        <BrandLogo size="large" />
       </Link>
 
       <Card className="w-full max-w-sm">
@@ -206,31 +207,40 @@ function LoginForm() {
 
           {/* Demo credentials for localhost */}
           <div className="mt-3 rounded-md border border-dashed border-muted-foreground/25 bg-muted/50 p-3">
-            <p className="text-xs font-medium text-muted-foreground mb-2">Demo Credentials</p>
-            <div className="space-y-1 text-xs">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Email:</span>
-                <code
-                  className="font-mono bg-background px-1 rounded cursor-pointer hover:bg-primary/10"
-                  onClick={() => setEmail("test@bootnode.dev")}
-                  title="Click to use"
-                >
-                  test@bootnode.dev
-                </code>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Password:</span>
-                <code
-                  className="font-mono bg-background px-1 rounded cursor-pointer hover:bg-primary/10"
-                  onClick={() => setPassword("testpass123")}
-                  title="Click to use"
-                >
-                  testpass123
-                </code>
-              </div>
-            </div>
-            <p className="text-[10px] text-muted-foreground mt-2">
-              Click values to autofill. Or register a new account.
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="w-full text-xs h-8"
+              disabled={loading}
+              onClick={async () => {
+                setMode("login")
+                setEmail("test@bootnode.dev")
+                setPassword("testpass123")
+                setLoading(true)
+                setError("")
+                try {
+                  await login("test@bootnode.dev", "testpass123")
+                  const returnUrl = searchParams.get("returnUrl") || "/dashboard"
+                  router.push(returnUrl)
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : "Login failed")
+                } finally {
+                  setLoading(false)
+                }
+              }}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                "Use Demo Account"
+              )}
+            </Button>
+            <p className="text-[10px] text-muted-foreground mt-2 text-center">
+              test@bootnode.dev / testpass123
             </p>
           </div>
         </CardContent>

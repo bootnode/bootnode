@@ -1,0 +1,286 @@
+name: hanzo-platform
+region: nyc
+features:
+  - buildpack-stack=ubuntu-22
+
+# Managed Databases
+databases:
+  - engine: PG
+    name: postgres
+    num_nodes: 1
+    size: db-s-1vcpu-1gb
+    version: "16"
+  - engine: REDIS
+    name: redis
+    num_nodes: 1
+    size: db-s-1vcpu-1gb
+    version: "7"
+
+# Domain routing
+domains:
+  - domain: platform.hanzo.ai
+    type: PRIMARY
+  - domain: console.hanzo.ai
+    type: ALIAS
+  - domain: iam.hanzo.ai
+    type: ALIAS
+  - domain: analytics.hanzo.ai
+    type: ALIAS
+  - domain: chat.hanzo.ai
+    type: ALIAS
+  - domain: api.hanzo.ai
+    type: ALIAS
+  - domain: commerce.hanzo.ai
+    type: ALIAS
+
+ingress:
+  rules:
+    - component:
+        name: platform
+      match:
+        path:
+          prefix: /
+      cors:
+        allow_origins:
+          - prefix: https://
+    - component:
+        name: console
+      match:
+        path:
+          prefix: /
+    - component:
+        name: iam
+      match:
+        path:
+          prefix: /
+    - component:
+        name: analytics
+      match:
+        path:
+          prefix: /
+    - component:
+        name: chat
+      match:
+        path:
+          prefix: /
+    - component:
+        name: router
+      match:
+        path:
+          prefix: /
+    - component:
+        name: commerce
+      match:
+        path:
+          prefix: /
+
+services:
+  # ==========================================================================
+  # Platform (PaaS UI)
+  # ==========================================================================
+  - name: platform
+    image:
+      registry_type: GHCR
+      registry: hanzoai
+      repository: platform
+      tag: latest
+    instance_count: 1
+    instance_size_slug: professional-xs
+    http_port: 3000
+    envs:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        scope: RUN_TIME
+        value: ${postgres.DATABASE_URL}
+      - key: REDIS_URL
+        scope: RUN_TIME
+        value: ${redis.DATABASE_URL}
+      - key: NEXTAUTH_URL
+        value: https://platform.hanzo.ai
+      - key: NEXTAUTH_SECRET
+        scope: RUN_TIME
+        type: SECRET
+        value: EV[1:changeme]
+    health_check:
+      http_path: /
+      initial_delay_seconds: 30
+      period_seconds: 10
+
+  # ==========================================================================
+  # Console (LLM Development Environment)
+  # ==========================================================================
+  - name: console
+    image:
+      registry_type: GHCR
+      registry: hanzoai
+      repository: console
+      tag: latest
+    instance_count: 1
+    instance_size_slug: professional-xs
+    http_port: 3000
+    envs:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        scope: RUN_TIME
+        value: ${postgres.DATABASE_URL}?schema=console
+      - key: REDIS_HOST
+        scope: RUN_TIME
+        value: ${redis.HOSTNAME}
+      - key: REDIS_PORT
+        scope: RUN_TIME
+        value: ${redis.PORT}
+      - key: REDIS_AUTH
+        scope: RUN_TIME
+        value: ${redis.PASSWORD}
+      - key: NEXTAUTH_URL
+        value: https://console.hanzo.ai
+      - key: NEXTAUTH_SECRET
+        scope: RUN_TIME
+        type: SECRET
+        value: EV[1:changeme]
+      - key: HOSTNAME
+        value: "0.0.0.0"
+    health_check:
+      http_path: /api/public/health
+      initial_delay_seconds: 60
+      period_seconds: 30
+
+  # ==========================================================================
+  # IAM (Identity & Access Management)
+  # ==========================================================================
+  - name: iam
+    image:
+      registry_type: GHCR
+      registry: hanzoai
+      repository: iam
+      tag: latest
+    instance_count: 1
+    instance_size_slug: professional-xs
+    http_port: 8000
+    envs:
+      - key: runmode
+        value: prod
+      - key: driverName
+        value: postgres
+      - key: dataSourceName
+        scope: RUN_TIME
+        value: ${postgres.DATABASE_URL}
+      - key: redisEndpoint
+        scope: RUN_TIME
+        value: ${redis.HOSTNAME}:${redis.PORT}
+      - key: appname
+        value: Hanzo IAM
+    health_check:
+      http_path: /api/health
+      initial_delay_seconds: 30
+      period_seconds: 10
+
+  # ==========================================================================
+  # Analytics (PostHog-based)
+  # ==========================================================================
+  - name: analytics
+    image:
+      registry_type: GHCR
+      registry: hanzoai
+      repository: analytics
+      tag: latest
+    instance_count: 1
+    instance_size_slug: professional-xs
+    http_port: 8000
+    envs:
+      - key: DATABASE_URL
+        scope: RUN_TIME
+        value: ${postgres.DATABASE_URL}?schema=analytics
+      - key: REDIS_URL
+        scope: RUN_TIME
+        value: ${redis.DATABASE_URL}
+      - key: SECRET_KEY
+        scope: RUN_TIME
+        type: SECRET
+        value: EV[1:changeme]
+      - key: SITE_URL
+        value: https://analytics.hanzo.ai
+    health_check:
+      http_path: /_health
+      initial_delay_seconds: 60
+      period_seconds: 30
+
+  # ==========================================================================
+  # Chat (AI Chat Interface)
+  # ==========================================================================
+  - name: chat
+    image:
+      registry_type: GHCR
+      registry: hanzoai
+      repository: chat
+      tag: latest
+    instance_count: 1
+    instance_size_slug: professional-xs
+    http_port: 3000
+    envs:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        scope: RUN_TIME
+        value: ${postgres.DATABASE_URL}?schema=chat
+      - key: REDIS_URL
+        scope: RUN_TIME
+        value: ${redis.DATABASE_URL}
+    health_check:
+      http_path: /
+      initial_delay_seconds: 30
+      period_seconds: 10
+
+  # ==========================================================================
+  # Router (LiteLLM API Gateway)
+  # ==========================================================================
+  - name: router
+    image:
+      registry_type: GHCR
+      registry: hanzoai
+      repository: router
+      tag: latest
+    instance_count: 1
+    instance_size_slug: professional-xs
+    http_port: 4000
+    envs:
+      - key: DATABASE_URL
+        scope: RUN_TIME
+        value: ${postgres.DATABASE_URL}?schema=router
+      - key: REDIS_URL
+        scope: RUN_TIME
+        value: ${redis.DATABASE_URL}
+      - key: LITELLM_MASTER_KEY
+        scope: RUN_TIME
+        type: SECRET
+        value: EV[1:changeme]
+    health_check:
+      http_path: /health
+      initial_delay_seconds: 30
+      period_seconds: 10
+
+  # ==========================================================================
+  # Commerce (Multi-tenant Commerce API)
+  # ==========================================================================
+  - name: commerce
+    image:
+      registry_type: GHCR
+      registry: hanzoai
+      repository: commerce
+      tag: latest
+    instance_count: 1
+    instance_size_slug: professional-xs
+    http_port: 8000
+    envs:
+      - key: DATABASE_URL
+        scope: RUN_TIME
+        value: ${postgres.DATABASE_URL}?schema=commerce
+      - key: REDIS_URL
+        scope: RUN_TIME
+        value: ${redis.DATABASE_URL}
+    health_check:
+      http_path: /health
+      initial_delay_seconds: 30
+      period_seconds: 10

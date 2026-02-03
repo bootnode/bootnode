@@ -3,10 +3,11 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { DocsLayout } from "@/components/docs-layout"
 import { ArrowRight } from "lucide-react"
+import { docsConfig } from "@/lib/docs-config"
 
 export const metadata = {
   title: "Smart Wallets Quickstart",
-  description: "Create and use ERC-4337 smart wallets with Bootnode.",
+  description: `Create and use ERC-4337 smart wallets with ${docsConfig.brandName}.`,
 }
 
 export default function WalletsQuickstartPage() {
@@ -28,7 +29,7 @@ export default function WalletsQuickstartPage() {
         <section className="space-y-3">
           <h2 className="text-2xl font-semibold">Prerequisites</h2>
           <ul className="list-disc list-inside text-muted-foreground space-y-1">
-            <li>A Bootnode API key (get one at <Link href="https://dashboard.bootnode.dev" className="text-primary underline underline-offset-4">dashboard.bootnode.dev</Link>)</li>
+            <li>A {docsConfig.brandName} API key (get one at <Link href={docsConfig.dashboardUrl} className="text-primary underline underline-offset-4">{docsConfig.dashboardUrl.replace("https://", "")}</Link>)</li>
             <li>Node.js 18+ installed</li>
             <li>Basic familiarity with Next.js and TypeScript</li>
           </ul>
@@ -42,13 +43,13 @@ export default function WalletsQuickstartPage() {
           </div>
           <p className="text-muted-foreground">
             Call the wallet creation endpoint. You provide an owner address (the EOA that
-            controls this smart wallet), and Bootnode returns the deterministic smart wallet
+            controls this smart wallet), and {docsConfig.brandName} returns the deterministic smart wallet
             address.
           </p>
           <pre className="overflow-x-auto rounded-lg bg-zinc-950 p-4 text-sm text-zinc-100">
             <code>{`// lib/bootnode.ts
 const BOOTNODE_API_KEY = process.env.BOOTNODE_API_KEY!;
-const BASE_URL = "https://api.bootnode.dev/v1";
+const BASE_URL = "${docsConfig.apiUrl}/v1";
 
 export async function createSmartWallet(ownerAddress: string, chain: string) {
   const res = await fetch(\`\${BASE_URL}/wallets/create\`, {
@@ -171,7 +172,7 @@ export async function getBalance(address: string, chain: string) {
             <h2 className="text-2xl font-semibold">Send a Gasless Transaction</h2>
           </div>
           <p className="text-muted-foreground">
-            Build a UserOperation, get it sponsored by the Bootnode paymaster, and submit
+            Build a UserOperation, get it sponsored by the {docsConfig.brandName} paymaster, and submit
             it through the bundler. The user pays zero gas.
           </p>
           <pre className="overflow-x-auto rounded-lg bg-zinc-950 p-4 text-sm text-zinc-100">
@@ -282,7 +283,7 @@ export async function sendGaslessTransfer({
 import { NextRequest, NextResponse } from "next/server";
 
 const BOOTNODE_API_KEY = process.env.BOOTNODE_API_KEY!;
-const BASE_URL = "https://api.bootnode.dev/v1";
+const BASE_URL = "${docsConfig.apiUrl}/v1";
 
 export async function POST(req: NextRequest) {
   const { ownerAddress } = await req.json();

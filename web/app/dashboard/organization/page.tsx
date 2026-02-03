@@ -36,8 +36,8 @@ export default function OrganizationPage() {
         const headers = getAuthHeaders()
 
         const [teamRes, keysRes] = await Promise.all([
-          fetch("http://localhost:8100/v1/team", { headers }).catch(() => null),
-          fetch("http://localhost:8100/v1/auth/keys", { headers }).catch(() => null),
+          fetch("http://localhost:8000/v1/team", { headers }).catch(() => null),
+          fetch("http://localhost:8000/v1/auth/keys", { headers }).catch(() => null),
         ])
 
         const teamData = teamRes?.ok ? await teamRes.json() : { members: [], total: 0 }

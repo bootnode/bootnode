@@ -29,7 +29,7 @@ export default function InfrastructurePage() {
   useEffect(() => {
     async function fetchStats() {
       try {
-        const res = await fetch("http://localhost:8100/v1/infra/stats", {
+        const res = await fetch("http://localhost:8000/v1/infra/stats", {
           headers: getAuthHeaders()
         })
         if (res.ok) {

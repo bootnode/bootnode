@@ -12,8 +12,12 @@ from bootnode.api import router as api_router
 from bootnode.config import get_settings
 from bootnode.core.cache import redis_client
 from bootnode.core.datastore import datastore_client
+from bootnode.core.kms import inject_secrets
 from bootnode.db.session import engine, init_db
 from bootnode.ws import router as ws_router
+
+# Load secrets from Hanzo KMS before settings
+inject_secrets()
 
 logger = structlog.get_logger()
 settings = get_settings()

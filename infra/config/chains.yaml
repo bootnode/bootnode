@@ -1,0 +1,712 @@
+# Bootnode Multi-Chain Configuration
+# Supports 100+ chains - Enable/disable as needed
+
+# =============================================================================
+# ETHEREUM & EVM LAYER 1s
+# =============================================================================
+
+ethereum:
+  mainnet:
+    chain_id: 1
+    name: "Ethereum Mainnet"
+    type: evm
+    rpc: "${ETH_MAINNET_RPC:-https://eth.llamarpc.com}"
+    ws: "${ETH_MAINNET_WS:-wss://eth.llamarpc.com}"
+    enabled: true
+    features:
+      - mev_protection
+      - archive_nodes
+      - debug_apis
+      - beacon_api
+    protocols:
+      - seaport
+      - uniswap_v2
+      - uniswap_v3
+      - aave_v3
+      - compound_v3
+      - lido
+  sepolia:
+    chain_id: 11155111
+    name: "Sepolia Testnet"
+    type: evm
+    rpc: "${ETH_SEPOLIA_RPC:-https://ethereum-sepolia-rpc.publicnode.com}"
+    enabled: true
+    testnet: true
+  holesky:
+    chain_id: 17000
+    name: "Holesky Testnet"
+    type: evm
+    rpc: "${ETH_HOLESKY_RPC:-https://ethereum-holesky-rpc.publicnode.com}"
+    enabled: true
+    testnet: true
+
+bnb:
+  mainnet:
+    chain_id: 56
+    name: "BNB Smart Chain"
+    type: evm
+    rpc: "${BNB_MAINNET_RPC:-https://bsc-dataseed.binance.org}"
+    enabled: true
+    protocols:
+      - pancakeswap_v2
+      - pancakeswap_v3
+      - venus
+  testnet:
+    chain_id: 97
+    name: "BNB Testnet"
+    type: evm
+    rpc: "${BNB_TESTNET_RPC:-https://data-seed-prebsc-1-s1.binance.org:8545}"
+    enabled: true
+    testnet: true
+
+avalanche:
+  mainnet:
+    chain_id: 43114
+    name: "Avalanche C-Chain"
+    type: evm
+    rpc: "${AVAX_MAINNET_RPC:-https://api.avax.network/ext/bc/C/rpc}"
+    enabled: true
+    protocols:
+      - trader_joe
+      - pangolin
+      - benqi
+  fuji:
+    chain_id: 43113
+    name: "Avalanche Fuji"
+    type: evm
+    rpc: "${AVAX_FUJI_RPC:-https://api.avax-test.network/ext/bc/C/rpc}"
+    enabled: true
+    testnet: true
+
+gnosis:
+  mainnet:
+    chain_id: 100
+    name: "Gnosis Chain"
+    type: evm
+    rpc: "${GNOSIS_MAINNET_RPC:-https://rpc.gnosischain.com}"
+    enabled: true
+  chiado:
+    chain_id: 10200
+    name: "Gnosis Chiado"
+    type: evm
+    rpc: "${GNOSIS_CHIADO_RPC:-https://rpc.chiadochain.net}"
+    enabled: true
+    testnet: true
+
+celo:
+  mainnet:
+    chain_id: 42220
+    name: "Celo"
+    type: evm
+    rpc: "${CELO_MAINNET_RPC:-https://forno.celo.org}"
+    enabled: true
+  alfajores:
+    chain_id: 44787
+    name: "Celo Alfajores"
+    type: evm
+    rpc: "${CELO_ALFAJORES_RPC:-https://alfajores-forno.celo-testnet.org}"
+    enabled: true
+    testnet: true
+
+rootstock:
+  mainnet:
+    chain_id: 30
+    name: "Rootstock"
+    type: evm
+    rpc: "${RSK_MAINNET_RPC:-https://public-node.rsk.co}"
+    enabled: true
+  testnet:
+    chain_id: 31
+    name: "Rootstock Testnet"
+    type: evm
+    rpc: "${RSK_TESTNET_RPC:-https://public-node.testnet.rsk.co}"
+    enabled: true
+    testnet: true
+
+# =============================================================================
+# LAYER 2 - OPTIMISTIC ROLLUPS
+# =============================================================================
+
+arbitrum:
+  mainnet:
+    chain_id: 42161
+    name: "Arbitrum One"
+    type: evm
+    rpc: "${ARB_MAINNET_RPC:-https://arb1.arbitrum.io/rpc}"
+    enabled: true
+    protocols:
+      - uniswap_v3
+      - gmx
+      - camelot
+  sepolia:
+    chain_id: 421614
+    name: "Arbitrum Sepolia"
+    type: evm
+    rpc: "${ARB_SEPOLIA_RPC:-https://sepolia-rollup.arbitrum.io/rpc}"
+    enabled: true
+    testnet: true
+
+arbitrum_nova:
+  mainnet:
+    chain_id: 42170
+    name: "Arbitrum Nova"
+    type: evm
+    rpc: "${ARB_NOVA_RPC:-https://nova.arbitrum.io/rpc}"
+    enabled: true
+
+optimism:
+  mainnet:
+    chain_id: 10
+    name: "OP Mainnet"
+    type: evm
+    rpc: "${OP_MAINNET_RPC:-https://mainnet.optimism.io}"
+    enabled: true
+    features:
+      - flashblocks
+    protocols:
+      - uniswap_v3
+      - velodrome
+      - synthetix
+  sepolia:
+    chain_id: 11155420
+    name: "OP Sepolia"
+    type: evm
+    rpc: "${OP_SEPOLIA_RPC:-https://sepolia.optimism.io}"
+    enabled: true
+    testnet: true
+
+base:
+  mainnet:
+    chain_id: 8453
+    name: "Base"
+    type: evm
+    rpc: "${BASE_MAINNET_RPC:-https://mainnet.base.org}"
+    enabled: true
+    features:
+      - flashblocks
+    protocols:
+      - uniswap_v3
+      - aerodrome
+  sepolia:
+    chain_id: 84532
+    name: "Base Sepolia"
+    type: evm
+    rpc: "${BASE_SEPOLIA_RPC:-https://sepolia.base.org}"
+    enabled: true
+    testnet: true
+
+blast:
+  mainnet:
+    chain_id: 81457
+    name: "Blast"
+    type: evm
+    rpc: "${BLAST_MAINNET_RPC:-https://rpc.blast.io}"
+    enabled: true
+    protocols:
+      - thruster
+  sepolia:
+    chain_id: 168587773
+    name: "Blast Sepolia"
+    type: evm
+    rpc: "${BLAST_SEPOLIA_RPC:-https://sepolia.blast.io}"
+    enabled: true
+    testnet: true
+
+mantle:
+  mainnet:
+    chain_id: 5000
+    name: "Mantle"
+    type: evm
+    rpc: "${MANTLE_MAINNET_RPC:-https://rpc.mantle.xyz}"
+    enabled: true
+  sepolia:
+    chain_id: 5003
+    name: "Mantle Sepolia"
+    type: evm
+    rpc: "${MANTLE_SEPOLIA_RPC:-https://rpc.sepolia.mantle.xyz}"
+    enabled: true
+    testnet: true
+
+metis:
+  mainnet:
+    chain_id: 1088
+    name: "Metis Andromeda"
+    type: evm
+    rpc: "${METIS_MAINNET_RPC:-https://andromeda.metis.io}"
+    enabled: true
+
+mode:
+  mainnet:
+    chain_id: 34443
+    name: "Mode"
+    type: evm
+    rpc: "${MODE_MAINNET_RPC:-https://mainnet.mode.network}"
+    enabled: true
+
+zora:
+  mainnet:
+    chain_id: 7777777
+    name: "Zora"
+    type: evm
+    rpc: "${ZORA_MAINNET_RPC:-https://rpc.zora.energy}"
+    enabled: true
+
+# =============================================================================
+# LAYER 2 - ZK ROLLUPS
+# =============================================================================
+
+polygon_zkevm:
+  mainnet:
+    chain_id: 1101
+    name: "Polygon zkEVM"
+    type: evm
+    rpc: "${POLYGON_ZKEVM_RPC:-https://zkevm-rpc.com}"
+    enabled: true
+  cardona:
+    chain_id: 2442
+    name: "Polygon zkEVM Cardona"
+    type: evm
+    rpc: "${POLYGON_ZKEVM_CARDONA_RPC:-https://rpc.cardona.zkevm-rpc.com}"
+    enabled: true
+    testnet: true
+
+zksync:
+  mainnet:
+    chain_id: 324
+    name: "zkSync Era"
+    type: evm
+    rpc: "${ZKSYNC_MAINNET_RPC:-https://mainnet.era.zksync.io}"
+    enabled: true
+    protocols:
+      - syncswap
+  sepolia:
+    chain_id: 300
+    name: "zkSync Sepolia"
+    type: evm
+    rpc: "${ZKSYNC_SEPOLIA_RPC:-https://sepolia.era.zksync.dev}"
+    enabled: true
+    testnet: true
+
+scroll:
+  mainnet:
+    chain_id: 534352
+    name: "Scroll"
+    type: evm
+    rpc: "${SCROLL_MAINNET_RPC:-https://rpc.scroll.io}"
+    enabled: true
+  sepolia:
+    chain_id: 534351
+    name: "Scroll Sepolia"
+    type: evm
+    rpc: "${SCROLL_SEPOLIA_RPC:-https://sepolia-rpc.scroll.io}"
+    enabled: true
+    testnet: true
+
+linea:
+  mainnet:
+    chain_id: 59144
+    name: "Linea"
+    type: evm
+    rpc: "${LINEA_MAINNET_RPC:-https://rpc.linea.build}"
+    enabled: true
+  sepolia:
+    chain_id: 59141
+    name: "Linea Sepolia"
+    type: evm
+    rpc: "${LINEA_SEPOLIA_RPC:-https://rpc.sepolia.linea.build}"
+    enabled: true
+    testnet: true
+
+starknet:
+  mainnet:
+    chain_id: 0
+    name: "Starknet"
+    type: starknet
+    rpc: "${STARKNET_MAINNET_RPC:-https://starknet-mainnet.public.blastapi.io}"
+    enabled: true
+  sepolia:
+    chain_id: 0
+    name: "Starknet Sepolia"
+    type: starknet
+    rpc: "${STARKNET_SEPOLIA_RPC:-https://starknet-sepolia.public.blastapi.io}"
+    enabled: true
+    testnet: true
+
+# =============================================================================
+# LAYER 2 - OTHER
+# =============================================================================
+
+polygon:
+  mainnet:
+    chain_id: 137
+    name: "Polygon PoS"
+    type: evm
+    rpc: "${POLYGON_MAINNET_RPC:-https://polygon-rpc.com}"
+    enabled: true
+    protocols:
+      - quickswap
+      - uniswap_v3
+      - aave_v3
+  amoy:
+    chain_id: 80002
+    name: "Polygon Amoy"
+    type: evm
+    rpc: "${POLYGON_AMOY_RPC:-https://rpc-amoy.polygon.technology}"
+    enabled: true
+    testnet: true
+
+opbnb:
+  mainnet:
+    chain_id: 204
+    name: "opBNB"
+    type: evm
+    rpc: "${OPBNB_MAINNET_RPC:-https://opbnb-mainnet-rpc.bnbchain.org}"
+    enabled: true
+  testnet:
+    chain_id: 5611
+    name: "opBNB Testnet"
+    type: evm
+    rpc: "${OPBNB_TESTNET_RPC:-https://opbnb-testnet-rpc.bnbchain.org}"
+    enabled: true
+    testnet: true
+
+# =============================================================================
+# ALTERNATIVE LAYER 1s
+# =============================================================================
+
+solana:
+  mainnet:
+    chain_id: 0
+    name: "Solana"
+    type: solana
+    rpc: "${SOL_MAINNET_RPC:-https://api.mainnet-beta.solana.com}"
+    enabled: true
+    protocols:
+      - raydium
+      - orca
+      - marinade
+      - metaplex
+    features:
+      - das_api
+  devnet:
+    chain_id: 0
+    name: "Solana Devnet"
+    type: solana
+    rpc: "${SOL_DEVNET_RPC:-https://api.devnet.solana.com}"
+    enabled: true
+    testnet: true
+
+aptos:
+  mainnet:
+    chain_id: 0
+    name: "Aptos"
+    type: move
+    rpc: "${APTOS_MAINNET_RPC:-https://fullnode.mainnet.aptoslabs.com/v1}"
+    enabled: true
+  testnet:
+    chain_id: 0
+    name: "Aptos Testnet"
+    type: move
+    rpc: "${APTOS_TESTNET_RPC:-https://fullnode.testnet.aptoslabs.com/v1}"
+    enabled: true
+    testnet: true
+
+flow:
+  mainnet:
+    chain_id: 0
+    name: "Flow"
+    type: flow
+    rpc: "${FLOW_MAINNET_RPC:-https://rest-mainnet.onflow.org}"
+    enabled: true
+  testnet:
+    chain_id: 0
+    name: "Flow Testnet"
+    type: flow
+    rpc: "${FLOW_TESTNET_RPC:-https://rest-testnet.onflow.org}"
+    enabled: true
+    testnet: true
+
+berachain:
+  mainnet:
+    chain_id: 80094
+    name: "Berachain"
+    type: evm
+    rpc: "${BERA_MAINNET_RPC:-https://rpc.berachain.com}"
+    enabled: true
+  bartio:
+    chain_id: 80084
+    name: "Berachain Bartio"
+    type: evm
+    rpc: "${BERA_BARTIO_RPC:-https://bartio.rpc.berachain.com}"
+    enabled: true
+    testnet: true
+
+sei:
+  mainnet:
+    chain_id: 1329
+    name: "Sei"
+    type: evm
+    rpc: "${SEI_MAINNET_RPC:-https://evm-rpc.sei-apis.com}"
+    enabled: true
+  atlantic:
+    chain_id: 1328
+    name: "Sei Atlantic"
+    type: evm
+    rpc: "${SEI_ATLANTIC_RPC:-https://evm-rpc-testnet.sei-apis.com}"
+    enabled: true
+    testnet: true
+
+sonic:
+  mainnet:
+    chain_id: 146
+    name: "Sonic"
+    type: evm
+    rpc: "${SONIC_MAINNET_RPC:-https://rpc.soniclabs.com}"
+    enabled: true
+  testnet:
+    chain_id: 57054
+    name: "Sonic Testnet"
+    type: evm
+    rpc: "${SONIC_TESTNET_RPC:-https://rpc.testnet.soniclabs.com}"
+    enabled: true
+    testnet: true
+
+monad:
+  devnet:
+    chain_id: 0
+    name: "Monad Devnet"
+    type: evm
+    rpc: "${MONAD_DEVNET_RPC:-}"
+    enabled: false
+    testnet: true
+
+tron:
+  mainnet:
+    chain_id: 0
+    name: "Tron"
+    type: tron
+    rpc: "${TRON_MAINNET_RPC:-https://api.trongrid.io}"
+    enabled: true
+  shasta:
+    chain_id: 0
+    name: "Tron Shasta"
+    type: tron
+    rpc: "${TRON_SHASTA_RPC:-https://api.shasta.trongrid.io}"
+    enabled: true
+    testnet: true
+
+# =============================================================================
+# BITCOIN
+# =============================================================================
+
+bitcoin:
+  mainnet:
+    chain_id: 0
+    name: "Bitcoin"
+    type: bitcoin
+    rpc: "${BTC_MAINNET_RPC:-}"
+    enabled: true
+    protocols:
+      - ordinals
+      - runes
+      - brc20
+  testnet:
+    chain_id: 0
+    name: "Bitcoin Testnet"
+    type: bitcoin
+    rpc: "${BTC_TESTNET_RPC:-}"
+    enabled: true
+    testnet: true
+
+# =============================================================================
+# EMERGING NETWORKS
+# =============================================================================
+
+astar:
+  mainnet:
+    chain_id: 592
+    name: "Astar"
+    type: evm
+    rpc: "${ASTAR_MAINNET_RPC:-https://evm.astar.network}"
+    enabled: true
+
+zetachain:
+  mainnet:
+    chain_id: 7000
+    name: "ZetaChain"
+    type: evm
+    rpc: "${ZETA_MAINNET_RPC:-https://zetachain-mainnet-archive.allthatnode.com}"
+    enabled: true
+
+ink:
+  mainnet:
+    chain_id: 57073
+    name: "Ink"
+    type: evm
+    rpc: "${INK_MAINNET_RPC:-https://rpc-gel.inkonchain.com}"
+    enabled: true
+
+unichain:
+  mainnet:
+    chain_id: 130
+    name: "Unichain"
+    type: evm
+    rpc: "${UNICHAIN_MAINNET_RPC:-https://rpc.unichain.org}"
+    enabled: true
+    features:
+      - flashblocks
+
+world_chain:
+  mainnet:
+    chain_id: 480
+    name: "World Chain"
+    type: evm
+    rpc: "${WORLDCHAIN_MAINNET_RPC:-https://worldchain-mainnet.g.alchemy.com/public}"
+    enabled: true
+
+abstract:
+  mainnet:
+    chain_id: 2741
+    name: "Abstract"
+    type: evm
+    rpc: "${ABSTRACT_MAINNET_RPC:-https://api.mainnet.abs.xyz}"
+    enabled: true
+
+soneium:
+  mainnet:
+    chain_id: 1868
+    name: "Soneium"
+    type: evm
+    rpc: "${SONEIUM_MAINNET_RPC:-https://rpc.soneium.org}"
+    enabled: true
+
+crossfi:
+  mainnet:
+    chain_id: 4158
+    name: "CrossFi"
+    type: evm
+    rpc: "${CROSSFI_MAINNET_RPC:-https://rpc.mainnet.ms}"
+    enabled: true
+
+apechain:
+  mainnet:
+    chain_id: 33139
+    name: "ApeChain"
+    type: evm
+    rpc: "${APECHAIN_MAINNET_RPC:-https://rpc.apechain.com}"
+    enabled: true
+
+lens:
+  mainnet:
+    chain_id: 37111
+    name: "Lens"
+    type: evm
+    rpc: "${LENS_MAINNET_RPC:-https://rpc.lens.dev}"
+    enabled: true
+
+lumia:
+  mainnet:
+    chain_id: 994873017
+    name: "Lumia"
+    type: evm
+    rpc: "${LUMIA_MAINNET_RPC:-https://rpc.lumia.org}"
+    enabled: true
+
+hyperliquid:
+  mainnet:
+    chain_id: 0
+    name: "Hyperliquid"
+    type: evm
+    rpc: "${HYPERLIQUID_RPC:-https://api.hyperliquid.xyz/evm}"
+    enabled: true
+
+ronin:
+  mainnet:
+    chain_id: 2020
+    name: "Ronin"
+    type: evm
+    rpc: "${RONIN_MAINNET_RPC:-https://api.roninchain.com/rpc}"
+    enabled: true
+
+moonbeam:
+  mainnet:
+    chain_id: 1284
+    name: "Moonbeam"
+    type: evm
+    rpc: "${MOONBEAM_MAINNET_RPC:-https://rpc.api.moonbeam.network}"
+    enabled: true
+
+bob:
+  mainnet:
+    chain_id: 60808
+    name: "BOB"
+    type: evm
+    rpc: "${BOB_MAINNET_RPC:-https://rpc.gobob.xyz}"
+    enabled: true
+
+frax:
+  mainnet:
+    chain_id: 252
+    name: "Frax"
+    type: evm
+    rpc: "${FRAX_MAINNET_RPC:-https://rpc.frax.com}"
+    enabled: true
+
+degen:
+  mainnet:
+    chain_id: 666666666
+    name: "Degen"
+    type: evm
+    rpc: "${DEGEN_MAINNET_RPC:-https://rpc.degen.tips}"
+    enabled: true
+
+megaeth:
+  testnet:
+    chain_id: 0
+    name: "MegaETH Testnet"
+    type: evm
+    rpc: "${MEGAETH_TESTNET_RPC:-}"
+    enabled: false
+    testnet: true
+
+# =============================================================================
+# LUX NETWORK (Native Support)
+# =============================================================================
+
+lux:
+  cchain:
+    chain_id: 96369
+    name: "Lux C-Chain"
+    type: evm
+    rpc: "${LUX_MAINNET_RPC:-https://api.lux.network/ext/bc/C/rpc}"
+    enabled: true
+    features:
+      - native
+      - archive_nodes
+    protocols:
+      - luxfi_dex
+  pchain:
+    chain_id: 0
+    name: "Lux P-Chain"
+    type: lux_platform
+    rpc: "${LUX_PCHAIN_RPC:-https://api.lux.network/ext/bc/P}"
+    enabled: true
+    features:
+      - staking
+      - validators
+  xchain:
+    chain_id: 0
+    name: "Lux X-Chain"
+    type: lux_dag
+    rpc: "${LUX_XCHAIN_RPC:-https://api.lux.network/ext/bc/X}"
+    enabled: true
+    features:
+      - utxo
+      - assets
+  testnet:
+    chain_id: 96370
+    name: "Lux Testnet"
+    type: evm
+    rpc: "${LUX_TESTNET_RPC:-https://api.lux-test.network/ext/bc/C/rpc}"
+    enabled: true
+    testnet: true

@@ -3,10 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { DocsLayout } from "@/components/docs-layout"
 import { ArrowRight } from "lucide-react"
+import { docsConfig } from "@/lib/docs-config"
 
 export const metadata = {
   title: "Examples",
-  description: "Common Bootnode API usage examples with full code snippets.",
+  description: `Common ${docsConfig.brandName} API usage examples with full code snippets.`,
 }
 
 export default function ExamplesPage() {
@@ -45,7 +46,7 @@ async function getEthBalance(
   address: string
 ): Promise<{ wei: string; eth: string }> {
   const res = await fetch(
-    \`https://api.bootnode.dev/v1/rpc/\${chain}/mainnet\`,
+    \`${docsConfig.apiUrl}/v1/rpc/\${chain}/mainnet\`,
     {
       method: "POST",
       headers: {
@@ -96,7 +97,7 @@ console.log(\`Balance: \${balance.eth} ETH (\${balance.wei} wei)\`);
               <pre className="overflow-x-auto rounded-lg bg-zinc-950 p-4 text-sm text-zinc-100">
                 <code>{`async function getTokenBalances(chain: string, address: string) {
   const res = await fetch(
-    \`https://api.bootnode.dev/v1/tokens/\${chain}/balances/\${address}\`,
+    \`${docsConfig.apiUrl}/v1/tokens/\${chain}/balances/\${address}\`,
     {
       headers: { "X-API-Key": process.env.BOOTNODE_API_KEY! },
     }
@@ -142,7 +143,7 @@ for (const token of data.tokens) {
               <pre className="overflow-x-auto rounded-lg bg-zinc-950 p-4 text-sm text-zinc-100">
                 <code>{`// 1. Create the webhook subscription
 async function monitorWallet(address: string) {
-  const res = await fetch("https://api.bootnode.dev/v1/webhooks", {
+  const res = await fetch("${docsConfig.apiUrl}/v1/webhooks", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -219,7 +220,7 @@ await monitorWallet("0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045");`}</code>
               </p>
               <pre className="overflow-x-auto rounded-lg bg-zinc-950 p-4 text-sm text-zinc-100">
                 <code>{`async function createWallet(ownerAddress: string, chain: string) {
-  const res = await fetch("https://api.bootnode.dev/v1/wallets/create", {
+  const res = await fetch("${docsConfig.apiUrl}/v1/wallets/create", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -273,7 +274,7 @@ console.log("Chain:", wallet.chain);   // "base"
               <pre className="overflow-x-auto rounded-lg bg-zinc-950 p-4 text-sm text-zinc-100">
                 <code>{`import { encodeFunctionData, parseAbi } from "viem";
 
-const BASE_URL = "https://api.bootnode.dev/v1";
+const BASE_URL = "${docsConfig.apiUrl}/v1";
 const API_KEY = process.env.BOOTNODE_API_KEY!;
 const ENTRY_POINT = "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789";
 
@@ -383,11 +384,11 @@ console.log("UserOp hash:", opHash);`}</code>
                 <code>{`const API_KEY = process.env.BOOTNODE_API_KEY!;
 
 const ws = new WebSocket(
-  \`wss://api.bootnode.dev/v1/ws/ethereum/mainnet?apiKey=\${API_KEY}\`
+  \`${docsConfig.wsUrl}/v1/ws/ethereum/mainnet?apiKey=\${API_KEY}\`
 );
 
 ws.onopen = () => {
-  console.log("Connected to Bootnode WebSocket");
+  console.log("Connected to ${docsConfig.brandName} WebSocket");
 
   // Subscribe to new block headers
   ws.send(JSON.stringify({
@@ -452,7 +453,7 @@ ws.onerror = (err) => console.error("Error:", err);
               </p>
               <pre className="overflow-x-auto rounded-lg bg-zinc-950 p-4 text-sm text-zinc-100">
                 <code>{`const API_KEY = process.env.BOOTNODE_API_KEY!;
-const BASE = "https://api.bootnode.dev/v1";
+const BASE = "${docsConfig.apiUrl}/v1";
 
 // Get collection info
 async function getCollection(chain: string, contract: string) {
@@ -516,7 +517,7 @@ for (const trait of nft.traits) {
               <pre className="overflow-x-auto rounded-lg bg-zinc-950 p-4 text-sm text-zinc-100">
                 <code>{`async function getGasPrices(chain: string) {
   const res = await fetch(
-    \`https://api.bootnode.dev/v1/gas/\${chain}/prices\`,
+    \`${docsConfig.apiUrl}/v1/gas/\${chain}/prices\`,
     { headers: { "X-API-Key": process.env.BOOTNODE_API_KEY! } }
   );
   return res.json();

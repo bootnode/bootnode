@@ -3,10 +3,11 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DocsLayout } from "@/components/docs-layout"
 import { ArrowRight } from "lucide-react"
+import { docsConfig } from "@/lib/docs-config"
 
 export const metadata = {
   title: "Webhooks Quickstart",
-  description: "Set up real-time blockchain event notifications with Bootnode Webhooks.",
+  description: `Set up real-time blockchain event notifications with ${docsConfig.brandName} Webhooks.`,
 }
 
 export default function WebhooksQuickstartPage() {
@@ -18,7 +19,7 @@ export default function WebhooksQuickstartPage() {
           <h1 className="text-4xl font-bold mb-4">Webhooks Quickstart</h1>
           <p className="text-lg text-muted-foreground">
             Receive real-time notifications when on-chain events happen. No polling required.
-            Bootnode will POST a signed JSON payload to your endpoint whenever a matching event
+            {docsConfig.brandName} will POST a signed JSON payload to your endpoint whenever a matching event
             occurs.
           </p>
         </div>
@@ -68,11 +69,11 @@ export default function WebhooksQuickstartPage() {
           </div>
           <p className="text-muted-foreground">
             Register your endpoint and specify which events you want to receive.
-            Bootnode returns a <code className="bg-muted px-1.5 py-0.5 rounded text-sm">signing_secret</code>{" "}
+            {docsConfig.brandName} returns a <code className="bg-muted px-1.5 py-0.5 rounded text-sm">signing_secret</code>{" "}
             that you will use to verify webhook payloads.
           </p>
           <pre className="overflow-x-auto rounded-lg bg-zinc-950 p-4 text-sm text-zinc-100">
-            <code>{`curl -X POST https://api.bootnode.dev/v1/webhooks \\
+            <code>{`curl -X POST ${docsConfig.apiUrl}/v1/webhooks \\
   -H "Content-Type: application/json" \\
   -H "X-API-Key: YOUR_API_KEY" \\
   -d '{
@@ -124,7 +125,7 @@ export default function WebhooksQuickstartPage() {
           </div>
           <p className="text-muted-foreground">
             Create an Express.js server (or any HTTP server) to receive webhook events.
-            Bootnode sends POST requests with a JSON body and an HMAC signature in the headers.
+            {docsConfig.brandName} sends POST requests with a JSON body and an HMAC signature in the headers.
           </p>
           <pre className="overflow-x-auto rounded-lg bg-zinc-950 p-4 text-sm text-zinc-100">
             <code>{`// server.ts
@@ -309,7 +310,7 @@ function notifyUser(address: string, message: string) {
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">Example Webhook Payload</h2>
           <p className="text-muted-foreground">
-            Here is a full example of what Bootnode sends to your endpoint:
+            Here is a full example of what {docsConfig.brandName} sends to your endpoint:
           </p>
           <pre className="overflow-x-auto rounded-lg bg-zinc-950 p-4 text-sm text-zinc-100">
             <code>{`// Headers:
@@ -345,7 +346,7 @@ function notifyUser(address: string, message: string) {
             <CardContent className="pt-6 space-y-3">
               <p className="text-sm text-muted-foreground">
                 If your endpoint returns a non-2xx status code or does not respond within 15 seconds,
-                Bootnode retries the delivery with exponential backoff:
+                {docsConfig.brandName} retries the delivery with exponential backoff:
               </p>
               <div className="overflow-x-auto border rounded-lg">
                 <table className="w-full text-sm">

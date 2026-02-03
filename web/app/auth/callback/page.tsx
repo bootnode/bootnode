@@ -40,7 +40,7 @@ function CallbackContent() {
       }
 
       // Exchange code for token via our API
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8100"
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
       const response = await fetch(`${apiUrl}/v1/auth/oauth/callback`, {
         method: "POST",
         headers: {

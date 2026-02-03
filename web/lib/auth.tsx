@@ -59,7 +59,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const isProduction = isProductionMode()
 
   const getApiUrl = useCallback(() => {
-    return process.env.NEXT_PUBLIC_API_URL || "http://localhost:8100"
+    return process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
   }, [])
 
   useEffect(() => {

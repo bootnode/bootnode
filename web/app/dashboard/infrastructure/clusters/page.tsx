@@ -46,7 +46,7 @@ export default function ClustersPage() {
 
   async function fetchClusters() {
     try {
-      const res = await fetch("http://localhost:8100/v1/infra/clusters", {
+      const res = await fetch("http://localhost:8000/v1/infra/clusters", {
         headers: getAuthHeaders()
       })
       if (res.ok) {
@@ -70,7 +70,7 @@ export default function ClustersPage() {
     if (!name.trim()) return
     setCreating(true)
     try {
-      const res = await fetch("http://localhost:8100/v1/infra/clusters", {
+      const res = await fetch("http://localhost:8000/v1/infra/clusters", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -99,7 +99,7 @@ export default function ClustersPage() {
 
   async function downloadKubeconfig(clusterId: string) {
     try {
-      const res = await fetch(`http://localhost:8100/v1/infra/clusters/${clusterId}/kubeconfig`, {
+      const res = await fetch(`http://localhost:8000/v1/infra/clusters/${clusterId}/kubeconfig`, {
         headers: getAuthHeaders()
       })
       if (res.ok) {

@@ -1,0 +1,139 @@
+# Production Docker Compose - Real Infrastructure
+# Usage: docker-compose -f docker-compose.prod.yml up -d
+
+version: '3.8'
+
+services:
+  # PostgreSQL Database - Production Ready
+  postgres:
+    image: postgres:16-alpine
+    container_name: bootnode-postgres-prod
+    environment:
+      POSTGRES_USER: bootnode
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: bootnode
+    ports:
+      - "5432:5432"
+    volumes:
+      - bootnode-postgres-prod:/var/lib/postgresql/data
+      - ./infra/sql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bootnode"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis Cache & MQ - Production Ready
+  redis:
+    image: redis:7-alpine
+    container_name: bootnode-redis-prod
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    ports:
+      - "6379:6379"
+    volumes:
+      - bootnode-redis-prod:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "--pass", "${REDIS_PASSWORD}", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ClickHouse Analytics - Production Ready
+  clickhouse:
+    image: clickhouse/clickhouse-server:24-alpine
+    container_name: bootnode-clickhouse-prod
+    environment:
+      CLICKHOUSE_DB: bootnode
+      CLICKHOUSE_USER: bootnode
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD}
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    volumes:
+      - bootnode-clickhouse-prod:/var/lib/clickhouse
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8123/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Bootnode API - Production
+  bootnode-api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: bootnode-api-prod
+    env_file:
+      - .env.production
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+
+  # Web Frontend - Production
+  bootnode-web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: bootnode-web-prod
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=${API_BASE_URL:-http://localhost:8000}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - bootnode-api
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+
+  # Webhook Worker - Background Jobs
+  bootnode-worker:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: bootnode-worker-prod
+    env_file:
+      - .env.production
+    command: ["python", "-m", "arq", "bootnode.workers.webhook.WorkerSettings"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+
+volumes:
+  bootnode-postgres-prod:
+  bootnode-redis-prod:
+  bootnode-clickhouse-prod:
+
+networks:
+  default:
+    name: bootnode-prod

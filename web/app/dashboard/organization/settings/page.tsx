@@ -80,7 +80,7 @@ export default function OrganizationSettingsPage() {
 
     try {
       // In production, this would call the API
-      // await fetch("http://localhost:8100/v1/organization/settings", {
+      // await fetch("http://localhost:8000/v1/organization/settings", {
       //   method: "PATCH",
       //   headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
       //   body: JSON.stringify({ name: formData.name })

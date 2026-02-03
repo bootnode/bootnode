@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { NodeMap } from "@/components/d3/node-map"
+import { GlobeView } from "@/components/d3/globe-view"
 import { DonutChart } from "@/components/d3/donut-chart"
 import {
   Activity,
@@ -57,10 +58,10 @@ export default function AnalyticsPage() {
 
       // Fetch real data from multiple endpoints
       const [nodesRes, chainsRes, keysRes, webhooksRes] = await Promise.all([
-        fetch("http://localhost:8100/v1/nodes/", { headers }).catch(() => null),
-        fetch("http://localhost:8100/v1/chains", { headers }).catch(() => null),
-        fetch("http://localhost:8100/v1/auth/keys", { headers }).catch(() => null),
-        fetch("http://localhost:8100/v1/webhooks", { headers }).catch(() => null),
+        fetch("http://localhost:8000/v1/nodes/", { headers }).catch(() => null),
+        fetch("http://localhost:8000/v1/chains", { headers }).catch(() => null),
+        fetch("http://localhost:8000/v1/auth/keys", { headers }).catch(() => null),
+        fetch("http://localhost:8000/v1/webhooks", { headers }).catch(() => null),
       ])
 
       const nodes = nodesRes?.ok ? await nodesRes.json() : []
@@ -68,73 +69,91 @@ export default function AnalyticsPage() {
       const keys = keysRes?.ok ? await keysRes.json() : []
       const webhooks = webhooksRes?.ok ? await webhooksRes.json() : []
 
-      // Build chain breakdown from chains data
-      const chainColors = [
-        "#3b82f6", // blue
-        "#8b5cf6", // violet
-        "#10b981", // emerald
-        "#f59e0b", // amber
-        "#ef4444", // red
-        "#ec4899", // pink
-        "#06b6d4", // cyan
-        "#84cc16", // lime
-      ]
+      // Build chain breakdown from actual deployed nodes (not fake data)
+      const chainColors: Record<string, string> = {
+        ethereum: "#627EEA",
+        polygon: "#8247E5",
+        arbitrum: "#28A0F0",
+        optimism: "#FF0420",
+        base: "#0052FF",
+        avalanche: "#E84142",
+        bsc: "#F0B90B",
+        lux: "#9333EA",
+        bitcoin: "#F7931A",
+        solana: "#14F195",
+      }
 
-      const chainBreakdown = Array.isArray(chains)
-        ? chains.slice(0, 5).map((chain: any, idx: number) => ({
-            label: chain.name || chain.chain || "Unknown",
-            value: Math.floor(Math.random() * 40) + 10, // Placeholder - would come from usage API
-            color: chainColors[idx % chainColors.length]
-          }))
-        : []
-
-      // Add "Others" if there are more chains
-      if (chains.length > 5) {
-        chainBreakdown.push({
-          label: "Others",
-          value: chains.length - 5,
-          color: "#6b7280"
+      // Count nodes by chain for real data
+      const chainCounts: Record<string, number> = {}
+      if (Array.isArray(nodes)) {
+        nodes.forEach((node: any) => {
+          const chain = node.chain || "unknown"
+          chainCounts[chain] = (chainCounts[chain] || 0) + 1
         })
       }
 
+      const chainBreakdown = Object.entries(chainCounts).map(([chain, count]) => ({
+        label: chain.charAt(0).toUpperCase() + chain.slice(1),
+        value: count,
+        color: chainColors[chain] || "#6b7280"
+      }))
+
       // Build node locations from nodes data
-      // Example node locations - in production would come from node metadata
-      const regions: Record<string, [number, number]> = {
-        "us-east": [-74.006, 40.7128],
-        "us-west": [-122.4194, 37.7749],
-        "eu-west": [-0.1276, 51.5074],
-        "eu-central": [13.405, 52.52],
-        "asia-east": [139.6917, 35.6895],
-        "asia-south": [77.1025, 28.7041],
-        "default": [0, 20]
+      // For local Docker nodes, detect user's location via IP geolocation
+      const getNodeLocation = async (): Promise<[number, number]> => {
+        try {
+          // Use free IP geolocation API to get user's location
+          const geoRes = await fetch("https://ipapi.co/json/", {
+            signal: AbortSignal.timeout(3000)
+          })
+          if (geoRes.ok) {
+            const geo = await geoRes.json()
+            if (geo.longitude && geo.latitude) {
+              return [geo.longitude, geo.latitude]
+            }
+          }
+        } catch {
+          // Fallback if geolocation fails
+        }
+        // Default to San Francisco
+        return [-122.4194, 37.7749]
       }
+
+      const defaultLocation = await getNodeLocation()
 
       const nodeLocations = Array.isArray(nodes)
         ? nodes.map((node: any, idx: number) => {
-            const region = node.region || "default"
-            const coords = regions[region] || regions.default
-            // Add small random offset to prevent overlap
-            const offset = [(Math.random() - 0.5) * 10, (Math.random() - 0.5) * 10]
+            // For local Docker nodes (provider === "docker"), use local coordinates
+            // Add small offset per node to prevent exact overlap
+            const offset: [number, number] = [
+              (idx % 3 - 1) * 2,
+              Math.floor(idx / 3) * 2
+            ]
+            const coords: [number, number] = node.region
+              ? (node.region === "us-west" ? [-122.4194, 37.7749] :
+                 node.region === "us-east" ? [-74.006, 40.7128] :
+                 node.region === "eu-west" ? [-0.1276, 51.5074] :
+                 node.region === "eu-central" ? [13.405, 52.52] :
+                 node.region === "asia-east" ? [139.6917, 35.6895] :
+                 defaultLocation)
+              : defaultLocation
+
             return {
               id: node.id || `node-${idx}`,
               name: node.name || `Node ${idx + 1}`,
               point: [coords[0] + offset[0], coords[1] + offset[1]] as [number, number],
               count: 1,
-              status: (node.status === "running" ? "running" : node.status === "syncing" ? "syncing" : "stopped") as "running" | "stopped" | "syncing" | "error",
+              status: (node.status === "running" ? "running" :
+                       node.status === "syncing" || node.status === "starting" ? "syncing" :
+                       node.status === "error" ? "error" : "stopped") as "running" | "stopped" | "syncing" | "error",
               chain: node.chain || node.network
             }
           })
         : []
 
-      // Common RPC methods with placeholder counts
-      const methodBreakdown = [
-        { method: "eth_call", count: 0, percentage: 25 },
-        { method: "eth_getBalance", count: 0, percentage: 20 },
-        { method: "eth_getLogs", count: 0, percentage: 18 },
-        { method: "eth_getTransactionReceipt", count: 0, percentage: 15 },
-        { method: "eth_blockNumber", count: 0, percentage: 12 },
-        { method: "Others", count: 0, percentage: 10 },
-      ]
+      // Only show method breakdown when we have real usage data from DataStore
+      // Empty array means "no data" which shows the placeholder message
+      const methodBreakdown: { method: string; count: number; percentage: number }[] = []
 
       setData({
         totalRequests: 0, // Would come from usage tracking API
@@ -316,12 +335,14 @@ export default function AnalyticsPage() {
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
           ) : data?.nodeLocations && data.nodeLocations.length > 0 ? (
-            <NodeMap
-              data={data.nodeLocations}
-              width={800}
-              height={400}
-              className="mx-auto"
-            />
+            <div className="flex justify-center">
+              <GlobeView
+                data={data.nodeLocations}
+                width={450}
+                height={450}
+                className="mx-auto"
+              />
+            </div>
           ) : (
             <div className="h-[300px] flex flex-col items-center justify-center text-muted-foreground">
               <Server className="h-12 w-12 mb-4 opacity-50" />

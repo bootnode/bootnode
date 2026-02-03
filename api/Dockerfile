@@ -17,6 +17,7 @@ COPY pyproject.toml README.md ./
 COPY bootnode/ bootnode/
 
 # Install dependencies
+# Hanzo SDKs are optional - in K8s, the KMS operator injects secrets as env vars
 RUN uv pip install --system -e .
 
 # Run the application

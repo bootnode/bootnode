@@ -53,8 +53,10 @@ export default function AssetsPage() {
             <p className="text-sm text-muted-foreground mb-4">
               Browse NFT collections, ownership, and metadata
             </p>
-            <Button variant="outline" className="w-full">
-              Browse NFTs
+            <Button variant="outline" className="w-full" asChild>
+              <Link href="/dashboard/assets/nfts">
+                Browse NFTs
+              </Link>
             </Button>
           </CardContent>
         </Card>

@@ -15,6 +15,7 @@ import {
   FileCode,
   ArrowRight,
 } from "lucide-react"
+import { docsConfig } from "@/lib/docs-config"
 
 const sections = [
   {
@@ -103,7 +104,7 @@ export default function DocsPage() {
             <h1 className="text-4xl font-bold">Documentation</h1>
           </div>
           <p className="text-xl text-muted-foreground max-w-2xl">
-            Everything you need to build blockchain applications with Bootnode.
+            Everything you need to build blockchain applications with {docsConfig.brandName}.
             Multi-chain RPC, indexed data, webhooks, smart wallets, and more.
           </p>
         </div>
@@ -212,7 +213,7 @@ export default function DocsPage() {
           <CardHeader>
             <CardTitle>API Reference</CardTitle>
             <CardDescription>
-              Complete reference for all Bootnode APIs
+              Complete reference for all {docsConfig.brandName} APIs
             </CardDescription>
           </CardHeader>
           <CardContent>

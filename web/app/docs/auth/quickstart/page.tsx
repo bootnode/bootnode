@@ -3,10 +3,11 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { DocsLayout } from "@/components/docs-layout"
 import { ArrowRight } from "lucide-react"
+import { docsConfig } from "@/lib/docs-config"
 
 export const metadata = {
   title: "Authentication",
-  description: "Learn how to authenticate with the Bootnode API.",
+  description: `Learn how to authenticate with the ${docsConfig.brandName} API.`,
 }
 
 export default function AuthQuickstartPage() {
@@ -17,7 +18,7 @@ export default function AuthQuickstartPage() {
         <div>
           <h1 className="text-4xl font-bold mb-4">Authentication</h1>
           <p className="text-lg text-muted-foreground">
-            Every request to the Bootnode API must be authenticated. This guide covers
+            Every request to the {docsConfig.brandName} API must be authenticated. This guide covers
             how to get your API key, use it in requests, handle rate limits, and manage
             errors.
           </p>
@@ -30,9 +31,9 @@ export default function AuthQuickstartPage() {
             <h2 className="text-2xl font-semibold">Get Your API Key</h2>
           </div>
           <p className="text-muted-foreground">
-            Sign in to your Bootnode dashboard at{" "}
-            <Link href="https://dashboard.bootnode.dev" className="text-primary underline underline-offset-4">
-              dashboard.bootnode.dev
+            Sign in to your {docsConfig.brandName} dashboard at{" "}
+            <Link href={docsConfig.dashboardUrl} className="text-primary underline underline-offset-4">
+              {docsConfig.dashboardUrl.replace("https://", "")}
             </Link>{" "}
             and navigate to <strong>Settings &rarr; API Keys</strong>.
           </p>
@@ -50,12 +51,12 @@ export default function AuthQuickstartPage() {
                   </thead>
                   <tbody>
                     <tr className="border-b">
-                      <td className="p-3 font-mono text-xs">bn_live_</td>
+                      <td className="p-3 font-mono text-xs">${docsConfig.apiKeyPrefix}live_</td>
                       <td className="p-3">Production</td>
                       <td className="p-3 text-muted-foreground">Live mainnet requests</td>
                     </tr>
                     <tr>
-                      <td className="p-3 font-mono text-xs">bn_test_</td>
+                      <td className="p-3 font-mono text-xs">${docsConfig.apiKeyPrefix}test_</td>
                       <td className="p-3">Testnet</td>
                       <td className="p-3 text-muted-foreground">Development and testing (testnets only)</td>
                     </tr>
@@ -75,7 +76,7 @@ export default function AuthQuickstartPage() {
           </Card>
           <pre className="overflow-x-auto rounded-lg bg-zinc-950 p-4 text-sm text-zinc-100">
             <code>{`# .env.local (Next.js, Vite, etc.)
-BOOTNODE_API_KEY=bn_live_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6
+BOOTNODE_API_KEY=${docsConfig.apiKeyPrefix}live_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6
 
 # Never commit this file to version control.
 # Add .env.local to your .gitignore.`}</code>
@@ -94,11 +95,11 @@ BOOTNODE_API_KEY=bn_live_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6
           </p>
           <pre className="overflow-x-auto rounded-lg bg-zinc-950 p-4 text-sm text-zinc-100">
             <code>{`# curl
-curl https://api.bootnode.dev/v1/gas/ethereum/prices \\
-  -H "X-API-Key: bn_live_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+curl ${docsConfig.apiUrl}/v1/gas/ethereum/prices \\
+  -H "X-API-Key: ${docsConfig.apiKeyPrefix}live_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
 
 # TypeScript / fetch
-const res = await fetch("https://api.bootnode.dev/v1/gas/ethereum/prices", {
+const res = await fetch("${docsConfig.apiUrl}/v1/gas/ethereum/prices", {
   headers: {
     "X-API-Key": process.env.BOOTNODE_API_KEY!,
   },
@@ -107,13 +108,13 @@ const res = await fetch("https://api.bootnode.dev/v1/gas/ethereum/prices", {
 # Python / requests
 import requests
 res = requests.get(
-    "https://api.bootnode.dev/v1/gas/ethereum/prices",
-    headers={"X-API-Key": "bn_live_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"},
+    "${docsConfig.apiUrl}/v1/gas/ethereum/prices",
+    headers={"X-API-Key": "${docsConfig.apiKeyPrefix}live_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"},
 )
 
 # Go / net/http
-req, _ := http.NewRequest("GET", "https://api.bootnode.dev/v1/gas/ethereum/prices", nil)
-req.Header.Set("X-API-Key", "bn_live_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6")`}</code>
+req, _ := http.NewRequest("GET", "${docsConfig.apiUrl}/v1/gas/ethereum/prices", nil)
+req.Header.Set("X-API-Key", "${docsConfig.apiKeyPrefix}live_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6")`}</code>
           </pre>
         </section>
 
@@ -128,11 +129,11 @@ req.Header.Set("X-API-Key", "bn_live_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6")`}</code>
           </p>
           <pre className="overflow-x-auto rounded-lg bg-zinc-950 p-4 text-sm text-zinc-100">
             <code>{`# curl
-curl https://api.bootnode.dev/v1/gas/ethereum/prices \\
-  -H "Authorization: Bearer bn_live_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+curl ${docsConfig.apiUrl}/v1/gas/ethereum/prices \\
+  -H "Authorization: Bearer ${docsConfig.apiKeyPrefix}live_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
 
 # TypeScript / fetch
-const res = await fetch("https://api.bootnode.dev/v1/gas/ethereum/prices", {
+const res = await fetch("${docsConfig.apiUrl}/v1/gas/ethereum/prices", {
   headers: {
     Authorization: \`Bearer \${process.env.BOOTNODE_API_KEY}\`,
   },
@@ -141,8 +142,8 @@ const res = await fetch("https://api.bootnode.dev/v1/gas/ethereum/prices", {
 # Python / requests
 import requests
 res = requests.get(
-    "https://api.bootnode.dev/v1/gas/ethereum/prices",
-    headers={"Authorization": "Bearer bn_live_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"},
+    "${docsConfig.apiUrl}/v1/gas/ethereum/prices",
+    headers={"Authorization": "Bearer ${docsConfig.apiKeyPrefix}live_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"},
 )`}</code>
           </pre>
         </section>
@@ -212,7 +213,7 @@ Retry-After: 1                  # Seconds to wait (only on 429)`}</code>
             <h2 className="text-2xl font-semibold">Error Handling</h2>
           </div>
           <p className="text-muted-foreground">
-            Bootnode returns structured error responses. Always check the HTTP status code
+            {docsConfig.brandName} returns structured error responses. Always check the HTTP status code
             and handle errors gracefully with retries for transient failures.
           </p>
           <pre className="overflow-x-auto rounded-lg bg-zinc-950 p-4 text-sm text-zinc-100">
@@ -225,7 +226,7 @@ async function bootnodeRequest(
   const baseDelay = 1000; // 1 second
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    const res = await fetch(\`https://api.bootnode.dev/v1\${path}\`, {
+    const res = await fetch(\`${docsConfig.apiUrl}/v1\${path}\`, {
       ...options,
       headers: {
         "X-API-Key": process.env.BOOTNODE_API_KEY!,

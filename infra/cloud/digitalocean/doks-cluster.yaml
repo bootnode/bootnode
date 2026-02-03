@@ -1,0 +1,64 @@
+# DigitalOcean Kubernetes (DOKS) Cluster Configuration
+# Deploy with: doctl kubernetes cluster create --config doks-cluster.yaml
+
+name: bootnode-cluster
+region: nyc1
+version: 1.29.1-do.0
+auto_upgrade: true
+surge_upgrade: true
+ha: true
+
+vpc_uuid: ${VPC_UUID}  # Create VPC first
+
+node_pools:
+  # System/API Node Pool
+  - name: api-pool
+    size: s-4vcpu-8gb
+    count: 3
+    auto_scale: true
+    min_nodes: 2
+    max_nodes: 10
+    labels:
+      role: api
+      nodegroup-type: api
+    tags:
+      - bootnode
+      - api
+
+  # Indexer Node Pool (Memory Optimized)
+  - name: indexer-pool
+    size: m-8vcpu-64gb
+    count: 2
+    auto_scale: true
+    min_nodes: 1
+    max_nodes: 5
+    labels:
+      role: indexer
+      nodegroup-type: indexer
+    taints:
+      - key: dedicated
+        value: indexer
+        effect: NoSchedule
+    tags:
+      - bootnode
+      - indexer
+
+  # Database Node Pool (Storage Optimized)
+  - name: db-pool
+    size: so1_5-8vcpu-64gb  # Storage optimized
+    count: 3
+    auto_scale: false
+    labels:
+      role: database
+      nodegroup-type: database
+    taints:
+      - key: dedicated
+        value: database
+        effect: NoSchedule
+    tags:
+      - bootnode
+      - database
+
+maintenance_policy:
+  day: sunday
+  start_time: "04:00"

@@ -3,10 +3,11 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DocsLayout } from "@/components/docs-layout"
 import { ArrowRight } from "lucide-react"
+import { docsConfig } from "@/lib/docs-config"
 
 export const metadata = {
   title: "SDKs",
-  description: "Official Bootnode client libraries for TypeScript, Python, Go, and Rust.",
+  description: `Official ${docsConfig.brandName} client libraries for TypeScript, Python, Go, and Rust.`,
 }
 
 export default function SDKsPage() {
@@ -18,7 +19,7 @@ export default function SDKsPage() {
           <h1 className="text-4xl font-bold mb-4">SDKs & Libraries</h1>
           <p className="text-lg text-muted-foreground">
             Official client libraries for every major language. Each SDK provides
-            type-safe access to all Bootnode APIs with built-in retry logic,
+            type-safe access to all {docsConfig.brandName} APIs with built-in retry logic,
             authentication, and error handling.
           </p>
         </div>
@@ -148,7 +149,7 @@ uv add bootnode`}</code>
                   <code>{`import asyncio
 from bootnode import Bootnode
 
-client = Bootnode(api_key="bn_live_...")
+client = Bootnode(api_key="${docsConfig.apiKeyPrefix}live_...")
 
 async def main():
     # JSON-RPC
@@ -193,7 +194,7 @@ asyncio.run(main())
 # Sync usage (for scripts):
 from bootnode import BootnodeSync
 
-sync_client = BootnodeSync(api_key="bn_live_...")
+sync_client = BootnodeSync(api_key="${docsConfig.apiKeyPrefix}live_...")
 gas = sync_client.gas.get_prices("ethereum")
 print(f"Base fee: {gas['base_fee_gwei']} gwei")`}</code>
                 </pre>

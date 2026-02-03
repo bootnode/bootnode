@@ -3,10 +3,11 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { DocsLayout } from "@/components/docs-layout"
 import { ArrowRight } from "lucide-react"
+import { docsConfig } from "@/lib/docs-config"
 
 export const metadata = {
   title: "Account Abstraction",
-  description: "Build with ERC-4337 account abstraction on Bootnode.",
+  description: `Build with ERC-4337 account abstraction on ${docsConfig.brandName}.`,
 }
 
 export default function AAQuickstartPage() {
@@ -74,7 +75,7 @@ export default function AAQuickstartPage() {
             automatically when the first UserOperation is sent.
           </p>
           <pre className="overflow-x-auto rounded-lg bg-zinc-950 p-4 text-sm text-zinc-100">
-            <code>{`const BASE_URL = "https://api.bootnode.dev/v1";
+            <code>{`const BASE_URL = "${docsConfig.apiUrl}/v1";
 const API_KEY = process.env.BOOTNODE_API_KEY!;
 
 // Create a smart account

@@ -1,10 +1,11 @@
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DocsLayout } from "@/components/docs-layout"
+import { docsConfig } from "@/lib/docs-config"
 
 export const metadata = {
   title: "API Reference",
-  description: "Complete API reference for all Bootnode endpoints.",
+  description: `Complete API reference for all ${docsConfig.brandName} endpoints.`,
 }
 
 function Endpoint({
@@ -94,7 +95,7 @@ export default function ApiReferencePage() {
         <div>
           <h1 className="text-4xl font-bold mb-4">API Reference</h1>
           <p className="text-lg text-muted-foreground">
-            Complete reference for all Bootnode REST and JSON-RPC endpoints.
+            Complete reference for all {docsConfig.brandName} REST and JSON-RPC endpoints.
           </p>
         </div>
 
@@ -108,13 +109,13 @@ export default function ApiReferencePage() {
             <div className="border rounded-lg p-4">
               <p className="font-medium text-sm mb-1">API Key Header</p>
               <pre className="overflow-x-auto rounded-lg bg-zinc-950 p-4 text-sm text-zinc-100">
-                <code>{`X-API-Key: bn_live_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6`}</code>
+                <code>{`X-API-Key: ${docsConfig.apiKeyPrefix}live_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6`}</code>
               </pre>
             </div>
             <div className="border rounded-lg p-4">
               <p className="font-medium text-sm mb-1">Bearer Token</p>
               <pre className="overflow-x-auto rounded-lg bg-zinc-950 p-4 text-sm text-zinc-100">
-                <code>{`Authorization: Bearer bn_live_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6`}</code>
+                <code>{`Authorization: Bearer ${docsConfig.apiKeyPrefix}live_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6`}</code>
               </pre>
             </div>
           </div>
@@ -124,7 +125,7 @@ export default function ApiReferencePage() {
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">Base URL</h2>
           <pre className="overflow-x-auto rounded-lg bg-zinc-950 p-4 text-sm text-zinc-100">
-            <code>{`https://api.bootnode.dev/v1`}</code>
+            <code>{`${docsConfig.apiUrl}/v1`}</code>
           </pre>
         </section>
 
@@ -180,7 +181,7 @@ X-RateLimit-Reset: 1706400000`}</code>
               { name: "chain", type: "string", description: "Chain identifier (ethereum, polygon, solana, base, arbitrum, etc.)" },
               { name: "network", type: "string", description: "Network name (mainnet, sepolia, devnet, etc.)" },
             ]}
-            request={`curl -X POST https://api.bootnode.dev/v1/rpc/ethereum/mainnet \\
+            request={`curl -X POST ${docsConfig.apiUrl}/v1/rpc/ethereum/mainnet \\
   -H "Content-Type: application/json" \\
   -H "X-API-Key: YOUR_API_KEY" \\
   -d '{
@@ -211,7 +212,7 @@ X-RateLimit-Reset: 1706400000`}</code>
                 { name: "page", type: "integer", description: "Page number for pagination (default: 1)", required: false },
                 { name: "limit", type: "integer", description: "Results per page, max 100 (default: 50)", required: false },
               ]}
-              request={`curl https://api.bootnode.dev/v1/tokens/ethereum/balances/0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045 \\
+              request={`curl ${docsConfig.apiUrl}/v1/tokens/ethereum/balances/0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045 \\
   -H "X-API-Key: YOUR_API_KEY"`}
               response={`{
   "address": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
@@ -250,7 +251,7 @@ X-RateLimit-Reset: 1706400000`}</code>
                 { name: "chain", type: "string", description: "Chain identifier" },
                 { name: "contract", type: "string", description: "Token contract address (0x-prefixed hex)" },
               ]}
-              request={`curl https://api.bootnode.dev/v1/tokens/ethereum/metadata/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48 \\
+              request={`curl ${docsConfig.apiUrl}/v1/tokens/ethereum/metadata/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48 \\
   -H "X-API-Key: YOUR_API_KEY"`}
               response={`{
   "contract": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
@@ -281,7 +282,7 @@ X-RateLimit-Reset: 1706400000`}</code>
                 { name: "contract", type: "string", description: "NFT contract address" },
                 { name: "token_id", type: "string", description: "Token ID" },
               ]}
-              request={`curl https://api.bootnode.dev/v1/nfts/ethereum/metadata/0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D/1234 \\
+              request={`curl ${docsConfig.apiUrl}/v1/nfts/ethereum/metadata/0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D/1234 \\
   -H "X-API-Key: YOUR_API_KEY"`}
               response={`{
   "contract": "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
@@ -308,7 +309,7 @@ X-RateLimit-Reset: 1706400000`}</code>
                 { name: "chain", type: "string", description: "Chain identifier" },
                 { name: "contract", type: "string", description: "NFT contract address" },
               ]}
-              request={`curl https://api.bootnode.dev/v1/nfts/ethereum/collection/0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D \\
+              request={`curl ${docsConfig.apiUrl}/v1/nfts/ethereum/collection/0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D \\
   -H "X-API-Key: YOUR_API_KEY"`}
               response={`{
   "contract": "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
@@ -335,7 +336,7 @@ X-RateLimit-Reset: 1706400000`}</code>
                 { name: "page", type: "integer", description: "Page number (default: 1)", required: false },
                 { name: "limit", type: "integer", description: "Results per page, max 100 (default: 50)", required: false },
               ]}
-              request={`curl https://api.bootnode.dev/v1/nfts/ethereum/owned/0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045 \\
+              request={`curl ${docsConfig.apiUrl}/v1/nfts/ethereum/owned/0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045 \\
   -H "X-API-Key: YOUR_API_KEY"`}
               response={`{
   "address": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
@@ -370,7 +371,7 @@ X-RateLimit-Reset: 1706400000`}</code>
                 { name: "chain", type: "string", description: "Chain to deploy on (ethereum, base, polygon, etc.)" },
                 { name: "salt", type: "string", description: "Optional salt for deterministic address generation", required: false },
               ]}
-              request={`curl -X POST https://api.bootnode.dev/v1/wallets/create \\
+              request={`curl -X POST ${docsConfig.apiUrl}/v1/wallets/create \\
   -H "Content-Type: application/json" \\
   -H "X-API-Key: YOUR_API_KEY" \\
   -d '{
@@ -393,7 +394,7 @@ X-RateLimit-Reset: 1706400000`}</code>
               params={[
                 { name: "address", type: "string", description: "Smart wallet address" },
               ]}
-              request={`curl https://api.bootnode.dev/v1/wallets/0x7A0b3e4C5F1234567890abcdef1234567890ABCD \\
+              request={`curl ${docsConfig.apiUrl}/v1/wallets/0x7A0b3e4C5F1234567890abcdef1234567890ABCD \\
   -H "X-API-Key: YOUR_API_KEY"`}
               response={`{
   "address": "0x7A0b3e4C5F1234567890abcdef1234567890ABCD",
@@ -416,7 +417,7 @@ X-RateLimit-Reset: 1706400000`}</code>
                 { name: "limit", type: "integer", description: "Results per page, max 100 (default: 25)", required: false },
                 { name: "chain", type: "string", description: "Filter by chain", required: false },
               ]}
-              request={`curl https://api.bootnode.dev/v1/wallets?chain=ethereum&limit=10 \\
+              request={`curl ${docsConfig.apiUrl}/v1/wallets?chain=ethereum&limit=10 \\
   -H "X-API-Key: YOUR_API_KEY"`}
               response={`{
   "wallets": [
@@ -442,14 +443,14 @@ X-RateLimit-Reset: 1706400000`}</code>
             <Endpoint
               method="POST"
               path="/v1/webhooks"
-              description="Create a new webhook subscription. Bootnode will POST events to your URL as they occur on-chain."
+              description={`Create a new webhook subscription. ${docsConfig.brandName} will POST events to your URL as they occur on-chain.`}
               params={[
                 { name: "url", type: "string", description: "HTTPS endpoint to receive webhook events" },
                 { name: "chain", type: "string", description: "Chain to monitor" },
                 { name: "event_type", type: "string", description: "Event type: address_activity, token_transfer, nft_transfer, mined_transaction, log" },
                 { name: "config", type: "object", description: "Event-specific filter configuration", required: false },
               ]}
-              request={`curl -X POST https://api.bootnode.dev/v1/webhooks \\
+              request={`curl -X POST ${docsConfig.apiUrl}/v1/webhooks \\
   -H "Content-Type: application/json" \\
   -H "X-API-Key: YOUR_API_KEY" \\
   -d '{
@@ -482,7 +483,7 @@ X-RateLimit-Reset: 1706400000`}</code>
                 { name: "limit", type: "integer", description: "Results per page, max 100 (default: 25)", required: false },
                 { name: "status", type: "string", description: "Filter by status: active, paused, disabled", required: false },
               ]}
-              request={`curl https://api.bootnode.dev/v1/webhooks \\
+              request={`curl ${docsConfig.apiUrl}/v1/webhooks \\
   -H "X-API-Key: YOUR_API_KEY"`}
               response={`{
   "webhooks": [
@@ -509,7 +510,7 @@ X-RateLimit-Reset: 1706400000`}</code>
                 { name: "status", type: "string", description: "Set status: active, paused", required: false },
                 { name: "config", type: "object", description: "Updated filter configuration", required: false },
               ]}
-              request={`curl -X PATCH https://api.bootnode.dev/v1/webhooks/wh_a1b2c3d4e5f6 \\
+              request={`curl -X PATCH ${docsConfig.apiUrl}/v1/webhooks/wh_a1b2c3d4e5f6 \\
   -H "Content-Type: application/json" \\
   -H "X-API-Key: YOUR_API_KEY" \\
   -d '{
@@ -531,7 +532,7 @@ X-RateLimit-Reset: 1706400000`}</code>
               params={[
                 { name: "id", type: "string", description: "Webhook ID" },
               ]}
-              request={`curl -X DELETE https://api.bootnode.dev/v1/webhooks/wh_a1b2c3d4e5f6 \\
+              request={`curl -X DELETE ${docsConfig.apiUrl}/v1/webhooks/wh_a1b2c3d4e5f6 \\
   -H "X-API-Key: YOUR_API_KEY"`}
               response={`{
   "id": "wh_a1b2c3d4e5f6",
@@ -552,7 +553,7 @@ X-RateLimit-Reset: 1706400000`}</code>
               params={[
                 { name: "chain", type: "string", description: "Chain identifier (ethereum, polygon, base, etc.)" },
               ]}
-              request={`curl https://api.bootnode.dev/v1/gas/ethereum/prices \\
+              request={`curl ${docsConfig.apiUrl}/v1/gas/ethereum/prices \\
   -H "X-API-Key: YOUR_API_KEY"`}
               response={`{
   "chain": "ethereum",
@@ -581,13 +582,13 @@ X-RateLimit-Reset: 1706400000`}</code>
             <Endpoint
               method="POST"
               path="/v1/gas/policies"
-              description="Create a gas sponsorship policy. Policies define rules for when Bootnode will pay gas fees on behalf of your users."
+              description={`Create a gas sponsorship policy. Policies define rules for when ${docsConfig.brandName} will pay gas fees on behalf of your users.`}
               params={[
                 { name: "name", type: "string", description: "Human-readable policy name" },
                 { name: "chain", type: "string", description: "Chain this policy applies to" },
                 { name: "rules", type: "object", description: "Sponsorship rules (max_gas_usd, allowed_contracts, rate_limit, etc.)" },
               ]}
-              request={`curl -X POST https://api.bootnode.dev/v1/gas/policies \\
+              request={`curl -X POST ${docsConfig.apiUrl}/v1/gas/policies \\
   -H "Content-Type: application/json" \\
   -H "X-API-Key: YOUR_API_KEY" \\
   -d '{
@@ -627,7 +628,7 @@ X-RateLimit-Reset: 1706400000`}</code>
                 { name: "policy_id", type: "string", description: "Gas policy ID" },
                 { name: "user_operation", type: "object", description: "The UserOperation to sponsor" },
               ]}
-              request={`curl -X POST https://api.bootnode.dev/v1/gas/sponsor \\
+              request={`curl -X POST ${docsConfig.apiUrl}/v1/gas/sponsor \\
   -H "Content-Type: application/json" \\
   -H "X-API-Key: YOUR_API_KEY" \\
   -d '{
@@ -666,7 +667,7 @@ X-RateLimit-Reset: 1706400000`}</code>
               { name: "chain", type: "string", description: "Chain identifier" },
               { name: "network", type: "string", description: "Network name (mainnet, sepolia, etc.)" },
             ]}
-            request={`curl -X POST https://api.bootnode.dev/v1/bundler/ethereum/mainnet \\
+            request={`curl -X POST ${docsConfig.apiUrl}/v1/bundler/ethereum/mainnet \\
   -H "Content-Type: application/json" \\
   -H "X-API-Key: YOUR_API_KEY" \\
   -d '{
@@ -709,7 +710,7 @@ X-RateLimit-Reset: 1706400000`}</code>
               { name: "chain", type: "string", description: "Chain identifier" },
               { name: "network", type: "string", description: "Network name (mainnet, sepolia, etc.)" },
             ]}
-            request={`wscat -c "wss://api.bootnode.dev/v1/ws/ethereum/mainnet?apiKey=YOUR_API_KEY"
+            request={`wscat -c "${docsConfig.wsUrl}/v1/ws/ethereum/mainnet?apiKey=YOUR_API_KEY"
 
 > {"jsonrpc":"2.0","id":1,"method":"eth_subscribe","params":["newHeads"]}`}
             response={`{"jsonrpc":"2.0","id":1,"result":"0x1a2b3c4d"}

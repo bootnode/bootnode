@@ -1,0 +1,190 @@
+version: '3.8'
+
+networks:
+  hanzo-network:
+    driver: overlay
+    attachable: true
+  platform-network:
+    external: true
+
+volumes:
+  postgres_data:
+  redis_data:
+  traefik_certs:
+
+services:
+  traefik:
+    image: traefik:v2.11
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == manager
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+    command:
+      - --api.dashboard=true
+      - --api.insecure=true
+      - --providers.docker=true
+      - --providers.docker.swarmMode=true
+      - --providers.docker.exposedbydefault=false
+      - --providers.docker.network=hanzo_hanzo-network
+      - --providers.file.directory=/etc/platform/traefik/dynamic
+      - --providers.file.watch=true
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --certificatesresolvers.letsencrypt.acme.email=admin@hanzo.ai
+      - --certificatesresolvers.letsencrypt.acme.storage=/etc/traefik/acme.json
+      - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik_certs:/etc/traefik
+      - /etc/platform/traefik:/etc/platform/traefik:ro
+    networks:
+      - hanzo-network
+      - platform-network
+
+  postgres:
+    image: postgres:16-alpine
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+    environment:
+      POSTGRES_USER: hanzo
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_DB: platform
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hanzo"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - hanzo-network
+
+  redis:
+    image: redis:7-alpine
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+    command: redis-server --requirepass ${REDIS_PASSWORD:-changeme} --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-changeme}", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - hanzo-network
+
+  # ==========================================================================
+  # Platform - Production (Scalable)
+  # ==========================================================================
+  platform:
+    image: hanzoai/platform:latest
+    deploy:
+      mode: replicated
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        failure_action: rollback
+      rollback_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.platform.rule=Host(`platform.hanzo.ai`)"
+        - "traefik.http.routers.platform.tls.certresolver=letsencrypt"
+        - "traefik.http.services.platform.loadbalancer.server.port=3000"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://hanzo:${POSTGRES_PASSWORD:-changeme}@postgres:5432/platform
+      REDIS_URL: redis://:${REDIS_PASSWORD:-changeme}@redis:6379
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-changeme}
+      NEXTAUTH_URL: https://platform.hanzo.ai
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-changeme}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /etc/platform:/etc/platform
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    networks:
+      - hanzo-network
+
+  # ==========================================================================
+  # Platform - Staging
+  # ==========================================================================
+  platform-staging:
+    image: hanzoai/platform:latest
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        failure_action: rollback
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.platform-staging.rule=Host(`staging.platform.hanzo.ai`)"
+        - "traefik.http.routers.platform-staging.tls.certresolver=letsencrypt"
+        - "traefik.http.services.platform-staging.loadbalancer.server.port=3000"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://hanzo:${POSTGRES_PASSWORD:-changeme}@postgres:5432/platform_staging
+      REDIS_URL: redis://:${REDIS_PASSWORD:-changeme}@redis:6379/1
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-changeme}
+      REDIS_DB: "1"
+      NEXTAUTH_URL: https://staging.platform.hanzo.ai
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-changeme}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /etc/platform:/etc/platform
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    networks:
+      - hanzo-network
