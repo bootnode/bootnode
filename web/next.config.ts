@@ -11,7 +11,7 @@ const nextConfig: NextConfig = {
   // Turbopack configuration (required for Next.js 16)
   turbopack: {},
   
-  // Security headers
+  // Security and cache headers
   async headers() {
     return [
       {
@@ -28,6 +28,21 @@ const nextConfig: NextConfig = {
           {
             key: 'Referrer-Policy',
             value: 'strict-origin-when-cross-origin'
+          },
+          {
+            // Prevent aggressive edge caching for HTML pages
+            key: 'CDN-Cache-Control',
+            value: 'max-age=60'
+          }
+        ]
+      },
+      {
+        // Static assets can be cached longer
+        source: '/_next/static/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable'
           }
         ]
       }
