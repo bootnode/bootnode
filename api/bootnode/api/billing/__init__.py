@@ -447,3 +447,133 @@ async def get_sync_status() -> SyncStatusResponse:
     """Get usage sync worker status."""
     status_data = await usage_sync_worker.get_status()
     return SyncStatusResponse(**status_data)
+
+
+# =============================================================================
+# Unified IAM + Commerce Endpoints
+# =============================================================================
+
+from bootnode.core.iam import IAMUser, get_current_user
+from bootnode.core.billing.unified import (
+    UnifiedUser,
+    get_unified_billing_client,
+)
+from fastapi import Depends
+
+
+class UnifiedUserResponse(BaseModel):
+    """Unified user with IAM and Commerce data."""
+
+    iam_id: str
+    email: str
+    name: str
+    org: str
+    commerce_customer_id: str | None
+    stripe_customer_id: str | None
+    has_payment_method: bool
+    default_payment_method: str | None
+
+
+class PaymentMethodResponse(BaseModel):
+    """Payment method response."""
+
+    id: str
+    type: str
+    brand: str | None
+    last4: str | None
+    exp_month: int | None
+    exp_year: int | None
+    is_default: bool
+
+
+@router.get("/account", response_model=UnifiedUserResponse)
+async def get_billing_account(
+    user: IAMUser = Depends(get_current_user),
+) -> UnifiedUserResponse:
+    """Get unified billing account for authenticated user.
+
+    Auto-creates Commerce customer if not exists, linking to IAM user.
+    This is the main entry point for users accessing billing.
+    """
+    client = get_unified_billing_client()
+    unified = await client.get_or_create_customer(user)
+
+    return UnifiedUserResponse(
+        iam_id=unified.iam_id,
+        email=unified.email,
+        name=unified.name,
+        org=unified.org,
+        commerce_customer_id=unified.commerce_customer_id,
+        stripe_customer_id=unified.stripe_customer_id,
+        has_payment_method=unified.has_payment_method,
+        default_payment_method=unified.default_payment_method,
+    )
+
+
+@router.get("/account/subscriptions")
+async def get_account_subscriptions(
+    user: IAMUser = Depends(get_current_user),
+) -> list[dict]:
+    """Get all subscriptions for authenticated user across Commerce."""
+    client = get_unified_billing_client()
+    return await client.get_customer_subscriptions(user)
+
+
+@router.get("/account/invoices")
+async def get_account_invoices(
+    user: IAMUser = Depends(get_current_user),
+) -> list[dict]:
+    """Get all invoices for authenticated user."""
+    client = get_unified_billing_client()
+    return await client.get_customer_invoices(user)
+
+
+@router.get("/account/payment-methods", response_model=list[PaymentMethodResponse])
+async def get_account_payment_methods(
+    user: IAMUser = Depends(get_current_user),
+) -> list[PaymentMethodResponse]:
+    """Get payment methods for authenticated user."""
+    client = get_unified_billing_client()
+    methods = await client.get_customer_payment_methods(user)
+
+    return [
+        PaymentMethodResponse(
+            id=m.get("id", ""),
+            type=m.get("type", "card"),
+            brand=m.get("card", {}).get("brand"),
+            last4=m.get("card", {}).get("last4"),
+            exp_month=m.get("card", {}).get("exp_month"),
+            exp_year=m.get("card", {}).get("exp_year"),
+            is_default=m.get("is_default", False),
+        )
+        for m in methods
+    ]
+
+
+@router.post("/account/sync")
+async def sync_iam_to_commerce(
+    user: IAMUser = Depends(get_current_user),
+) -> dict:
+    """Sync IAM user data to Commerce customer.
+
+    Updates Commerce with latest IAM profile data.
+    """
+    client = get_unified_billing_client()
+    result = await client.sync_iam_to_commerce(user)
+    return {"synced": True, "customer": result}
+
+
+@router.post("/account/subscribe")
+async def create_account_subscription(
+    plan_id: str,
+    project: ProjectDep,
+    user: IAMUser = Depends(get_current_user),
+) -> dict:
+    """Create subscription for authenticated user.
+
+    Links the subscription to both the IAM user (via Commerce)
+    and the bootnode project.
+    """
+    client = get_unified_billing_client()
+    result = await client.create_subscription(user, plan_id, project.id)
+    return result

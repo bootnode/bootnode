@@ -51,6 +51,11 @@ from bootnode.core.billing.webhooks import (
     WebhookVerificationError,
     webhook_handler,
 )
+from bootnode.core.billing.unified import (
+    UnifiedBillingClient,
+    UnifiedUser,
+    get_unified_billing_client,
+)
 
 __all__ = [
     # Compute units
