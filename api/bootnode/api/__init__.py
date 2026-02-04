@@ -3,6 +3,7 @@
 from fastapi import APIRouter
 
 from bootnode.api.auth import router as auth_router
+from bootnode.api.billing import router as billing_router
 from bootnode.api.bundler import router as bundler_router
 from bootnode.api.chains import router as chains_router
 from bootnode.api.gas import router as gas_router
@@ -21,6 +22,7 @@ router = APIRouter()
 
 # Include all sub-routers
 router.include_router(auth_router, prefix="/auth", tags=["Authentication"])
+router.include_router(billing_router, prefix="/billing", tags=["Billing"])
 router.include_router(chains_router, prefix="/chains", tags=["Chains"])
 router.include_router(nodes_router, prefix="/nodes", tags=["Nodes"])
 router.include_router(rpc_router, prefix="/rpc", tags=["RPC"])

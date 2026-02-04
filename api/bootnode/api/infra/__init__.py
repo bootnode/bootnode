@@ -2,16 +2,21 @@
 Infrastructure management API endpoints
 Handles K8s clusters, persistent volumes, and storage operations
 Supports DigitalOcean (DOKS), AWS (EKS), GCP (GKE), Azure (AKS)
+
+Also handles Bootnode service deployment via pluggable deployers.
 """
 
-from fastapi import APIRouter, HTTPException, Depends
-from typing import List, Dict, Optional, Any
-from pydantic import BaseModel, Field
+import os
+import uuid
 from datetime import datetime
 from enum import Enum
-import uuid
-import os
-import base64
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, HTTPException, Query
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel, Field
+
+from bootnode.core.deploy import ServiceStatus, ServiceType, get_deployer
 
 router = APIRouter()
 
@@ -789,6 +794,273 @@ async def get_clone_status(clone_id: str):
 async def cancel_clone(clone_id: str):
     """Cancel a clone operation"""
     return {"status": "cancelled", "clone_id": clone_id}
+
+
+# === Service Deployment Endpoints ===
+
+
+class ServiceScaleRequest(BaseModel):
+    """Request to scale a service."""
+
+    replicas: int = Field(ge=0, le=100, description="Target number of replicas")
+
+
+class ServiceDeployRequest(BaseModel):
+    """Request to deploy a service."""
+
+    image: str = Field(description="Container image to deploy")
+    replicas: int = Field(default=1, ge=1, le=100, description="Number of replicas")
+    env: dict[str, str] | None = Field(default=None, description="Environment variables")
+
+
+class ServiceListResponse(BaseModel):
+    """List of service statuses."""
+
+    services: list[ServiceStatus]
+
+
+@router.get("/services", response_model=ServiceListResponse)
+async def list_services():
+    """List all Bootnode services and their status.
+
+    Returns the current status of all managed services including
+    running state, replica counts, and resource usage.
+    """
+    deployer = get_deployer()
+    services = []
+
+    for service_type in ServiceType:
+        try:
+            status = await deployer.status(service_type)
+            services.append(status)
+        except Exception:
+            services.append(ServiceStatus(
+                name=service_type.value,
+                running=False,
+                replicas=0,
+                ready_replicas=0,
+            ))
+
+    return ServiceListResponse(services=services)
+
+
+@router.get("/services/{service}/status", response_model=ServiceStatus)
+async def get_service_status(service: str):
+    """Get detailed status for a specific service.
+
+    Args:
+        service: Service name (api, web, indexer, webhook-worker, bundler)
+
+    Returns:
+        ServiceStatus with running state, replicas, and resource usage.
+    """
+    try:
+        service_type = ServiceType(service)
+    except ValueError:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid service: {service}. Valid services: {[s.value for s in ServiceType]}",
+        )
+
+    deployer = get_deployer()
+    return await deployer.status(service_type)
+
+
+@router.post("/services/{service}/deploy", response_model=ServiceStatus)
+async def deploy_service(service: str, request: ServiceDeployRequest):
+    """Deploy or update a service.
+
+    Args:
+        service: Service name to deploy
+        request: Deployment configuration including image and replicas
+
+    Returns:
+        ServiceStatus after deployment.
+    """
+    try:
+        service_type = ServiceType(service)
+    except ValueError:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid service: {service}. Valid services: {[s.value for s in ServiceType]}",
+        )
+
+    deployer = get_deployer()
+    success = await deployer.deploy(
+        service_type,
+        request.image,
+        request.replicas,
+        request.env,
+    )
+
+    if not success:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to deploy service: {service}",
+        )
+
+    return await deployer.status(service_type)
+
+
+@router.post("/services/{service}/scale", response_model=ServiceStatus)
+async def scale_service(service: str, request: ServiceScaleRequest):
+    """Scale a service to the specified number of replicas.
+
+    Args:
+        service: Service name to scale
+        request: Scale configuration with target replicas
+
+    Returns:
+        ServiceStatus after scaling.
+    """
+    try:
+        service_type = ServiceType(service)
+    except ValueError:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid service: {service}. Valid services: {[s.value for s in ServiceType]}",
+        )
+
+    deployer = get_deployer()
+    success = await deployer.scale(service_type, request.replicas)
+
+    if not success:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to scale service: {service}",
+        )
+
+    return await deployer.status(service_type)
+
+
+@router.post("/services/{service}/restart", response_model=ServiceStatus)
+async def restart_service(service: str):
+    """Restart a service.
+
+    Args:
+        service: Service name to restart
+
+    Returns:
+        ServiceStatus after restart.
+    """
+    try:
+        service_type = ServiceType(service)
+    except ValueError:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid service: {service}. Valid services: {[s.value for s in ServiceType]}",
+        )
+
+    deployer = get_deployer()
+    success = await deployer.restart(service_type)
+
+    if not success:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to restart service: {service}",
+        )
+
+    return await deployer.status(service_type)
+
+
+@router.delete("/services/{service}")
+async def destroy_service(service: str):
+    """Stop and remove a service.
+
+    Args:
+        service: Service name to destroy
+
+    Returns:
+        Confirmation of destruction.
+    """
+    try:
+        service_type = ServiceType(service)
+    except ValueError:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid service: {service}. Valid services: {[s.value for s in ServiceType]}",
+        )
+
+    deployer = get_deployer()
+    success = await deployer.destroy(service_type)
+
+    if not success:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to destroy service: {service}",
+        )
+
+    return {"status": "destroyed", "service": service}
+
+
+@router.get("/services/{service}/logs")
+async def get_service_logs(
+    service: str,
+    tail: int = Query(default=100, ge=1, le=10000, description="Number of lines to return"),
+    follow: bool = Query(default=False, description="Stream logs continuously"),
+):
+    """Get logs from a service.
+
+    Args:
+        service: Service name to get logs from
+        tail: Number of recent log lines to return
+        follow: If true, stream logs continuously (SSE)
+
+    Returns:
+        Log lines as JSON array or SSE stream if follow=true.
+    """
+    try:
+        service_type = ServiceType(service)
+    except ValueError:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid service: {service}. Valid services: {[s.value for s in ServiceType]}",
+        )
+
+    deployer = get_deployer()
+
+    if follow:
+        async def stream_logs():
+            async for line in deployer.logs(service_type, tail=tail, follow=True):
+                yield f"data: {line}\n\n"
+
+        return StreamingResponse(
+            stream_logs(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+            },
+        )
+    else:
+        logs = []
+        async for line in deployer.logs(service_type, tail=tail, follow=False):
+            logs.append(line)
+        return {"service": service, "lines": logs}
+
+
+@router.get("/services/{service}/health")
+async def check_service_health(service: str):
+    """Check if a service is healthy.
+
+    Args:
+        service: Service name to check
+
+    Returns:
+        Health status.
+    """
+    try:
+        service_type = ServiceType(service)
+    except ValueError:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid service: {service}. Valid services: {[s.value for s in ServiceType]}",
+        )
+
+    deployer = get_deployer()
+    is_healthy = await deployer.health(service_type)
+
+    return {"service": service, "healthy": is_healthy}
 
 
 # === Stats ===

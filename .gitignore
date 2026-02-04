@@ -51,8 +51,8 @@ temp/
 *.tmp
 
 # Embedded git repositories (separate projects)
-bootnode/
-bootnode-admin/
+/bootnode/
+/bootnode-admin/
 
 # Playwright MCP screenshots
 .playwright-mcp/

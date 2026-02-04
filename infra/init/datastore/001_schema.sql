@@ -284,6 +284,7 @@ CREATE TABLE IF NOT EXISTS api_usage (
     network String,
     endpoint String,
     method String,
+    tier String DEFAULT 'free',
     compute_units UInt32,
     response_time_ms UInt32,
     status_code UInt16,
@@ -345,3 +346,172 @@ ALTER TABLE logs ADD INDEX idx_topic0 topic0 TYPE bloom_filter GRANULARITY 4;
 ALTER TABLE token_transfers ADD INDEX idx_from from_address TYPE bloom_filter GRANULARITY 4;
 ALTER TABLE token_transfers ADD INDEX idx_to to_address TYPE bloom_filter GRANULARITY 4;
 ALTER TABLE token_transfers ADD INDEX idx_token token_address TYPE bloom_filter GRANULARITY 4;
+
+-- =============================================================================
+-- BILLING TABLES
+-- =============================================================================
+
+-- Billing invoices (monthly statements)
+CREATE TABLE IF NOT EXISTS billing_invoices (
+    id UUID DEFAULT generateUUIDv4(),
+    project_id UUID,
+    period_start Date,
+    period_end Date,
+    tier String,
+    total_cu UInt64,
+    total_requests UInt64,
+    base_cost_cents UInt32,
+    overage_cost_cents UInt32,
+    total_cost_cents UInt32,
+    status Enum8('draft' = 0, 'pending' = 1, 'paid' = 2, 'overdue' = 3, 'void' = 4),
+    hanzo_invoice_id Nullable(String),
+    hanzo_payment_id Nullable(String),
+    paid_at Nullable(DateTime64(3)),
+    created_at DateTime64(3) DEFAULT now64(3),
+    updated_at DateTime64(3) DEFAULT now64(3)
+)
+ENGINE = ReplacingMergeTree(updated_at)
+ORDER BY (project_id, period_start)
+SETTINGS index_granularity = 8192;
+
+-- Daily compute unit usage (aggregated from api_usage)
+CREATE TABLE IF NOT EXISTS billing_daily_usage (
+    project_id UUID,
+    date Date,
+    tier String,
+    total_cu UInt64,
+    total_requests UInt64,
+    cu_by_method Map(String, UInt64),
+    cu_by_chain Map(UInt64, UInt64),
+    peak_rps UInt32,
+    error_count UInt32,
+    created_at DateTime64(3) DEFAULT now64(3)
+)
+ENGINE = SummingMergeTree()
+PARTITION BY toYYYYMM(date)
+ORDER BY (project_id, date)
+SETTINGS index_granularity = 8192;
+
+-- Materialized view: Daily CU aggregation
+CREATE MATERIALIZED VIEW IF NOT EXISTS billing_daily_usage_mv
+TO billing_daily_usage
+AS SELECT
+    project_id,
+    toDate(timestamp) as date,
+    '' as tier,  -- Filled by application
+    sum(compute_units) as total_cu,
+    count() as total_requests,
+    cast(
+        groupArray((method, toUInt64(compute_units))) as Map(String, UInt64)
+    ) as cu_by_method,
+    cast(
+        groupArray((chain_id, toUInt64(compute_units))) as Map(UInt64, UInt64)
+    ) as cu_by_chain,
+    0 as peak_rps,  -- Calculated separately
+    countIf(status_code >= 400) as error_count,
+    now64(3) as created_at
+FROM api_usage
+GROUP BY project_id, date;
+
+-- Monthly CU summary (for billing)
+CREATE MATERIALIZED VIEW IF NOT EXISTS billing_monthly_summary
+ENGINE = SummingMergeTree()
+PARTITION BY toYYYYMM(month)
+ORDER BY (project_id, month)
+AS SELECT
+    project_id,
+    toStartOfMonth(timestamp) as month,
+    sum(compute_units) as total_cu,
+    count() as total_requests,
+    uniq(api_key_id) as unique_api_keys,
+    countIf(status_code >= 400) as error_count,
+    avg(response_time_ms) as avg_response_time_ms,
+    quantile(0.95)(response_time_ms) as p95_response_time_ms
+FROM api_usage
+GROUP BY project_id, month;
+
+-- Rate limit events (for analytics and alerting)
+CREATE TABLE IF NOT EXISTS rate_limit_events (
+    project_id UUID,
+    timestamp DateTime64(3),
+    tier String,
+    limit_type String,  -- 'cu_quota', 'rate_limit', 'app_limit', 'webhook_limit'
+    current_value UInt64,
+    limit_value UInt64,
+    blocked Bool,
+    api_key_id Nullable(UUID),
+    ip_address Nullable(String)
+)
+ENGINE = MergeTree()
+PARTITION BY toYYYYMMDD(timestamp)
+ORDER BY (project_id, timestamp)
+TTL timestamp + INTERVAL 30 DAY
+SETTINGS index_granularity = 8192;
+
+-- Subscription changes audit log
+CREATE TABLE IF NOT EXISTS subscription_changes (
+    id UUID DEFAULT generateUUIDv4(),
+    project_id UUID,
+    old_tier String,
+    new_tier String,
+    change_type Enum8('upgrade' = 1, 'downgrade' = 2, 'renewal' = 3),
+    hanzo_subscription_id Nullable(String),
+    effective_at DateTime64(3),
+    created_at DateTime64(3) DEFAULT now64(3)
+)
+ENGINE = MergeTree()
+PARTITION BY toYYYYMM(created_at)
+ORDER BY (project_id, created_at)
+SETTINGS index_granularity = 8192;
+
+-- =============================================================================
+-- BILLING ANALYTICS TABLES
+-- =============================================================================
+
+-- Daily billing usage aggregation
+CREATE TABLE IF NOT EXISTS billing_usage_daily (
+    project_id UUID,
+    date Date,
+    tier String,
+    chain String,
+    method String,
+    compute_units UInt64,
+    request_count UInt64,
+    error_count UInt64,
+    avg_response_time_ms Float32,
+    p99_response_time_ms Float32,
+    created_at DateTime64(3) DEFAULT now64(3)
+)
+ENGINE = SummingMergeTree()
+PARTITION BY toYYYYMM(date)
+ORDER BY (project_id, date, chain, method)
+SETTINGS index_granularity = 8192;
+
+-- Monthly rollup for invoicing
+CREATE MATERIALIZED VIEW IF NOT EXISTS billing_usage_monthly
+ENGINE = SummingMergeTree()
+PARTITION BY toYYYYMM(month)
+ORDER BY (project_id, month, tier)
+AS SELECT
+    project_id,
+    toStartOfMonth(date) as month,
+    tier,
+    sum(compute_units) as total_compute_units,
+    sum(request_count) as total_requests,
+    sum(error_count) as total_errors,
+    avg(avg_response_time_ms) as avg_response_time_ms
+FROM billing_usage_daily
+GROUP BY project_id, month, tier;
+
+-- Compute unit breakdown by method (for analytics dashboard)
+CREATE TABLE IF NOT EXISTS cu_by_method (
+    project_id UUID,
+    date Date,
+    method String,
+    chain String,
+    compute_units UInt64,
+    call_count UInt64
+)
+ENGINE = SummingMergeTree()
+PARTITION BY toYYYYMM(date)
+ORDER BY (project_id, date, method, chain);

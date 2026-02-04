@@ -71,6 +71,7 @@ class Project(Base):
     # Relationships
     api_keys: Mapped[list["ApiKey"]] = relationship(back_populates="project")
     webhooks: Mapped[list["Webhook"]] = relationship(back_populates="project")
+    subscription: Mapped["Subscription | None"] = relationship(back_populates="project", uselist=False)
 
 
 class ApiKey(Base):
@@ -254,3 +255,50 @@ class GasPolicy(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
+
+
+class Subscription(Base):
+    """Subscription model for billing and quotas."""
+
+    __tablename__ = "subscriptions"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, unique=True
+    )
+    tier: Mapped[str] = mapped_column(String(50), nullable=False, default="free")
+    hanzo_subscription_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    hanzo_customer_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+
+    # Limits (can be overridden from tier defaults)
+    monthly_cu_limit: Mapped[int] = mapped_column(Integer, default=30_000_000)
+    rate_limit_per_second: Mapped[int] = mapped_column(Integer, default=25)
+    max_apps: Mapped[int] = mapped_column(Integer, default=5)
+    max_webhooks: Mapped[int] = mapped_column(Integer, default=5)
+
+    # Usage tracking (real-time in Redis, snapshot here)
+    current_cu_used: Mapped[int] = mapped_column(Integer, default=0)
+
+    # Billing cycle
+    billing_cycle_start: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+    billing_cycle_end: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+
+    # Scheduled changes (for downgrades)
+    scheduled_tier: Mapped[str | None] = mapped_column(String(50), nullable=True)
+
+    # Timestamps
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    # Relationships
+    project: Mapped["Project"] = relationship(back_populates="subscription")

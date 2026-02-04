@@ -7,80 +7,163 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import {
   ArrowRight,
   Check,
   HelpCircle,
+  Minus,
   Zap,
 } from "lucide-react"
+import { getBrand } from "@/lib/brand"
 
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Simple, transparent pricing for blockchain infrastructure. Start free with 100M compute units per month.",
+    "Simple, transparent pricing for blockchain infrastructure. Start free with 30M compute units per month.",
 }
 
 const tiers = [
   {
     name: "Free",
     price: "$0",
-    period: "forever",
-    description: "For hobbyists and developers exploring blockchain. Get started with no commitment.",
-    cta: "Start Building Free",
+    period: "/month",
+    description: "For hobbyists and developers exploring blockchain.",
+    cta: "Start for free",
     ctaHref: "/dashboard",
     ctaVariant: "outline" as const,
     highlighted: false,
-    limits: [
-      "100M compute units / month",
-      "5 API keys",
-      "3 chains",
-      "Community support",
-      "Standard rate limits",
-      "7-day data retention",
+    features: [
+      "30M Compute Units/month",
+      "25 requests/second",
+      "5 apps",
+      "5 webhooks",
+      "Standard support (48hr response)",
+      "All mainnets & testnets",
+      "Core APIs (Node, Debug, Trace)",
+      "Enhanced APIs (NFT, Token, Webhooks, Transfers)",
     ],
   },
   {
-    name: "Growth",
-    price: "$99",
-    period: "/month",
-    description: "For teams shipping production apps. Everything you need to scale with confidence.",
-    cta: "Get Started",
+    name: "Pay As You Go",
+    price: "$0.40-0.45",
+    period: "/1M CUs",
+    description: "For teams shipping production apps. Pay only for what you use.",
+    cta: "Start building",
     ctaHref: "/dashboard",
     ctaVariant: "default" as const,
     highlighted: true,
-    limits: [
-      "1B compute units / month",
-      "Unlimited API keys",
-      "All 100+ chains",
-      "Email support (< 24h response)",
-      "Enhanced rate limits",
-      "30-day data retention",
-      "Webhook delivery guarantees",
-      "Team members (up to 10)",
-      "Usage analytics dashboard",
+    features: [
+      "Unlimited CUs (pay for what you use)",
+      "300 requests/second",
+      "30 apps",
+      "100 webhooks",
+      "Priority support (24hr response)",
+      "All features from Free",
+      "Transaction Simulation",
+      "Private Transactions",
+      "Smart Wallets SDK",
+      "Gas Manager (8% admin fee)",
     ],
   },
   {
     name: "Enterprise",
     price: "Custom",
     period: "",
-    description: "For organizations with mission-critical infrastructure and compliance requirements.",
-    cta: "Contact Sales",
+    description: "For organizations with mission-critical infrastructure.",
+    cta: "Contact sales",
     ctaHref: "/contact",
     ctaVariant: "outline" as const,
     highlighted: false,
-    limits: [
-      "Custom compute units",
-      "Dedicated infrastructure",
-      "99.999% uptime SLA",
-      "Custom chain support",
-      "24/7 priority support",
-      "90-day data retention",
-      "Dedicated account manager",
-      "Custom rate limits",
-      "SOC 2 compliance reports",
-      "SSO / SAML authentication",
-      "Unlimited team members",
-      "Private networking (VPC peering)",
+    features: [
+      "Custom throughput",
+      "Unlimited apps & webhooks",
+      "VIP eng support (5min response)",
+      "Volume discounts",
+      "SLAs",
+      "Priority on product roadmaps",
+      "Custom Gas Manager fee",
+    ],
+  },
+]
+
+type FeatureValue = boolean | string
+
+interface FeatureRow {
+  feature: string
+  free: FeatureValue
+  payg: FeatureValue
+  enterprise: FeatureValue
+}
+
+interface FeatureCategory {
+  category: string
+  features: FeatureRow[]
+}
+
+const featureComparison: FeatureCategory[] = [
+  {
+    category: "Core APIs",
+    features: [
+      { feature: "Node API", free: true, payg: true, enterprise: true },
+      { feature: "Debug API", free: true, payg: true, enterprise: true },
+      { feature: "Trace API", free: true, payg: true, enterprise: true },
+    ],
+  },
+  {
+    category: "Enhanced APIs",
+    features: [
+      { feature: "NFT API", free: true, payg: true, enterprise: true },
+      { feature: "Token API", free: true, payg: true, enterprise: true },
+      { feature: "Webhooks", free: true, payg: true, enterprise: true },
+      { feature: "Transfers API", free: true, payg: true, enterprise: true },
+      { feature: "Smart Websockets", free: true, payg: true, enterprise: true },
+    ],
+  },
+  {
+    category: "Transactions",
+    features: [
+      { feature: "Transaction Simulation", free: false, payg: true, enterprise: true },
+      { feature: "Private Transactions", free: false, payg: true, enterprise: true },
+      { feature: "Smart Wallets SDK", free: false, payg: true, enterprise: true },
+      { feature: "Bundler API", free: false, payg: true, enterprise: true },
+      { feature: "Gas Manager", free: false, payg: "8% fee", enterprise: "Custom fee" },
+    ],
+  },
+  {
+    category: "Pricing & Limits",
+    features: [
+      { feature: "Compute Units", free: "30M/month", payg: "Unlimited", enterprise: "Custom" },
+      { feature: "CU Rate", free: "Included", payg: "$0.40-0.45/1M", enterprise: "Volume discounts" },
+      { feature: "Throughput", free: "25 req/s", payg: "300 req/s", enterprise: "Custom" },
+      { feature: "Apps", free: "5", payg: "30", enterprise: "Unlimited" },
+      { feature: "Webhooks", free: "5", payg: "100", enterprise: "Unlimited" },
+    ],
+  },
+  {
+    category: "Tools",
+    features: [
+      { feature: "SDK Access", free: true, payg: true, enterprise: true },
+      { feature: "API Composer", free: true, payg: true, enterprise: true },
+      { feature: "Block Explorer", free: true, payg: true, enterprise: true },
+      { feature: "Usage Analytics", free: true, payg: true, enterprise: true },
+      { feature: "Custom Alerts", free: false, payg: true, enterprise: true },
+    ],
+  },
+  {
+    category: "Support",
+    features: [
+      { feature: "Documentation", free: true, payg: true, enterprise: true },
+      { feature: "Community Discord", free: true, payg: true, enterprise: true },
+      { feature: "Email Support", free: "48hr response", payg: "24hr response", enterprise: "5min response" },
+      { feature: "Dedicated Account Manager", free: false, payg: false, enterprise: true },
+      { feature: "SLA Guarantee", free: false, payg: false, enterprise: true },
     ],
   },
 ]
@@ -89,46 +172,38 @@ const faqs = [
   {
     question: "What is a compute unit?",
     answer:
-      "A compute unit (CU) is Bootnode's universal unit of measurement for API usage. Different API methods consume different amounts of CUs based on their computational complexity. For example, a simple eth_blockNumber call costs 1 CU, while eth_getLogs may cost 10-100 CUs depending on the range. This ensures fair pricing across all chains and methods.",
+      "A compute unit (CU) is our universal unit of measurement for API usage. Different API methods consume different amounts of CUs based on their computational complexity. For example, a simple eth_blockNumber call costs 1 CU, while eth_getLogs may cost 10-100 CUs depending on the block range. This ensures fair, predictable pricing across all chains and methods.",
   },
   {
-    question: "Can I switch plans at any time?",
+    question: "How do I get started?",
     answer:
-      "Yes. You can upgrade or downgrade your plan at any time from your dashboard. When upgrading, the new plan takes effect immediately and you are billed a prorated amount for the remainder of the billing cycle. When downgrading, the change takes effect at the start of the next billing cycle.",
+      "Getting started is easy. Sign up for a free account, create an API key from your dashboard, and start making requests immediately. No credit card required. You get 30M compute units per month free to build and test your applications.",
   },
   {
-    question: "What happens if I exceed my compute unit limit?",
+    question: "When do I get billed?",
     answer:
-      "On the Free plan, requests are rate-limited once you reach your monthly allocation. On the Growth plan, you can enable overage billing at $0.10 per million additional CUs so your app never goes down. Enterprise plans include custom overage arrangements.",
+      "Free tier users are never billed. Pay As You Go users are billed monthly based on their compute unit usage above the free allocation. You can set spending limits and alerts to control costs. Enterprise customers have custom billing arrangements.",
   },
   {
-    question: "Do you offer annual billing?",
+    question: "How can I upgrade to Enterprise?",
     answer:
-      "Yes. Annual billing is available for the Growth plan at $79/month (a 20% discount). Enterprise plans are custom-quoted with flexible billing terms. Contact our sales team for details.",
-  },
-  {
-    question: "Which chains are available on each plan?",
-    answer:
-      "The Free plan gives you access to any 3 chains of your choice. The Growth and Enterprise plans include all 100+ supported chains with no restrictions. You can change your selected chains on the Free plan at any time.",
-  },
-  {
-    question: "What kind of support do you offer?",
-    answer:
-      "The Free plan includes access to our community Discord and documentation. The Growth plan includes email support with a guaranteed response time of under 24 hours during business hours. Enterprise plans include 24/7 priority support with a dedicated account manager and Slack channel.",
-  },
-  {
-    question: "Is there a free trial for the Growth plan?",
-    answer:
-      "The Free plan serves as a generous trial with 100M compute units per month. There is no time limit -- you can use the Free plan indefinitely. When you are ready to scale, upgrading to Growth takes one click.",
-  },
-  {
-    question: "Do you offer discounts for startups?",
-    answer:
-      "Yes. We offer a startup program that provides Growth plan access at no cost for 6 months for qualifying early-stage startups. Apply through our startup program page or contact sales for details.",
+      "Contact our sales team to discuss your requirements. Enterprise plans include custom throughput limits, volume discounts, SLAs, dedicated support with 5-minute response times, and priority access to new features. We will work with you to create a plan that fits your needs.",
   },
 ]
 
+function FeatureCell({ value }: { value: FeatureValue }) {
+  if (value === true) {
+    return <Check className="h-5 w-5 text-green-500 mx-auto" />
+  }
+  if (value === false) {
+    return <Minus className="h-5 w-5 text-muted-foreground mx-auto" />
+  }
+  return <span className="text-sm">{value}</span>
+}
+
 export default function PricingPage() {
+  const brand = getBrand()
+
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
@@ -142,11 +217,11 @@ export default function PricingPage() {
               Simple Pricing
             </Badge>
             <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-              Start free, scale without limits
+              Start free, scale as you grow
             </h1>
             <p className="mt-6 text-lg text-muted-foreground">
-              Transparent pricing with no hidden fees. Every plan includes access to
-              our full API suite: RPC, Token API, NFT API, Webhooks, Smart Wallets, and more.
+              Transparent pricing with no hidden fees. Get 30M compute units free every month.
+              Pay only for what you use beyond that.
             </p>
           </div>
         </div>
@@ -195,10 +270,10 @@ export default function PricingPage() {
                   </Button>
                   <Separator className="my-6" />
                   <ul className="space-y-3">
-                    {tier.limits.map((limit) => (
-                      <li key={limit} className="flex items-start gap-2">
+                    {tier.features.map((feature) => (
+                      <li key={feature} className="flex items-start gap-2">
                         <Check className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-                        <span className="text-sm">{limit}</span>
+                        <span className="text-sm">{feature}</span>
                       </li>
                     ))}
                   </ul>
@@ -209,44 +284,55 @@ export default function PricingPage() {
         </div>
       </section>
 
-      {/* Compute Unit Table */}
+      {/* Feature Comparison Table */}
       <section className="border-y bg-muted/30 py-16">
         <div className="container">
-          <div className="mx-auto max-w-3xl">
+          <div className="mx-auto max-w-5xl">
             <h2 className="text-2xl font-bold tracking-tight text-center">
-              Compute Unit Costs
+              Compare Plans
             </h2>
             <p className="mt-2 text-center text-muted-foreground">
-              Each API method uses a specific number of compute units. Here are some common examples.
+              See all features available across each plan.
             </p>
             <div className="mt-8 overflow-hidden rounded-lg border bg-card">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b bg-muted/50">
-                    <th className="px-4 py-3 text-left text-sm font-medium">Method</th>
-                    <th className="px-4 py-3 text-right text-sm font-medium">CUs</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {[
-                    { method: "eth_blockNumber", cus: "1" },
-                    { method: "eth_getBalance", cus: "5" },
-                    { method: "eth_call", cus: "10" },
-                    { method: "eth_getTransactionReceipt", cus: "10" },
-                    { method: "eth_getLogs (100 blocks)", cus: "25" },
-                    { method: "eth_getBlockByNumber (full)", cus: "50" },
-                    { method: "debug_traceTransaction", cus: "200" },
-                    { method: "Token API - Get balances", cus: "5" },
-                    { method: "NFT API - Get collection", cus: "10" },
-                    { method: "Webhook - Create", cus: "50" },
-                  ].map((row) => (
-                    <tr key={row.method} className="hover:bg-muted/30">
-                      <td className="px-4 py-3 font-mono text-sm">{row.method}</td>
-                      <td className="px-4 py-3 text-right text-sm">{row.cus}</td>
-                    </tr>
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="w-[300px]">Feature</TableHead>
+                    <TableHead className="text-center">Free</TableHead>
+                    <TableHead className="text-center">Pay As You Go</TableHead>
+                    <TableHead className="text-center">Enterprise</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {featureComparison.map((category) => (
+                    <>
+                      <TableRow key={category.category} className="bg-muted/30">
+                        <TableCell
+                          colSpan={4}
+                          className="font-semibold text-sm py-2"
+                        >
+                          {category.category}
+                        </TableCell>
+                      </TableRow>
+                      {category.features.map((row) => (
+                        <TableRow key={row.feature}>
+                          <TableCell className="text-sm">{row.feature}</TableCell>
+                          <TableCell className="text-center">
+                            <FeatureCell value={row.free} />
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <FeatureCell value={row.payg} />
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <FeatureCell value={row.enterprise} />
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </>
                   ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
           </div>
         </div>
@@ -284,12 +370,12 @@ export default function PricingPage() {
               Ready to start building?
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              Get 100M compute units free every month. No credit card required.
+              Get 30M compute units free every month. No credit card required.
             </p>
             <div className="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
               <Button size="lg" asChild>
                 <Link href="/dashboard">
-                  Start Building Free
+                  Start for free
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>

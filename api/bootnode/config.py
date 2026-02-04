@@ -91,9 +91,20 @@ class Settings(BaseSettings):
     webhook_timeout: int = 30
     webhook_max_retries: int = 5
 
+    # Hanzo Commerce (Stripe-based billing)
+    hanzo_commerce_url: str = "https://commerce.hanzo.ai"
+    hanzo_commerce_api_key: str = ""
+    hanzo_commerce_webhook_secret: str = ""
+
     # ERC-4337 Bundler
     bundler_private_key: str = ""
     bundler_beneficiary: str = ""
+
+    # Deployment Target
+    deploy_target: Literal["docker", "process", "kubernetes"] = "docker"
+    deploy_compose_file: str = "infra/compose.yml"
+    deploy_k8s_namespace: str = "bootnode"
+    deploy_k8s_context: str = ""
 
     @property
     def is_production(self) -> bool:
