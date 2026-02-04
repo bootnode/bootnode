@@ -117,7 +117,7 @@ bun add @bootnode/sdk`}</code>
             <code>{`import { Bootnode } from "@bootnode/sdk";
 
 const client = new Bootnode({
-  apiKey: process.env.BOOTNODE_API_KEY!,
+  apiKey: process.env.HANZO_API_KEY!,
 });
 
 // 1. Get the latest block number via JSON-RPC
@@ -176,8 +176,8 @@ main();`}</code>
             endpoint. Here is a plain <code className="bg-muted px-1.5 py-0.5 rounded text-sm">fetch</code> example:
           </p>
           <pre className="overflow-x-auto rounded-lg bg-zinc-950 p-4 text-sm text-zinc-100">
-            <code>{`const API_KEY = process.env.BOOTNODE_API_KEY;
-const BASE_URL = "https://api.bootnode.dev/v1";
+            <code>{`const API_KEY = process.env.HANZO_API_KEY;
+const BASE_URL = "https://api.hanzo.ai/v1";
 
 // JSON-RPC call
 async function ethBlockNumber(): Promise<number> {

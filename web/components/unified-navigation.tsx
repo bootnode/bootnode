@@ -18,6 +18,7 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu"
 import { useAuth, OrgBadge } from "@/lib/auth"
+import { getBrand } from "@/lib/brand"
 import { 
   Activity, 
   Server, 
@@ -167,10 +168,8 @@ export function UnifiedNavigation() {
             <div className="flex items-center">
               {/* Logo */}
               <Link href="/dashboard" className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">B</span>
-                </div>
-                <span className="text-xl font-bold">Bootnode</span>
+                <img src={getBrand().logoIcon} alt={getBrand().name} className="w-8 h-8" />
+                <span className="text-xl font-bold">{getBrand().name}</span>
               </Link>
 
               {/* Organization Selector */}

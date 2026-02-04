@@ -79,7 +79,7 @@ export default function WalletsProductPage() {
               Everything you need to onboard the next billion
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              Bootnode Smart Wallets handle the complexity of account abstraction
+              Smart Wallets handle the complexity of account abstraction
               so your users never have to think about gas, keys, or
               transactions.
             </p>

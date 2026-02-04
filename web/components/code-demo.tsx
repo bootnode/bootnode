@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Check, Copy, Play } from "lucide-react"
+import { getBrand } from "@/lib/brand"
 
 const CHAINS = ["Ethereum", "Solana", "Base", "Arbitrum", "Polygon"]
 const METHODS = [
@@ -21,9 +22,11 @@ export function CodeDemo() {
   const [response, setResponse] = React.useState<string | null>(null)
   const [loading, setLoading] = React.useState(false)
 
-  const code = `curl -X POST https://api.bootnode.dev/v1/rpc/${selectedChain.toLowerCase()}/mainnet \\
+  const brand = getBrand()
+  const apiDomain = brand.name === "Hanzo" ? "api.hanzo.ai" : `api.${brand.domain}`
+  const code = `curl -X POST https://${apiDomain}/v1/rpc/${selectedChain.toLowerCase()}/mainnet \\
      -H "Content-Type: application/json" \\
-     -H "X-API-Key: bn_your_api_key" \\
+     -H "X-API-Key: your_api_key" \\
      -d '{
   "jsonrpc": "2.0",
   "method": "${selectedMethod}",

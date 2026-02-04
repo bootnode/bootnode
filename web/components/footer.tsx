@@ -34,7 +34,7 @@ const footerLinks = {
     { name: "Blog", href: "/blog" },
     { name: "Careers", href: "/careers" },
     { name: "Contact", href: "/contact" },
-    { name: "Status", href: "https://status.bootnode.dev" },
+    { name: "Status", href: "https://status.hanzo.ai" },
     { name: "Security", href: "/security" },
   ],
 }

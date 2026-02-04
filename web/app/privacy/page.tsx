@@ -42,8 +42,8 @@ export default function PrivacyPage() {
               <div>
                 <h2 className="text-xl font-semibold text-foreground">1. Introduction</h2>
                 <p className="mt-3">
-                  Hanzo AI, Inc. (&quot;Bootnode,&quot; &quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) operates the
-                  bootnode.dev website and the Bootnode API platform (collectively, the
+                  Hanzo AI, Inc. (&quot;Hanzo,&quot; &quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) operates the
+                  hanzo.ai website and the Hanzo Web3 API platform (collectively, the
                   &quot;Service&quot;). This Privacy Policy explains how we collect, use, disclose,
                   and safeguard your information when you use our Service.
                 </p>
@@ -167,10 +167,10 @@ export default function PrivacyPage() {
                 <p className="mt-3">
                   To exercise these rights, contact us at{" "}
                   <a
-                    href="mailto:privacy@bootnode.dev"
+                    href="mailto:privacy@hanzo.ai"
                     className="text-primary hover:underline"
                   >
-                    privacy@bootnode.dev
+                    privacy@hanzo.ai
                   </a>
                   . We will respond within 30 days.
                 </p>
@@ -229,10 +229,10 @@ export default function PrivacyPage() {
                   <p className="font-medium text-foreground">Hanzo AI, Inc.</p>
                   <p className="mt-1">Email:{" "}
                     <a
-                      href="mailto:privacy@bootnode.dev"
+                      href="mailto:privacy@hanzo.ai"
                       className="text-primary hover:underline"
                     >
-                      privacy@bootnode.dev
+                      privacy@hanzo.ai
                     </a>
                   </p>
                   <p>San Francisco, California, United States</p>

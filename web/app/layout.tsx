@@ -7,13 +7,30 @@ import { Providers } from "@/app/providers"
 import { Toaster } from "@/components/ui/sonner"
 import "@/app/globals.css"
 
+// Brand-aware metadata - uses NEXT_PUBLIC_BRAND env var
+const brandName = process.env.NEXT_PUBLIC_BRAND === "hanzo" ? "Hanzo" :
+                  process.env.NEXT_PUBLIC_BRAND === "lux" ? "Lux Network" :
+                  process.env.NEXT_PUBLIC_BRAND === "zoo" ? "Zoo Labs" : "Hanzo"
+
+const brandTagline = process.env.NEXT_PUBLIC_BRAND === "hanzo" ? "Web3 Infrastructure" :
+                     process.env.NEXT_PUBLIC_BRAND === "lux" ? "Next-Gen Blockchain Infrastructure" :
+                     process.env.NEXT_PUBLIC_BRAND === "zoo" ? "Decentralized AI Infrastructure" : "Web3 Infrastructure"
+
+const brandDomain = process.env.NEXT_PUBLIC_BRAND === "hanzo" ? "web3.hanzo.ai" :
+                    process.env.NEXT_PUBLIC_BRAND === "lux" ? "web3.lux.network" :
+                    process.env.NEXT_PUBLIC_BRAND === "zoo" ? "web3.zoo.ngo" : "web3.hanzo.ai"
+
+const brandIcon = process.env.NEXT_PUBLIC_BRAND === "hanzo" ? "/logo/hanzo-icon.svg" :
+                  process.env.NEXT_PUBLIC_BRAND === "lux" ? "/logo/lux-icon.svg" :
+                  process.env.NEXT_PUBLIC_BRAND === "zoo" ? "/logo/zoo-icon.svg" : "/logo/hanzo-icon.svg"
+
 export const metadata: Metadata = {
   title: {
-    default: "Bootnode - Blockchain Infrastructure for Developers",
-    template: "%s | Bootnode",
+    default: `${brandName} - ${brandTagline}`,
+    template: `%s | ${brandName}`,
   },
   description:
-    "The complete blockchain development platform. Multi-chain RPC, Token APIs, NFT APIs, Smart Wallets, Webhooks, and more. Build faster with Bootnode.",
+    `Enterprise blockchain infrastructure powered by ${brandName}. Multi-chain RPC, Token APIs, NFT APIs, Smart Wallets, Webhooks, and more.`,
   keywords: [
     "blockchain",
     "RPC",
@@ -25,27 +42,28 @@ export const metadata: Metadata = {
     "DeFi",
     "smart contracts",
     "developer tools",
+    brandName.toLowerCase(),
   ],
-  authors: [{ name: "Bootnode" }],
+  authors: [{ name: brandName }],
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://bootnode.dev",
-    siteName: "Bootnode",
-    title: "Bootnode - Blockchain Infrastructure for Developers",
+    url: `https://${brandDomain}`,
+    siteName: brandName,
+    title: `${brandName} - ${brandTagline}`,
     description:
-      "The complete blockchain development platform. Multi-chain RPC, Token APIs, NFT APIs, Smart Wallets, Webhooks, and more.",
+      `Enterprise blockchain infrastructure powered by ${brandName}. Multi-chain RPC, Token APIs, NFT APIs, Smart Wallets, and more.`,
   },
   twitter: {
     card: "summary_large_image",
-    title: "Bootnode - Blockchain Infrastructure for Developers",
+    title: `${brandName} - ${brandTagline}`,
     description:
-      "The complete blockchain development platform. Multi-chain RPC, Token APIs, NFT APIs, Smart Wallets, Webhooks, and more.",
+      `Enterprise blockchain infrastructure powered by ${brandName}. Multi-chain RPC, Token APIs, NFT APIs, Smart Wallets, and more.`,
   },
   icons: {
-    icon: "/logo/bootnode-icon.svg",
-    apple: "/logo/bootnode-icon.svg",
-    shortcut: "/logo/bootnode-icon.svg",
+    icon: brandIcon,
+    apple: brandIcon,
+    shortcut: brandIcon,
   },
 }
 

@@ -67,7 +67,7 @@ export default function DataProductPage() {
               Three APIs, complete coverage
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              Bootnode Data APIs handle the complex indexing, caching, and
+              Our Data APIs handle the complex indexing, caching, and
               normalization so you never have to decode raw logs or parse
               transaction receipts again.
             </p>
@@ -105,7 +105,7 @@ export default function DataProductPage() {
               </div>
               <CodeBlock
                 title="GET /v1/tokens/balances"
-                code={`curl "https://api.bootnode.dev/v1/tokens/balances?\\
+                code={`curl "https://api.hanzo.ai/v1/tokens/balances?\\
   address=0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045&\\
   chains=ethereum,base,arbitrum" \\
   -H "X-API-Key: YOUR_API_KEY"
@@ -147,7 +147,7 @@ export default function DataProductPage() {
               <div className="order-2 lg:order-1">
                 <CodeBlock
                   title="GET /v1/nfts/owned"
-                  code={`curl "https://api.bootnode.dev/v1/nfts/owned?\\
+                  code={`curl "https://api.hanzo.ai/v1/nfts/owned?\\
   address=0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045&\\
   chain=ethereum&limit=2" \\
   -H "X-API-Key: YOUR_API_KEY"
@@ -162,7 +162,7 @@ export default function DataProductPage() {
       "standard": "ERC-721",
       "collection": "Bored Ape Yacht Club",
       "name": "BAYC #8520",
-      "image": "https://media.bootnode.dev/ipfs/Qm...",
+      "image": "https://media.hanzo.ai/ipfs/Qm...",
       "attributes": [
         { "trait_type": "Fur", "value": "Dark Brown" },
         { "trait_type": "Eyes", "value": "Bored" }
@@ -239,7 +239,7 @@ export default function DataProductPage() {
               </div>
               <CodeBlock
                 title="GET /v1/transfers"
-                code={`curl "https://api.bootnode.dev/v1/transfers?\\
+                code={`curl "https://api.hanzo.ai/v1/transfers?\\
   address=0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045&\\
   chain=ethereum&category=erc20&limit=2" \\
   -H "X-API-Key: YOUR_API_KEY"

@@ -193,14 +193,14 @@ export default function SecurityPage() {
                   <p>
                     We value the security research community and welcome responsible
                     disclosure of vulnerabilities. If you discover a security issue in
-                    Bootnode, please report it to us privately so we can address it before
+                    Hanzo Web3, please report it to us privately so we can address it before
                     public disclosure.
                   </p>
                   <h4 className="font-semibold text-foreground">Scope</h4>
                   <ul className="ml-4 list-disc space-y-1">
-                    <li>Bootnode API endpoints (api.bootnode.dev)</li>
-                    <li>Bootnode dashboard (bootnode.dev/dashboard)</li>
-                    <li>Bootnode documentation site (bootnode.dev/docs)</li>
+                    <li>Hanzo API endpoints (api.hanzo.ai)</li>
+                    <li>Hanzo dashboard (web3.hanzo.ai/dashboard)</li>
+                    <li>Hanzo documentation site (web3.hanzo.ai/docs)</li>
                     <li>Authentication and authorization systems</li>
                     <li>Webhook delivery and signature verification</li>
                   </ul>
@@ -216,10 +216,10 @@ export default function SecurityPage() {
                   <p>
                     Send vulnerability reports to{" "}
                     <a
-                      href="mailto:security@bootnode.dev"
+                      href="mailto:security@hanzo.ai"
                       className="text-primary hover:underline"
                     >
-                      security@bootnode.dev
+                      security@hanzo.ai
                     </a>
                     . Include a detailed description, steps to reproduce, and any proof-of-concept
                     code. We will acknowledge receipt within 24 hours and provide an initial

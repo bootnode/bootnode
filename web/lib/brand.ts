@@ -144,8 +144,8 @@ function getBrandKey(): string {
     if (hostname.includes("zoo.ngo")) return "zoo"
   }
 
-  // Default to bootnode
-  return "bootnode"
+  // Default to hanzo for production
+  return "hanzo"
 }
 
 // Export the active brand configuration

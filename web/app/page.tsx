@@ -6,6 +6,7 @@ import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { ChainGrid } from "@/components/chain-grid"
 import { CodeDemo } from "@/components/code-demo"
+import { getBrand } from "@/lib/brand"
 import {
   ArrowRight,
   Blocks,
@@ -18,6 +19,8 @@ import {
   Webhook,
   Zap,
 } from "lucide-react"
+
+const brand = getBrand()
 
 export default function HomePage() {
   return (
@@ -42,7 +45,7 @@ export default function HomePage() {
             <p className="mt-6 max-w-2xl text-lg text-muted-foreground md:text-xl">
               The complete blockchain development platform. Multi-chain RPC, Token
               APIs, NFT APIs, Smart Wallets, Account Abstraction, and more. Ship
-              faster with Bootnode.
+              faster with {brand.name}.
             </p>
             <div className="mt-10 flex flex-col gap-4 sm:flex-row">
               <Button size="xl" asChild>
@@ -67,7 +70,7 @@ export default function HomePage() {
               Everything you need to build Web3
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              From RPC endpoints to account abstraction, Bootnode provides the
+              From RPC endpoints to account abstraction, {brand.name} provides the
               complete infrastructure stack for blockchain developers.
             </p>
           </div>
@@ -175,14 +178,14 @@ export default function HomePage() {
               Guides to get started
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              Learn how to integrate Bootnode into your project with our
+              Learn how to integrate {brand.name} into your project with our
               comprehensive guides and tutorials.
             </p>
           </div>
           <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             <GuideCard
               title="Blockchain Basics"
-              description="Get started by learning how to connect your app to Ethereum using Bootnode's JSON-RPC API."
+              description="Get started by learning how to connect your app to Ethereum using our JSON-RPC API."
               href="/docs/quickstart"
               badge="Quickstart"
             />
@@ -283,7 +286,7 @@ export default function HomePage() {
                 Ready to build the future?
               </h2>
               <p className="mt-4 text-lg text-white/80">
-                Join thousands of developers building on Bootnode. Get started for
+                Join thousands of developers building on {brand.name}. Get started for
                 free with 100M compute units per month.
               </p>
               <div className="mt-10 flex flex-col justify-center gap-4 sm:flex-row">

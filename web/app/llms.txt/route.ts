@@ -1,8 +1,14 @@
-export async function GET() {
-  const content = `# Bootnode
-## Blockchain Infrastructure for Developers
+import { getBrand } from "@/lib/brand"
 
-> The complete blockchain development platform. Multi-chain RPC, Token APIs, NFT APIs, Smart Wallets, Webhooks, and more.
+export async function GET() {
+  const brand = getBrand()
+  const apiDomain = brand.name === "Hanzo" ? "api.hanzo.ai" : `api.${brand.domain}`
+  const docsDomain = brand.name === "Hanzo" ? "web3.hanzo.ai" : brand.domain
+
+  const content = `# ${brand.name}
+## ${brand.tagline}
+
+> ${brand.description}
 
 ## Products
 - Node: Multi-chain RPC with 99.999% uptime across 100+ chains
@@ -14,7 +20,7 @@ export async function GET() {
 - Rollups: Launch custom rollups
 
 ## API Base URL
-https://api.bootnode.dev/v1
+https://${apiDomain}/v1
 
 ## Authentication
 X-API-Key: <your-api-key>
@@ -43,7 +49,7 @@ X-API-Key: <your-api-key>
 Ethereum, Solana, Base, Arbitrum, Polygon, Optimism, Avalanche, BNB Smart Chain, Lux Network, and 90+ more.
 
 ## Documentation
-https://bootnode.dev/docs
+https://${docsDomain}/docs
 `
   return new Response(content, {
     headers: { "Content-Type": "text/plain; charset=utf-8" },
