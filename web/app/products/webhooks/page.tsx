@@ -1,3 +1,5 @@
+"use client"
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -20,8 +22,12 @@ import {
   Webhook,
   Zap,
 } from "lucide-react"
+import { getBrand } from "@/lib/brand"
+import { docsConfig } from "@/lib/docs-config"
 
 export default function WebhooksProductPage() {
+  const brand = getBrand()
+
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
@@ -133,7 +139,7 @@ export default function WebhooksProductPage() {
               Built for production reliability
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              Webhooks are critical infrastructure. Bootnode delivers them with
+              Webhooks are critical infrastructure. {brand.name} delivers them with
               the reliability and security your application demands.
             </p>
           </div>
@@ -141,7 +147,7 @@ export default function WebhooksProductPage() {
             <FeatureCard
               icon={<Shield className="h-6 w-6" />}
               title="HMAC-SHA256 Signing"
-              description="Every webhook payload is signed with your secret key using HMAC-SHA256. Verify the X-Bootnode-Signature header to confirm authenticity and prevent spoofing."
+              description={`Every webhook payload is signed with your secret key using HMAC-SHA256. Verify the X-${brand.name.replace(/\s+/g, "-")}-Signature header to confirm authenticity and prevent spoofing.`}
             />
             <FeatureCard
               icon={<RefreshCw className="h-6 w-6" />}
@@ -182,7 +188,7 @@ export default function WebhooksProductPage() {
               </h2>
               <p className="mt-4 text-lg text-muted-foreground">
                 Create a webhook from the dashboard or API. When an event fires,
-                Bootnode sends a JSON POST to your URL. Verify the HMAC
+                {brand.name} sends a JSON POST to your URL. Verify the HMAC
                 signature and process the event.
               </p>
               <ul className="mt-8 space-y-3">
@@ -203,50 +209,10 @@ export default function WebhooksProductPage() {
             <div className="flex flex-col gap-4">
               <CodeBlock
                 title="Webhook Payload"
-                code={`POST /your-endpoint HTTP/1.1
-Content-Type: application/json
-X-Bootnode-Signature: sha256=a1b2c3d4e5...
-X-Bootnode-Event: TOKEN_TRANSFER
-X-Bootnode-Idempotency-Key: evt_01HZ3K...
-
-{
-  "id": "evt_01HZ3KQWERTY...",
-  "type": "TOKEN_TRANSFER",
-  "createdAt": "2025-01-15T14:23:01.456Z",
-  "chain": "ethereum",
-  "chainId": 1,
-  "data": {
-    "blockNumber": 19234567,
-    "transactionHash": "0x3a1b...",
-    "logIndex": 42,
-    "from": "0xd8dA6BF2...",
-    "to": "0x7a250d56...",
-    "token": {
-      "address": "0xA0b8...ec7",
-      "symbol": "USDC",
-      "decimals": 6
-    },
-    "value": "50000000000",
-    "valueFormatted": "50000.0"
-  }
-}`}
+                brandName={brand.name}
               />
-              <CodeBlock
+              <CodeBlock2
                 title="Verify Signature (Node.js)"
-                code={`import crypto from "node:crypto";
-
-function verifyWebhook(payload, signature, secret) {
-  const expected = crypto
-    .createHmac("sha256", secret)
-    .update(payload)
-    .digest("hex");
-
-  const sig = signature.replace("sha256=", "");
-  return crypto.timingSafeEqual(
-    Buffer.from(sig, "hex"),
-    Buffer.from(expected, "hex")
-  );
-}`}
               />
             </div>
           </div>
@@ -270,7 +236,7 @@ function verifyWebhook(payload, signature, secret) {
             <StepCard
               step="2"
               title="Listen"
-              description="Bootnode monitors the blockchain in real time. When an event matches your filters, a signed JSON payload is queued for delivery."
+              description={`${brand.name} monitors the blockchain in real time. When an event matches your filters, a signed JSON payload is queued for delivery.`}
             />
             <StepCard
               step="3"
@@ -280,7 +246,7 @@ function verifyWebhook(payload, signature, secret) {
             <StepCard
               step="4"
               title="Retry"
-              description="If delivery fails, Bootnode retries with exponential backoff up to 7 times. Failed events are visible in your delivery log dashboard."
+              description={`If delivery fails, ${brand.name} retries with exponential backoff up to 7 times. Failed events are visible in your delivery log dashboard.`}
             />
           </div>
         </div>
@@ -416,7 +382,64 @@ function StepCard({
   )
 }
 
-function CodeBlock({ title, code }: { title: string; code: string }) {
+function CodeBlock({ title, brandName }: { title: string; brandName: string }) {
+  const headerName = `X-${brandName.replace(/\s+/g, "-")}-Signature`
+  const code = `POST /your-endpoint HTTP/1.1
+Content-Type: application/json
+${headerName}: sha256=a1b2c3d4e5...
+X-Webhook-Event: TOKEN_TRANSFER
+X-Webhook-Idempotency-Key: evt_01HZ3K...
+
+{
+  "id": "evt_01HZ3KQWERTY...",
+  "type": "TOKEN_TRANSFER",
+  "createdAt": "2025-01-15T14:23:01.456Z",
+  "chain": "ethereum",
+  "chainId": 1,
+  "data": {
+    "blockNumber": 19234567,
+    "transactionHash": "0x3a1b...",
+    "logIndex": 42,
+    "from": "0xd8dA6BF2...",
+    "to": "0x7a250d56...",
+    "token": {
+      "address": "0xA0b8...ec7",
+      "symbol": "USDC",
+      "decimals": 6
+    },
+    "value": "50000000000",
+    "valueFormatted": "50000.0"
+  }
+}`
+  return (
+    <div className="overflow-hidden rounded-xl border bg-card">
+      <div className="flex items-center border-b px-4 py-2">
+        <span className="text-xs font-medium text-muted-foreground">
+          {title}
+        </span>
+      </div>
+      <pre className="overflow-x-auto p-4 text-sm leading-relaxed">
+        <code>{code}</code>
+      </pre>
+    </div>
+  )
+}
+
+function CodeBlock2({ title }: { title: string }) {
+  const code = `import crypto from "node:crypto";
+
+function verifyWebhook(payload, signature, secret) {
+  const expected = crypto
+    .createHmac("sha256", secret)
+    .update(payload)
+    .digest("hex");
+
+  const sig = signature.replace("sha256=", "");
+  return crypto.timingSafeEqual(
+    Buffer.from(sig, "hex"),
+    Buffer.from(expected, "hex")
+  );
+}`
   return (
     <div className="overflow-hidden rounded-xl border bg-card">
       <div className="flex items-center border-b px-4 py-2">

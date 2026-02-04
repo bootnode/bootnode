@@ -13,6 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useAuth, ProtectedRoute, OrgBadge } from "@/lib/auth"
 import { Activity, Server, Globe, Users, Database, Zap, Shield, Network, MapPin, Plus, Settings, Trash2, Eye, BarChart3 } from "lucide-react"
+import { getBrand } from "@/lib/brand"
 
 // Donut Chart Component (Modern replacement for D3 donut)
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts"
@@ -55,12 +56,13 @@ function NetworkMap({ nodes }: { nodes: any[] }) {
 
 // Node Management - Complete feature from legacy /dash/nodes
 function NodeManagement() {
+  const brand = getBrand()
   const [nodes, setNodes] = useState([
     {
       id: "node-1",
       name: "Ethereum Mainnet",
       blockchain: "ethereum",
-      network: "mainnet", 
+      network: "mainnet",
       status: "Running",
       ip: "34.102.136.180",
       zone: "us-central1-a",
@@ -73,13 +75,13 @@ function NodeManagement() {
       instances: [{ status: "Running" }]
     },
     {
-      id: "node-2", 
+      id: "node-2",
       name: "Polygon Mainnet",
       blockchain: "polygon",
       network: "mainnet",
       status: "Running",
       ip: "35.246.158.51",
-      zone: "europe-west6-a", 
+      zone: "europe-west6-a",
       provider: "google",
       blockNumber: 51200000,
       blockHash: "0xe5f6g7h8...",
@@ -96,7 +98,7 @@ function NodeManagement() {
       status: "Pending",
       ip: "104.199.85.192",
       zone: "asia-east2-a",
-      provider: "google", 
+      provider: "google",
       blockNumber: 162000000,
       blockHash: "0xi9j0k1l2...",
       peers: 67,
@@ -125,7 +127,7 @@ function NodeManagement() {
       'private-cloud': 'Hanzo Private Cloud',
       'google': 'Google Cloud',
       'amazon': 'Amazon AWS',
-      'azure': 'Microsoft Azure', 
+      'azure': 'Microsoft Azure',
       'digitalocean': 'DigitalOcean'
     }
 
@@ -144,7 +146,7 @@ function NodeManagement() {
           <div className="space-y-4">
             <div>
               <label className="text-sm font-medium">Blockchain</label>
-              <select 
+              <select
                 className="w-full mt-1 p-2 border rounded"
                 value={formData.blockchain}
                 onChange={(e) => setFormData({...formData, blockchain: e.target.value})}
@@ -156,10 +158,10 @@ function NodeManagement() {
                 <option value="base">Base</option>
               </select>
             </div>
-            
+
             <div>
               <label className="text-sm font-medium">Network</label>
-              <select 
+              <select
                 className="w-full mt-1 p-2 border rounded"
                 value={formData.network}
                 onChange={(e) => setFormData({...formData, network: e.target.value})}
@@ -171,7 +173,7 @@ function NodeManagement() {
 
             <div>
               <label className="text-sm font-medium">Provider</label>
-              <select 
+              <select
                 className="w-full mt-1 p-2 border rounded"
                 value={formData.provider}
                 onChange={(e) => setFormData({...formData, provider: e.target.value})}
@@ -184,7 +186,7 @@ function NodeManagement() {
 
             <div>
               <label className="text-sm font-medium">Region</label>
-              <select 
+              <select
                 className="w-full mt-1 p-2 border rounded"
                 value={formData.region}
                 onChange={(e) => setFormData({...formData, region: e.target.value})}
@@ -195,7 +197,7 @@ function NodeManagement() {
               </select>
             </div>
 
-            <Button 
+            <Button
               onClick={() => {
                 // Add node creation logic
                 setShowNewNodeForm(false)
@@ -289,8 +291,8 @@ function NodeManagement() {
                   <TableCell>{node.latency}</TableCell>
                   <TableCell>
                     <div className="flex space-x-1">
-                      <Button 
-                        variant="ghost" 
+                      <Button
+                        variant="ghost"
                         size="sm"
                         onClick={() => {
                           setSelectedNode(node)
@@ -299,8 +301,8 @@ function NodeManagement() {
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button 
-                        variant="ghost" 
+                      <Button
+                        variant="ghost"
                         size="sm"
                         onClick={() => deleteNode(node)}
                       >
@@ -377,8 +379,8 @@ function NetworkOverview() {
                   <span className="font-medium">{network.health}%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-1.5">
-                  <div 
-                    className="bg-green-600 h-1.5 rounded-full" 
+                  <div
+                    className="bg-green-600 h-1.5 rounded-full"
                     style={{ width: `${network.health}%` }}
                   ></div>
                 </div>
@@ -602,6 +604,7 @@ function AdminUserProfile() {
 
 // Main Admin Dashboard - Complete port with all features
 export default function AdminDashboard() {
+  const brand = getBrand()
   const [activeTab, setActiveTab] = useState("overview")
 
   return (
@@ -611,7 +614,7 @@ export default function AdminDashboard() {
           <div className="container mx-auto px-4">
             <div className="flex h-16 items-center justify-between">
               <div className="flex items-center space-x-4">
-                <h1 className="text-xl font-bold">Bootnode Admin</h1>
+                <h1 className="text-xl font-bold">{brand.name} Admin</h1>
                 <Badge variant="outline">All Legacy Features Ported</Badge>
               </div>
             </div>

@@ -4,11 +4,14 @@ import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { Badge } from "@/components/ui/badge"
 import { Shield } from "lucide-react"
+import { getBrand } from "@/lib/brand"
+
+const brand = getBrand()
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description:
-    "Bootnode Privacy Policy. Learn how we collect, use, and protect your personal information.",
+    `${brand.name} Privacy Policy. Learn how we collect, use, and protect your personal information.`,
 }
 
 export default function PrivacyPage() {

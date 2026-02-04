@@ -1,3 +1,5 @@
+"use client"
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -18,8 +20,12 @@ import {
   Wallet,
   Zap,
 } from "lucide-react"
+import { getBrand } from "@/lib/brand"
+import { docsConfig } from "@/lib/docs-config"
 
 export default function WalletsProductPage() {
+  const brand = getBrand()
+
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
@@ -144,7 +150,7 @@ export default function WalletsProductPage() {
               </h2>
               <p className="mt-4 text-lg text-muted-foreground">
                 Create a wallet, sponsor gas, and submit a transaction. The
-                Bootnode SDK handles UserOperation bundling, paymaster
+                {brand.name} SDK handles UserOperation bundling, paymaster
                 signatures, and EntryPoint interaction under the hood.
               </p>
               <ul className="mt-8 space-y-3">
@@ -168,7 +174,7 @@ export default function WalletsProductPage() {
                 code={`import { BootnodeClient } from "@bootnode/sdk";
 
 const client = new BootnodeClient({
-  apiKey: "YOUR_API_KEY",
+  apiKey: "${docsConfig.apiKeyPrefix}YOUR_API_KEY",
   chain: "base",
 });
 
@@ -187,7 +193,7 @@ const txHash = await client.wallets.sendTransaction({
   to: "0xRecipient...",
   data: "0x",
   value: "1000000000000000", // 0.001 ETH
-  sponsor: true, // Bootnode pays the gas
+  sponsor: true, // ${brand.name} pays the gas
 });
 
 console.log(txHash);
@@ -206,7 +212,7 @@ console.log(txHash);
               How it works under the hood
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              Bootnode Smart Wallets are ERC-4337 smart contract accounts.
+              {brand.name} Smart Wallets are ERC-4337 smart contract accounts.
               Here is what happens when your user sends a transaction.
             </p>
           </div>
@@ -219,12 +225,12 @@ console.log(txHash);
             <StepCard
               step="2"
               title="Build UserOp"
-              description="The Bootnode SDK constructs a UserOperation with the call data, gas limits, and paymaster signature for gas sponsorship."
+              description={`The ${brand.name} SDK constructs a UserOperation with the call data, gas limits, and paymaster signature for gas sponsorship.`}
             />
             <StepCard
               step="3"
               title="Bundle & Submit"
-              description="The Bootnode bundler batches the UserOperation with others and submits it to the EntryPoint contract on chain."
+              description={`The ${brand.name} bundler batches the UserOperation with others and submits it to the EntryPoint contract on chain.`}
             />
             <StepCard
               step="4"

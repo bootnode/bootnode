@@ -4,11 +4,14 @@ import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { Badge } from "@/components/ui/badge"
 import { FileText } from "lucide-react"
+import { getBrand } from "@/lib/brand"
+
+const brand = getBrand()
 
 export const metadata: Metadata = {
   title: "Terms of Service",
   description:
-    "Bootnode Terms of Service. The terms and conditions governing your use of the Bootnode platform.",
+    `${brand.name} Terms of Service. The terms and conditions governing your use of the ${brand.name} platform.`,
 }
 
 export default function TermsPage() {
@@ -43,9 +46,9 @@ export default function TermsPage() {
                 <h2 className="text-xl font-semibold text-foreground">1. Agreement to Terms</h2>
                 <p className="mt-3">
                   These Terms of Service (&quot;Terms&quot;) constitute a legally binding agreement
-                  between you (&quot;you&quot; or &quot;Customer&quot;) and Hanzo AI, Inc. (&quot;Bootnode,&quot;
+                  between you (&quot;you&quot; or &quot;Customer&quot;) and Hanzo AI, Inc. (&quot;{brand.name},&quot;
                   &quot;we,&quot; &quot;us,&quot; or &quot;our&quot;), governing your access to and use of the
-                  bootnode.dev website, APIs, documentation, and related services
+                  {brand.domain} website, APIs, documentation, and related services
                   (collectively, the &quot;Service&quot;).
                 </p>
                 <p className="mt-3">
@@ -59,7 +62,7 @@ export default function TermsPage() {
               <div>
                 <h2 className="text-xl font-semibold text-foreground">2. Description of Service</h2>
                 <p className="mt-3">
-                  Bootnode provides blockchain infrastructure services including, but not
+                  {brand.name} provides blockchain infrastructure services including, but not
                   limited to:
                 </p>
                 <ul className="mt-2 ml-4 list-disc space-y-1">
@@ -155,7 +158,7 @@ export default function TermsPage() {
               <div>
                 <h2 className="text-xl font-semibold text-foreground">6. Service Level Agreement</h2>
                 <p className="mt-3">
-                  For paid plans, Bootnode targets the following service levels:
+                  For paid plans, {brand.name} targets the following service levels:
                 </p>
                 <ul className="mt-2 ml-4 list-disc space-y-1">
                   <li>
@@ -185,7 +188,7 @@ export default function TermsPage() {
                 <h2 className="text-xl font-semibold text-foreground">7. Intellectual Property</h2>
                 <p className="mt-3">
                   The Service, including its software, documentation, APIs, trademarks, and
-                  content, is owned by Bootnode and protected by intellectual property laws.
+                  content, is owned by {brand.name} and protected by intellectual property laws.
                   We grant you a limited, non-exclusive, non-transferable, revocable license
                   to use the Service in accordance with these Terms.
                 </p>
@@ -250,7 +253,7 @@ export default function TermsPage() {
                   UNINTERRUPTED, ERROR-FREE, OR COMPLETELY SECURE.
                 </p>
                 <p className="mt-3">
-                  Bootnode does not guarantee the accuracy, completeness, or timeliness of
+                  {brand.name} does not guarantee the accuracy, completeness, or timeliness of
                   blockchain data provided through the Service. You are responsible for
                   independently verifying any data critical to your application.
                 </p>
@@ -259,7 +262,7 @@ export default function TermsPage() {
               <div>
                 <h2 className="text-xl font-semibold text-foreground">12. Indemnification</h2>
                 <p className="mt-3">
-                  You agree to indemnify, defend, and hold harmless Bootnode and its
+                  You agree to indemnify, defend, and hold harmless {brand.name} and its
                   officers, directors, employees, and agents from any claims, damages,
                   losses, liabilities, and expenses (including reasonable attorney fees)
                   arising from: (a) your use of the Service; (b) your violation of these
@@ -317,7 +320,7 @@ export default function TermsPage() {
                   <li>
                     <strong className="text-foreground">Entire Agreement:</strong> These Terms, together with the
                     Privacy Policy and any applicable enterprise agreement, constitute the
-                    entire agreement between you and Bootnode regarding the Service.
+                    entire agreement between you and {brand.name} regarding the Service.
                   </li>
                   <li>
                     <strong className="text-foreground">Severability:</strong> If any provision of these Terms is found
@@ -352,10 +355,10 @@ export default function TermsPage() {
                   <p className="mt-1">
                     Email:{" "}
                     <a
-                      href="mailto:legal@bootnode.dev"
+                      href={`mailto:legal@${brand.domain}`}
                       className="text-primary hover:underline"
                     >
-                      legal@bootnode.dev
+                      legal@{brand.domain}
                     </a>
                   </p>
                   <p>San Francisco, California, United States</p>

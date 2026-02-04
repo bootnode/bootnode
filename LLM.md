@@ -1,8 +1,17 @@
-# Bootnode - Blockchain Development Platform
+# Hanzo Web3 - Blockchain Development Platform
 
 ## Project Overview
 
-**Bootnode** is a blockchain development platform providing infrastructure APIs for building Web3 applications. The platform enables developers to interact with multiple blockchains through unified APIs - similar to Alchemy, Infura, or QuickNode but with Hanzo AI's focus on developer experience.
+**Hanzo Web3** is a blockchain development platform providing enterprise infrastructure APIs for building Web3 applications. The platform enables developers to interact with multiple blockchains through unified APIs - similar to Alchemy, Infura, or QuickNode but powered by Hanzo AI.
+
+### White-Label Deployments
+This codebase supports white-labeling for different brands:
+- **Hanzo Web3** (default): web3.hanzo.ai - Enterprise blockchain infrastructure
+- **Lux Cloud**: lux.cloud - Lux Network ecosystem infrastructure
+- **Zoo Labs**: web3.zoo.ngo - Decentralized AI infrastructure
+- **Bootnode**: bootnode.dev - Standalone deployment (legacy)
+
+Brand is auto-detected from domain or via `NEXT_PUBLIC_BRAND` environment variable.
 
 ## Current State Analysis
 
@@ -195,6 +204,40 @@ GET  /v1/gas/policies
 POST /v1/gas/policies
 ```
 
+#### Infrastructure Management API
+```
+# Kubernetes Clusters
+GET    /v1/infra/clusters                    # List clusters
+POST   /v1/infra/clusters                    # Create cluster
+GET    /v1/infra/clusters/{id}               # Get cluster details
+DELETE /v1/infra/clusters/{id}               # Delete cluster
+POST   /v1/infra/clusters/{id}/scale         # Scale node count
+GET    /v1/infra/clusters/{id}/kubeconfig    # Download kubeconfig
+
+# Persistent Volumes
+GET    /v1/infra/volumes                     # List volumes
+POST   /v1/infra/volumes                     # Create volume
+GET    /v1/infra/volumes/{id}                # Get volume details
+DELETE /v1/infra/volumes/{id}                # Delete volume
+POST   /v1/infra/volumes/{id}/attach         # Attach to cluster
+POST   /v1/infra/volumes/{id}/detach         # Detach from cluster
+POST   /v1/infra/volumes/{id}/resize         # Resize volume
+
+# Snapshots
+GET    /v1/infra/snapshots                   # List snapshots
+POST   /v1/infra/snapshots                   # Create snapshot
+DELETE /v1/infra/snapshots/{id}              # Delete snapshot
+
+# Storage Cloning (copy-on-write for fast provisioning)
+GET    /v1/infra/clone                       # List clone jobs
+POST   /v1/infra/clone                       # Clone volume or snapshot
+GET    /v1/infra/clone/{id}                  # Get clone status
+DELETE /v1/infra/clone/{id}                  # Cancel clone
+
+# Infrastructure Stats
+GET    /v1/infra/stats                       # Overall stats
+```
+
 ### Database Schema (PostgreSQL)
 ```sql
 -- API Keys & Projects
@@ -253,6 +296,63 @@ CREATE TABLE usage (
 | debug_*, trace_* | 100+ |
 | NFT/Token API calls | 5-25 |
 
+## E2E Test Status (2026-02-02)
+
+All systems tested and operational:
+
+| Component | Status | Details |
+|-----------|--------|---------|
+| API Health | ✅ | healthy, v2.0.0 |
+| RPC Ethereum | ✅ | Block 0x173e276 |
+| RPC Polygon | ✅ | Block 0x4ea72d1 |
+| RPC Arbitrum | ✅ | Block 0x1982512d |
+| RPC Base | ✅ | Block 0x27b5c63 |
+| RPC Optimism | ✅ | Block 0x8c69df8 |
+| Chains API | ✅ | 10 chains supported |
+| Token API | ✅ | USDC metadata verified |
+| Gas API | ✅ | Real-time gas prices |
+| Wallets API | ✅ | Smart wallet creation working |
+| Webhooks API | ✅ | Webhook creation working |
+| Auth/Keys API | ✅ | API key management working |
+| ZAP Protocol | ✅ | Integration active |
+| Infra: Clusters | ✅ | K8s cluster management working |
+| Infra: Volumes | ✅ | Persistent volume management working |
+| Infra: Snapshots | ✅ | Snapshot creation working |
+| Infra: Cloning | ✅ | Rapid storage cloning working |
+| Dashboard | ✅ | All pages return 200 |
+
+## Hanzo Infrastructure Status (2026-02-03)
+
+### Active Services (Production)
+| Service | URL | Status | Description |
+|---------|-----|--------|-------------|
+| IAM | https://hanzo.id | ✅ 200 | Hanzo Identity (Casdoor SSO) |
+| App Builder | https://hanzo.app | ✅ 200 | AI-powered app builder |
+| KMS | kms.hanzo.ai (internal) | ✅ OK | Key Management Service (Infisical) |
+| MinIO | internal | ✅ | Object storage |
+| MongoDB | internal | ✅ | Document database |
+| PostgreSQL | internal | ✅ | Relational database |
+| Redis | internal | ✅ | Cache & message queue |
+| Monitor | internal | ✅ | GitOps monitoring |
+| Sync | internal | ✅ | GitOps sync |
+
+### Pending Deployment
+- **Cloud/LLM** (casibase): Requires IAM application configuration
+- **Commerce**: For unified billing with Square
+- **KMS External Access**: Needs Cloudflare SSL configuration (Flexible mode)
+
+### Scaled Down (Image Issues)
+- platform, studio, webhook: ghcr.io/hanzoai images unavailable
+
+### Infrastructure Configuration
+- **Kubernetes**: DigitalOcean DOKS
+- **LoadBalancer**: 24.199.76.156 (nginx-ingress)
+- **SSL**: Let's Encrypt via cert-manager (pending for some domains due to Cloudflare)
+- **Databases**:
+  - IAM: Managed DigitalOcean PostgreSQL
+  - KMS/Bootnode: In-cluster PostgreSQL
+- **Secrets**: ROOT_ENCRYPTION_KEY (base64-encoded 32-byte key for AES-256-GCM)
+
 ## Implementation Progress
 
 ### Phase 1: Core Infrastructure ✅ COMPLETE
@@ -268,20 +368,27 @@ CREATE TABLE usage (
 - [x] NFT API (collections, ownership, metadata)
 - [x] Transfers API (transaction history)
 - [x] Webhook system with RabbitMQ
-- [x] Usage tracking via DataStore (ClickHouse)
+- [x] Usage tracking via DataStore (Hanzo Datastore)
 
 ### Phase 3: Account Abstraction ✅ COMPLETE
-- [x] ERC-4337 bundler implementation
-- [x] Smart wallet creation & management
-- [x] Gas manager / paymaster policies
+- [x] ERC-4337 bundler with spec-compliant keccak256 userOpHash (eth-abi encoding)
+- [x] Smart wallet CREATE2 address computation (keccak256, not sha256)
+- [x] Gas manager with paymasterAndData structure (validity window + signature)
 - [x] UserOp simulation & estimation
+- [x] Webhook delivery with exponential backoff retry (arq)
+- [x] Webhook delivery cleanup cron (30-day retention)
+- [x] NFT metadata refresh queued via arq/Redis
 
 ### Phase 4: Infrastructure ✅ COMPLETE
 - [x] Docker Compose full stack
 - [x] Kubernetes manifests with HPA/PDB
 - [x] Multi-cloud deployment (AWS, GCP, Azure, DigitalOcean)
-- [x] DataStore (ClickHouse) for high-performance analytics
+- [x] DataStore (Hanzo Datastore) for high-performance analytics
 - [x] Multi-chain indexer (forked from lux/indexer)
+- [x] K8s cluster management API (/v1/infra/clusters)
+- [x] Persistent volume management API (/v1/infra/volumes)
+- [x] Snapshot management API (/v1/infra/snapshots)
+- [x] Rapid storage cloning API (/v1/infra/clone) - copy-on-write
 
 ## Development Commands
 
@@ -345,9 +452,98 @@ POLYGON_MAINNET_RPC=https://polygon-mainnet.g.alchemy.com/v2/...
 JWT_SECRET=...
 API_KEY_SALT=...
 
+# Hanzo KMS (Secret Management)
+HANZO_KMS_URL=https://kms.hanzo.ai
+HANZO_KMS_ORG=hanzo
+HANZO_KMS_PROJECT=bootnode
+HANZO_KMS_ENV=production
+HANZO_KMS_CLIENT_ID=...
+HANZO_KMS_CLIENT_SECRET=...
+
+# Hanzo IAM (Authentication)
+HANZO_IAM_URL=https://hanzo.id
+HANZO_IAM_ORG=HANZO
+HANZO_IAM_CLIENT_ID=...
+HANZO_IAM_CLIENT_SECRET=...
+
 # External Services
 IPFS_GATEWAY=https://ipfs.io/ipfs/
 ```
+
+## Hanzo KMS Integration (2026-02-02)
+
+Bootnode uses Hanzo KMS for centralized secret management with multi-tenant support.
+
+### SDK Location
+- **hanzo-kms**: `~/work/hanzo/python-sdk/pkg/hanzo-kms/`
+- **hanzo-iam**: `~/work/hanzo/python-sdk/pkg/hanzo-iam/`
+
+### Multi-Tenancy Support
+KMS supports organization-scoped secrets via the `X-Org-Name` header:
+- `hanzo` - Hanzo AI organization
+- `zoo` - Zoo Labs Foundation
+- `lux` - Lux Network
+- `pars` - Pars organization
+
+### Usage in Bootnode
+```python
+from bootnode.core.kms import get_secret, inject_secrets
+
+# At startup (in main.py)
+inject_secrets()  # Loads secrets from KMS into environment
+
+# Get individual secret
+db_url = get_secret("DATABASE_URL", default="postgresql://...")
+```
+
+### Kubernetes Integration
+The KMS operator syncs secrets from Hanzo KMS to K8s secrets:
+- CRD: `KMSSecret` - Defines which secrets to sync
+- Secrets are auto-injected as environment variables
+- No need for KMS credentials in K8s (operator handles auth)
+
+## Authentication System
+
+Bootnode supports dual-mode authentication:
+
+### Development Mode (Local)
+- **Endpoint**: `POST /v1/auth/register` - Create new user account
+- **Endpoint**: `POST /v1/auth/login` - Login with email/password
+- **Endpoint**: `GET /v1/auth/me` - Get current authenticated user
+- **Storage**: bcrypt-hashed passwords in PostgreSQL users table
+- **Token**: JWT with 24-hour expiration
+
+```bash
+# Register
+curl -X POST http://localhost:8100/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user@example.com","password":"password123","name":"User Name"}'
+
+# Login
+curl -X POST http://localhost:8100/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user@example.com","password":"password123"}'
+
+# Get current user
+curl http://localhost:8100/v1/auth/me \
+  -H "Authorization: Bearer <token>"
+```
+
+### Production Mode (Hanzo IAM)
+- **IdP**: hanzo.id, zoo.id, lux.id, pars.id
+- **Protocol**: OAuth2/OIDC
+- **Endpoint**: `POST /v1/auth/oauth/callback` - Exchange auth code for token
+- **Multi-tenant**: Supports Hanzo, Zoo Labs, Lux Network, Pars orgs
+
+### Frontend Auth Flow
+- `web/lib/auth.tsx` - AuthProvider context with login/register/logout
+- `web/app/login/page.tsx` - Dual-mode login page (local dev vs IAM production)
+- `web/app/auth/callback/page.tsx` - OAuth callback handler
+- `ProtectedRoute` component redirects unauthenticated users to /login
+
+### Auth Detection
+- Development: `window.location.hostname === "localhost"`
+- Production: Any non-localhost hostname OR `NEXT_PUBLIC_AUTH_MODE=iam`
 
 ## Notes
 - Use uv for Python package management (per user preference)
@@ -365,7 +561,7 @@ bootnode/
 │       ├── api/                # API routes (rpc, tokens, nfts, etc.)
 │       ├── core/               # Business logic
 │       │   ├── cache/          # Redis caching
-│       │   └── datastore/      # ClickHouse client
+│       │   └── datastore/      # Hanzo Datastore client
 │       ├── db/                 # SQLAlchemy models
 │       ├── workers/            # Background workers (webhooks)
 │       └── ws/                 # WebSocket handlers
@@ -391,7 +587,7 @@ bootnode/
 
 ### Data Layer
 - **PostgreSQL**: Operational data (projects, API keys, webhooks, wallets)
-- **DataStore (ClickHouse)**: Analytics & indexed blockchain data (Hanzo's fork)
+- **DataStore (Hanzo Datastore)**: Analytics & indexed blockchain data (Hanzo's fork)
 - **Redis**: Caching, rate limiting, message queue (BullMQ/@hanzo/mq compatible via arq)
 - **VictoriaMetrics**: Time-series metrics (Hanzo's fork, replaces Prometheus)
 
@@ -429,7 +625,7 @@ docker compose --profile bundler up -d
 ### Key Files
 - `api/bootnode/config.py` - Application settings (datastore, redis MQ)
 - `api/bootnode/main.py` - FastAPI application entry
-- `api/bootnode/core/datastore/client.py` - ClickHouse client
+- `api/bootnode/core/datastore/client.py` - Hanzo Datastore client
 - `api/bootnode/workers/webhook.py` - Webhook delivery worker (arq/Redis-based)
 - `api/pyproject.toml` - Python dependencies (arq, aiochclient)
 - `infra/compose.yml` - Full Docker Compose stack (VictoriaMetrics, VMAgent)
@@ -437,3 +633,344 @@ docker compose --profile bundler up -d
 - `infra/monitoring/scrape.yml` - VMAgent scrape config
 - `infra/.env.example` - Environment variables template
 - `indexer/README.md` - Indexer documentation
+
+## Hanzo Platform Infrastructure
+
+### DigitalOcean Docker Swarm Deployment
+
+**Server**: `hanzo-platform` (165.227.92.111)
+- Docker Swarm Manager node
+- Ubuntu with Docker
+- SSH key: hanzo-platform@hanzo.ai
+
+**Stack Configuration**: `/opt/hanzo/stack.yml`
+
+### Services Running
+
+| Service | Domain | Status | Image |
+|---------|--------|--------|-------|
+| Platform | platform.hanzo.ai | ✅ Active | hanzoai/platform:latest |
+| Staging | staging.platform.hanzo.ai | ✅ Active | hanzoai/platform:latest |
+| LLM API | llm.hanzo.ai | ✅ Active | hanzoai/llm:latest |
+| Traefik | - | ✅ Active | traefik:v2.11 |
+| PostgreSQL | - | ✅ Active | postgres:16-alpine |
+| Redis | - | ✅ Active | redis:7-alpine |
+
+### Platform PaaS Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Docker Swarm Cluster                      │
+├─────────────────────────────────────────────────────────────┤
+│  ┌─────────────┐   ┌─────────────┐   ┌─────────────┐       │
+│  │   Traefik   │   │  Platform   │   │  Platform   │       │
+│  │  (global)   │   │  (2 repl)   │   │  Staging    │       │
+│  └──────┬──────┘   └──────┬──────┘   └──────┬──────┘       │
+│         │                  │                  │              │
+│         │  hanzo-network   │                  │              │
+│  ┌──────┴──────────────────┴──────────────────┴──────┐     │
+│  │                   Overlay Network                   │     │
+│  └──────┬──────────────────┬──────────────────┬──────┘     │
+│         │                  │                  │              │
+│  ┌──────┴──────┐   ┌──────┴──────┐   ┌──────┴──────┐       │
+│  │  PostgreSQL │   │    Redis    │   │ platform-   │       │
+│  │             │   │             │   │ network     │       │
+│  └─────────────┘   └─────────────┘   └──────┬──────┘       │
+│                                              │              │
+│                                      ┌───────┴───────┐     │
+│                                      │ Platform Apps │     │
+│                                      │  (LLM, etc)   │     │
+│                                      └───────────────┘     │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Traefik Configuration
+
+- **Docker provider**: Swarm mode for Platform services
+- **File provider**: `/etc/platform/traefik/dynamic/` for Platform-deployed apps
+- **Networks**: Connected to both `hanzo-network` and `platform-network`
+- **SSL**: Let's Encrypt ACME with HTTP challenge
+
+### Platform API
+
+- **URL**: https://platform.hanzo.ai
+- **Admin**: admin@hanzo.ai
+- **Organization**: Hanzo Services (aIwfYjsvHRtJEM2lZgc00)
+
+### Applications Configured
+
+| Application | App ID | Domain | Docker Image |
+|-------------|--------|--------|--------------|
+| Hanzo IAM | 2q38x48jAZ8P3RTeoPLIn | iam.hanzo.ai | hanzoai/iam:latest |
+| Hanzo Console | 6dY7lG_2Fi0Ki2EHDUTC2 | console.hanzo.ai | hanzoai/console:latest |
+| Hanzo Chat | -EwrYn-tplr1aE_f_OPqY | chat.hanzo.ai | hanzoai/chat:latest |
+| Hanzo Commerce | f9aw6D5KCq4Q8VQqxPGnL | commerce.hanzo.ai | hanzoai/commerce:latest |
+| Hanzo Analytics | sID_Yo2Lgc_zaG5y_YREf | analytics.hanzo.ai | hanzoai/analytics:latest |
+| Hanzo Gateway | YxpbUnqLPm8YZNq0T4ZeU | api.hanzo.ai | hanzoai/gateway:latest |
+| Hanzo LLM | bS2chI8EdueK-OWuqa3N- | llm.hanzo.ai | hanzoai/llm:latest |
+| Hanzo Mail | R1dgri7AR1fSAtK59HzsA | mail.hanzo.ai | hanzoai/mail:latest |
+
+### Docker Images Needed (amd64)
+
+Several applications need Docker images built for amd64:
+- `hanzoai/iam` - Not found on Docker Hub
+- `hanzoai/console` - Not found on Docker Hub
+- `hanzoai/commerce` - Not found on Docker Hub
+- `hanzoai/analytics` - Not found on Docker Hub
+- `hanzoai/chat` - Exists but arm64 only
+- `hanzoai/mail` - Exists, architecture unclear
+
+### Deployment Commands
+
+```bash
+# Deploy/Update stack
+ssh root@165.227.92.111 "cd /opt/hanzo && \
+  POSTGRES_PASSWORD='...' \
+  NEXTAUTH_SECRET='...' \
+  docker stack deploy -c stack.yml hanzo"
+
+# Add worker node
+doctl compute droplet create hanzo-worker-N \
+  --region nyc1 --size s-2vcpu-4gb \
+  --image docker-20-04 \
+  --user-data "docker swarm join --token SWMTKN-... 165.227.92.111:2377"
+
+# Check services
+ssh root@165.227.92.111 "docker service ls"
+
+# View logs
+ssh root@165.227.92.111 "docker service logs hanzo_platform"
+```
+
+### DNS Configuration (Cloudflare)
+
+Zone: hanzo.ai (bac51c3900e73fd28aa75a59898bcee0)
+- All subdomains → 165.227.92.111 (A record, proxied=false)
+- Subdomains: platform, staging.platform, iam, console, chat, commerce, analytics, api, llm, mail
+
+## CI/CD Pipeline
+
+### GitHub Actions Workflow
+
+The CI/CD pipeline is configured in `.github/workflows/ci.yml`:
+
+| Stage | Trigger | Description |
+|-------|---------|-------------|
+| test-api | push/PR | Run Python API tests with PostgreSQL + Redis |
+| test-web | push/PR | Build Next.js frontend |
+| e2e-test | after test-api, test-web | End-to-end API tests |
+| build-and-push | main branch only | Build & push Docker images to GHCR |
+| deploy | after build-and-push | Deploy to DOKS via kubectl |
+
+### Docker Images
+
+Images are pushed to Docker Hub (linux/amd64):
+- `hanzoai/bootnode:api-latest` - Python FastAPI backend
+- `hanzoai/bootnode:web-latest` - Next.js frontend
+- Build with: `docker buildx build --platform linux/amd64 -t hanzoai/bootnode:<tag> --push .`
+
+### Required GitHub Secrets
+
+Configure these in GitHub repo Settings → Secrets → Actions:
+
+| Secret | Description |
+|--------|-------------|
+| `DIGITALOCEAN_ACCESS_TOKEN` | DigitalOcean API token for DOKS access |
+| `K8S_CLUSTER_NAME` | DOKS cluster name (e.g., `hanzo-k8s`) |
+
+### Production URLs
+
+| Domain | Service | Description |
+|--------|---------|-------------|
+| web3.hanzo.ai | bootnode-web | Dashboard frontend |
+| api.web3.hanzo.ai | bootnode-api | REST API |
+| ws.web3.hanzo.ai | bootnode-api | WebSocket endpoint |
+
+### Production Deployment (2026-02-02)
+
+**Cluster**: do-sfo3-lux-k8s (DigitalOcean Kubernetes)
+**Namespace**: bootnode
+
+| Resource | Replicas | Image | Status |
+|----------|----------|-------|--------|
+| bootnode-api | 3 | hanzoai/bootnode:api-latest | ✅ Running |
+| bootnode-web | 2 | hanzoai/bootnode:web-latest | ✅ Running |
+
+**Docker Hub Registry**: Images pushed to `docker.io/hanzoai/bootnode` (linux/amd64)
+- `hanzoai/bootnode:api-latest` - FastAPI backend
+- `hanzoai/bootnode:web-latest` - Next.js frontend
+
+**Shared Infrastructure** (hanzo namespace):
+- PostgreSQL: postgres.hanzo.svc.cluster.local:5432
+- Redis: redis-master.hanzo.svc.cluster.local:6379
+- Hanzo IAM: iam.hanzo.ai (OAuth2/OIDC)
+
+### Kubernetes Resources
+
+Located in `infra/k8s/`:
+- `namespace.yaml` - bootnode namespace
+- `secrets.yaml` - Template for secrets (use kubectl to create real secrets)
+- `api-deployment.yaml` - API deployment, service, HPA, PDB
+- `web-deployment.yaml` - Web deployment, service, HPA
+- `ingress.yaml` - Ingress with TLS (cert-manager)
+
+### Manual Deployment
+
+```bash
+# Deploy with script
+cd infra/k8s && ./deploy.sh deploy
+
+# Check status
+./deploy.sh status
+
+# Rollback
+./deploy.sh rollback
+```
+
+### Creating Production Secrets
+
+```bash
+# Create secrets in cluster (never commit real values!)
+kubectl create secret generic bootnode-secrets \
+  --namespace bootnode \
+  --from-literal=database-url='postgresql+asyncpg://...' \
+  --from-literal=redis-url='redis://...' \
+  --from-literal=datastore-url='clickhouse://...' \
+  --from-literal=jwt-secret='$(openssl rand -hex 32)' \
+  --from-literal=api-key-salt='$(openssl rand -hex 16)'
+```
+
+### Hanzo Universe Integration
+
+Bootnode is also configured for deployment via Hanzo Universe infrastructure:
+- Located at: `~/work/hanzo/universe/infra/k8s/bootnode/`
+- Uses Kustomize for configuration management
+- Shares common labels with other Hanzo services
+
+## Blockchain Node Deployment
+
+Bootnode can deploy and manage real blockchain nodes via Docker.
+
+### Nodes API
+
+```bash
+# Check Docker availability
+GET /v1/nodes/docker/status
+
+# List all deployed nodes
+GET /v1/nodes/
+
+# Get node statistics
+GET /v1/nodes/stats
+
+# Deploy a new node
+POST /v1/nodes/
+{
+  "name": "ETH Sepolia",
+  "chain": "ethereum",
+  "network": "sepolia",
+  "provider": "docker"
+}
+
+# Get node details & metrics
+GET /v1/nodes/{node_id}
+
+# Start/Stop/Delete node
+POST /v1/nodes/{node_id}/start
+POST /v1/nodes/{node_id}/stop
+DELETE /v1/nodes/{node_id}
+
+# Proxy RPC calls through node
+POST /v1/nodes/{node_id}/rpc
+{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}
+```
+
+### Supported Chains for Node Deployment
+
+| Chain | Networks | Docker Image |
+|-------|----------|--------------|
+| Ethereum | mainnet, sepolia, holesky | ethereum/client-go:stable |
+| Bitcoin | mainnet, testnet | kylemanna/bitcoind:latest |
+| Solana | mainnet, devnet | solanalabs/solana:stable |
+| Polygon | mainnet | maticnetwork/bor:latest |
+| Arbitrum | mainnet | offchainlabs/nitro-node:latest |
+| Base | mainnet | us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:latest |
+
+### Node Deployment Features
+
+- **Dynamic Port Allocation**: Each node gets unique RPC/WS ports (8545, 8555, 8565...)
+- **Auto-Discovery**: API discovers existing bootnode containers on restart via Docker labels
+- **Real Metrics**: CPU/memory usage from Docker stats API
+- **Container Lifecycle**: Start, stop, delete via API
+- **RPC Proxy**: Forward JSON-RPC calls to deployed nodes
+
+### Docker Integration
+
+The API container requires Docker socket access to manage nodes:
+
+```yaml
+# compose.yml
+api:
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+  extra_hosts:
+    - "host.docker.internal:host-gateway"
+```
+
+Nodes are labeled for discovery:
+- `bootnode.managed=true`
+- `bootnode.chain=ethereum`
+- `bootnode.network=sepolia`
+- `bootnode.node_id={uuid}`
+
+## White-Label Branding System
+
+### Overview
+The frontend supports automatic white-labeling based on domain or environment variable. All user-facing text, logos, and URLs are brand-aware.
+
+### Brand Configuration Files
+- `web/lib/brand.ts` - Runtime brand detection and configuration
+- `web/lib/docs-config.ts` - Brand-aware documentation URLs
+- `web/components/brand-logo.tsx` - Theme-aware logo component
+- `brand/config.ts` - Standalone brand package exports
+
+### Supported Brands
+
+| Brand | Domain | IAM | Environment Variable |
+|-------|--------|-----|---------------------|
+| Hanzo Web3 | web3.hanzo.ai | hanzo.id | `NEXT_PUBLIC_BRAND=hanzo` (default) |
+| Lux Cloud | lux.cloud | lux.id | `NEXT_PUBLIC_BRAND=lux` |
+| Zoo Labs | web3.zoo.ngo | zoo.id | `NEXT_PUBLIC_BRAND=zoo` |
+| Bootnode | bootnode.dev | hanzo.id | `NEXT_PUBLIC_BRAND=bootnode` |
+
+### Auto-Detection
+Brand is automatically detected from the deployment domain:
+- `*.hanzo.ai` → Hanzo Web3
+- `*.lux.cloud` or `*.lux.network` → Lux Cloud
+- `*.zoo.ngo` or `*.zoo.id` → Zoo Labs
+- `*.bootnode.dev` → Bootnode
+- `localhost` → Hanzo Web3 (default)
+
+### Usage in Components
+```tsx
+import { getBrand } from "@/lib/brand"
+const brand = getBrand()
+
+// In JSX
+<h1>Welcome to {brand.name}</h1>
+<a href={brand.social.twitter}>Twitter</a>
+<p>Support: support@{brand.domain}</p>
+```
+
+### Logo Component
+```tsx
+import { BrandLogo } from "@/components/brand-logo"
+
+<BrandLogo size="large" showText={true} />
+```
+
+### Adding New White-Label Brands
+1. Add brand config to `web/lib/brand.ts` brands object
+2. Add domain detection rule in `getBrandKey()` function
+3. Add logo files to `web/public/logo/{brand}-*.svg`
+4. Deploy with appropriate domain or `NEXT_PUBLIC_BRAND` env var

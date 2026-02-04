@@ -14,11 +14,14 @@ import {
   Shield,
   ShieldCheck,
 } from "lucide-react"
+import { getBrand } from "@/lib/brand"
+
+const brand = getBrand()
 
 export const metadata: Metadata = {
   title: "Security",
   description:
-    "Bootnode's security practices: SOC 2 compliance, data encryption, API key hashing, HMAC webhook signing, rate limiting, and responsible disclosure.",
+    `${brand.name}'s security practices: SOC 2 compliance, data encryption, API key hashing, HMAC webhook signing, rate limiting, and responsible disclosure.`,
 }
 
 const practices = [
@@ -26,7 +29,7 @@ const practices = [
     icon: <ShieldCheck className="h-6 w-6" />,
     title: "SOC 2 Type II Compliance",
     description:
-      "Bootnode has completed SOC 2 Type II certification, independently verifying that our systems and processes meet the highest standards for security, availability, processing integrity, confidentiality, and privacy. Our SOC 2 report is available to enterprise customers under NDA.",
+      `${brand.name} has completed SOC 2 Type II certification, independently verifying that our systems and processes meet the highest standards for security, availability, processing integrity, confidentiality, and privacy. Our SOC 2 report is available to enterprise customers under NDA.`,
   },
   {
     icon: <Lock className="h-6 w-6" />,
@@ -44,7 +47,7 @@ const practices = [
     icon: <FileKey2 className="h-6 w-6" />,
     title: "HMAC Webhook Signing",
     description:
-      "Every webhook delivery includes an HMAC-SHA256 signature in the X-Bootnode-Signature header, computed using a per-webhook signing secret. This allows you to cryptographically verify that webhook payloads originated from Bootnode and have not been tampered with in transit.",
+      `Every webhook delivery includes an HMAC-SHA256 signature in the X-${brand.name}-Signature header, computed using a per-webhook signing secret. This allows you to cryptographically verify that webhook payloads originated from ${brand.name} and have not been tampered with in transit.`,
   },
   {
     icon: <Network className="h-6 w-6" />,
@@ -74,10 +77,10 @@ export default function SecurityPage() {
               Security
             </Badge>
             <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-              Security at Bootnode
+              Security at {brand.name}
             </h1>
             <p className="mt-6 text-lg text-muted-foreground">
-              We take security seriously. Bootnode is SOC 2 Type II certified and
+              We take security seriously. {brand.name} is SOC 2 Type II certified and
               implements defense-in-depth across every layer of our infrastructure.
               Your API keys, data, and webhook payloads are protected by
               industry-leading security practices.

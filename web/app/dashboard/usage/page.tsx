@@ -9,6 +9,9 @@ import {
   Server,
 } from "lucide-react"
 import { useChains } from "@/lib/hooks"
+import { getBrand } from "@/lib/brand"
+
+const brand = getBrand()
 
 export default function UsagePage() {
   const chainsQuery = useChains()
@@ -77,7 +80,7 @@ export default function UsagePage() {
             Supported Chains
           </CardTitle>
           <CardDescription>
-            Chains available through the Bootnode API
+            Chains available through the {brand.name} API
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -144,7 +147,7 @@ export default function UsagePage() {
             <p className="text-sm text-muted-foreground max-w-lg mx-auto">
               Detailed usage analytics including request volume, latency percentiles,
               compute unit consumption, and per-chain breakdowns are available through
-              the Bootnode API. Connect Hanzo Datastore for historical data and dashboards.
+              the {brand.name} API. Connect Hanzo Datastore for historical data and dashboards.
             </p>
             <div className="flex justify-center gap-2 pt-2">
               <Badge variant="outline">Request Volume</Badge>

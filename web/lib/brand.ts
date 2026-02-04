@@ -37,8 +37,8 @@ const brands: Record<string, BrandConfig> = {
     logoIcon: "/logo/bootnode-icon.svg",
     logoWhite: "/logo/bootnode-logo-white.svg",
     favicon: "/logo/bootnode-icon.svg",
-    domain: "bootnode.dev",
-    statusUrl: "https://status.bootnode.dev",
+    domain: "bootno.de",
+    statusUrl: "https://status.bootno.de",
     colors: {
       primary: "#000000",
       primaryForeground: "#ffffff",
@@ -54,8 +54,8 @@ const brands: Record<string, BrandConfig> = {
     },
   },
   hanzo: {
-    name: "Hanzo",
-    tagline: "Web3 Infrastructure",
+    name: "Hanzo Web3",
+    tagline: "Enterprise Blockchain Infrastructure",
     description: "Enterprise blockchain infrastructure powered by Hanzo AI. Multi-chain RPC, Token APIs, NFT APIs, Smart Wallets, and more.",
     logo: "/logo/hanzo-logo.svg",
     logoIcon: "/logo/hanzo-icon.svg",
@@ -64,7 +64,7 @@ const brands: Record<string, BrandConfig> = {
     domain: "web3.hanzo.ai",
     statusUrl: "https://status.hanzo.ai",
     colors: {
-      primary: "#0066ff",
+      primary: "#000000",
       primaryForeground: "#ffffff",
     },
     social: {
@@ -73,21 +73,21 @@ const brands: Record<string, BrandConfig> = {
       discord: "https://discord.gg/hanzo",
     },
     iam: {
-      url: "https://iam.hanzo.ai",
+      url: "https://hanzo.id",
       clientId: "hanzo-web3",
       domain: "hanzo.id",
     },
   },
   lux: {
-    name: "Lux Network",
+    name: "Lux Cloud",
     tagline: "Next-Gen Blockchain Infrastructure",
     description: "High-performance blockchain infrastructure for the Lux Network ecosystem.",
     logo: "/logo/lux-logo.svg",
     logoIcon: "/logo/lux-icon.svg",
     logoWhite: "/logo/lux-logo-white.svg",
     favicon: "/logo/lux-icon.svg",
-    domain: "web3.lux.network",
-    statusUrl: "https://status.lux.network",
+    domain: "lux.cloud",
+    statusUrl: "https://status.lux.cloud",
     colors: {
       primary: "#8b5cf6",
       primaryForeground: "#ffffff",
@@ -97,8 +97,8 @@ const brands: Record<string, BrandConfig> = {
       github: "https://github.com/luxfi",
     },
     iam: {
-      url: "https://iam.hanzo.ai",
-      clientId: "lux-web3",
+      url: "https://lux.id",
+      clientId: "lux-cloud",
       domain: "lux.id",
     },
   },
@@ -128,9 +128,9 @@ const brands: Record<string, BrandConfig> = {
   },
 }
 
-// Get brand from environment or default to bootnode
+// Get brand from environment or auto-detect from domain
 function getBrandKey(): string {
-  // Check environment variable
+  // Check environment variable first (highest priority)
   const envBrand = process.env.NEXT_PUBLIC_BRAND?.toLowerCase()
   if (envBrand && brands[envBrand]) {
     return envBrand
@@ -139,12 +139,16 @@ function getBrandKey(): string {
   // Auto-detect from domain in browser
   if (typeof window !== "undefined") {
     const hostname = window.location.hostname
-    if (hostname.includes("hanzo.ai")) return "hanzo"
-    if (hostname.includes("lux.network")) return "lux"
-    if (hostname.includes("zoo.ngo")) return "zoo"
+    // Lux Cloud branding
+    if (hostname.includes("lux.cloud") || hostname.includes("lux.network")) return "lux"
+    // Zoo branding
+    if (hostname.includes("zoo.ngo") || hostname.includes("zoo.id")) return "zoo"
+    // Bootnode standalone (if ever deployed separately)
+    if (hostname.includes("bootno.de") || hostname.includes("bootnode.io")) return "bootnode"
+    // Default: Hanzo branding (web3.hanzo.ai, localhost, etc.)
   }
 
-  // Default to hanzo for production
+  // Default to Hanzo Web3 branding
   return "hanzo"
 }
 

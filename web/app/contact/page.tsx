@@ -15,6 +15,9 @@ import {
   MessageSquare,
   Send,
 } from "lucide-react"
+import { getBrand } from "@/lib/brand"
+
+const brand = getBrand()
 
 export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false)
@@ -35,7 +38,7 @@ export default function ContactPage() {
               Contact Us
             </h1>
             <p className="mt-6 text-lg text-muted-foreground">
-              Have a question about Bootnode? Want to discuss enterprise pricing?
+              Have a question about {brand.name}? Want to discuss enterprise pricing?
               Need help with your integration? We are here to help.
             </p>
           </div>
@@ -180,28 +183,28 @@ export default function ContactPage() {
                     For general inquiries and support:
                   </p>
                   <a
-                    href="mailto:support@bootnode.dev"
+                    href={`mailto:support@${brand.domain}`}
                     className="mt-1 block text-sm font-medium text-primary hover:underline"
                   >
-                    support@bootnode.dev
+                    support@{brand.domain}
                   </a>
                   <p className="mt-4 text-sm text-muted-foreground">
                     For sales and enterprise pricing:
                   </p>
                   <a
-                    href="mailto:sales@bootnode.dev"
+                    href={`mailto:sales@${brand.domain}`}
                     className="mt-1 block text-sm font-medium text-primary hover:underline"
                   >
-                    sales@bootnode.dev
+                    sales@{brand.domain}
                   </a>
                   <p className="mt-4 text-sm text-muted-foreground">
                     For security reports:
                   </p>
                   <a
-                    href="mailto:security@bootnode.dev"
+                    href={`mailto:security@${brand.domain}`}
                     className="mt-1 block text-sm font-medium text-primary hover:underline"
                   >
-                    security@bootnode.dev
+                    security@{brand.domain}
                   </a>
                 </CardContent>
               </Card>
@@ -215,7 +218,7 @@ export default function ContactPage() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground">
-                    Bootnode is built by Hanzo AI, Inc.
+                    {brand.name} is built by Hanzo AI, Inc.
                   </p>
                   <p className="mt-2 text-sm text-muted-foreground">
                     Techstars &apos;17
@@ -235,22 +238,26 @@ export default function ContactPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    <a
-                      href="https://twitter.com/bootaborode"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block text-sm text-muted-foreground hover:text-foreground"
-                    >
-                      Twitter / X - @bootnode
-                    </a>
-                    <a
-                      href="https://discord.gg/bootnode"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block text-sm text-muted-foreground hover:text-foreground"
-                    >
-                      Discord - Join our developer community
-                    </a>
+                    {brand.social.twitter && (
+                      <a
+                        href={brand.social.twitter}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block text-sm text-muted-foreground hover:text-foreground"
+                      >
+                        Twitter / X
+                      </a>
+                    )}
+                    {brand.social.discord && (
+                      <a
+                        href={brand.social.discord}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block text-sm text-muted-foreground hover:text-foreground"
+                      >
+                        Discord - Join our developer community
+                      </a>
+                    )}
                     <a
                       href="https://github.com/hanzoai"
                       target="_blank"

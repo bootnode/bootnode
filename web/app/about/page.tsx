@@ -14,11 +14,14 @@ import {
   Users,
   Zap,
 } from "lucide-react"
+import { getBrand } from "@/lib/brand"
+
+const brand = getBrand()
 
 export const metadata: Metadata = {
   title: "About",
   description:
-    "Bootnode is built by Hanzo AI, a Techstars '17 company. Our mission is to make blockchain infrastructure accessible to every developer.",
+    `${brand.name} is built by Hanzo AI, a Techstars '17 company. Our mission is to make blockchain infrastructure accessible to every developer.`,
 }
 
 const values = [
@@ -72,13 +75,13 @@ const milestones = [
     year: "2021",
     title: "Multi-Chain Expansion",
     description:
-      "With the explosion of L2s and alt-L1s, the team expanded infrastructure to support dozens of chains, developing the unified API layer that would become Bootnode.",
+      `With the explosion of L2s and alt-L1s, the team expanded infrastructure to support dozens of chains, developing the unified API layer that would become ${brand.name}.`,
   },
   {
     year: "2023",
-    title: "Bootnode Launched",
+    title: `${brand.name} Launched`,
     description:
-      "Bootnode launched publicly, offering multi-chain RPC, Token APIs, NFT APIs, and Webhooks. The platform quickly grew to support thousands of developers and billions of monthly API calls.",
+      `${brand.name} launched publicly, offering multi-chain RPC, Token APIs, NFT APIs, and Webhooks. The platform quickly grew to support thousands of developers and billions of monthly API calls.`,
   },
   {
     year: "2024",
@@ -90,7 +93,7 @@ const milestones = [
     year: "2025",
     title: "100+ Chains",
     description:
-      "Bootnode reached support for over 100 blockchains with sub-100ms response times across all networks, solidifying its position as the most comprehensive blockchain infrastructure platform available.",
+      `${brand.name} reached support for over 100 blockchains with sub-100ms response times across all networks, solidifying its position as the most comprehensive blockchain infrastructure platform available.`,
   },
 ]
 
@@ -114,7 +117,7 @@ export default function AboutPage() {
               </span>
             </h1>
             <p className="mt-6 text-lg text-muted-foreground">
-              Bootnode is built by Hanzo AI, a Techstars &apos;17 company with deep roots in
+              {brand.name} is built by Hanzo AI, a Techstars &apos;17 company with deep roots in
               AI, blockchain, and developer infrastructure. We believe every developer
               should be able to build on any blockchain without worrying about
               infrastructure.
@@ -150,7 +153,7 @@ export default function AboutPage() {
                 and infrastructure that breaks under load.
               </p>
               <p>
-                Bootnode exists to solve this. We provide a unified, high-performance infrastructure
+                {brand.name} exists to solve this. We provide a unified, high-performance infrastructure
                 layer that abstracts away the complexity of running nodes, indexing data, and
                 managing wallets across 100+ blockchains. Our goal is to make blockchain development
                 as straightforward as building any other web application.
@@ -202,7 +205,7 @@ export default function AboutPage() {
             <h2 className="text-2xl font-bold tracking-tight">Our Team</h2>
             <div className="mt-6 space-y-4 text-muted-foreground leading-relaxed">
               <p>
-                Bootnode is built by the team at Hanzo AI, a company founded in 2017 and
+                {brand.name} is built by the team at Hanzo AI, a company founded in 2017 and
                 backed by Techstars. Our team brings together expertise from across the
                 spectrum of modern technology:
               </p>

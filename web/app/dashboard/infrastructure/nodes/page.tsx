@@ -8,6 +8,9 @@ import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
 import { Server, Plus, ExternalLink, Loader2, X, Play, Square, Trash2, RefreshCcw, Activity, AlertTriangle, ChevronRight } from "lucide-react"
 import Link from "next/link"
+import { getBrand } from "@/lib/brand"
+
+const brand = getBrand()
 
 // Chain icons (using crypto symbols and emoji fallbacks)
 const CHAIN_ICONS: Record<string, string> = {
@@ -842,7 +845,7 @@ export default function NodesPage() {
         <CardHeader>
           <CardTitle>Your Nodes</CardTitle>
           <CardDescription>
-            Blockchain nodes deployed through Bootnode
+            Blockchain nodes deployed through {brand.name}
           </CardDescription>
         </CardHeader>
         <CardContent>

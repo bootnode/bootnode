@@ -18,6 +18,9 @@ import {
   Users,
 } from "lucide-react"
 import { useWallets, useCreateWallet } from "@/lib/hooks"
+import { getBrand } from "@/lib/brand"
+
+const brand = getBrand()
 
 export default function WalletsPage() {
   const [showCreate, setShowCreate] = useState(false)
@@ -171,7 +174,7 @@ export default function WalletsPage() {
         <CardHeader>
           <CardTitle>Your Wallets</CardTitle>
           <CardDescription>
-            Smart accounts deployed through Bootnode
+            Smart accounts deployed through {brand.name}
           </CardDescription>
         </CardHeader>
         <CardContent>

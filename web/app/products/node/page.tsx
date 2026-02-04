@@ -1,3 +1,5 @@
+"use client"
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -17,8 +19,12 @@ import {
   Wifi,
   Zap,
 } from "lucide-react"
+import { getBrand } from "@/lib/brand"
+import { docsConfig } from "@/lib/docs-config"
 
 export default function NodeProductPage() {
+  const brand = getBrand()
+
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
@@ -141,7 +147,7 @@ export default function NodeProductPage() {
                 One line to production
               </h2>
               <p className="mt-4 text-lg text-muted-foreground">
-                Replace your RPC URL and you are live. Bootnode is fully
+                Replace your RPC URL and you are live. {brand.name} is fully
                 compatible with every Ethereum JSON-RPC method, plus enhanced
                 methods for richer data access.
               </p>
@@ -163,8 +169,9 @@ export default function NodeProductPage() {
             <div className="flex flex-col gap-4">
               <CodeBlock
                 title="curl"
-                code={`curl -X POST https://rpc.bootnode.dev/v1/YOUR_API_KEY \\
+                code={`curl -X POST ${docsConfig.apiUrl}/v1/rpc/ethereum/mainnet \\
   -H "Content-Type: application/json" \\
+  -H "X-API-Key: ${docsConfig.apiKeyPrefix}YOUR_API_KEY" \\
   -d '{
     "jsonrpc": "2.0",
     "method": "eth_getBlockByNumber",
@@ -200,7 +207,7 @@ export default function NodeProductPage() {
               Every chain your users need
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              Bootnode supports all major EVM and non-EVM chains. Access
+              {brand.name} supports all major EVM and non-EVM chains. Access
               mainnets and testnets through the same API key.
             </p>
           </div>

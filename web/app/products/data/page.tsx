@@ -1,3 +1,5 @@
+"use client"
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -18,8 +20,12 @@ import {
   Search,
   Zap,
 } from "lucide-react"
+import { getBrand } from "@/lib/brand"
+import { docsConfig } from "@/lib/docs-config"
 
 export default function DataProductPage() {
+  const brand = getBrand()
+
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
@@ -105,10 +111,10 @@ export default function DataProductPage() {
               </div>
               <CodeBlock
                 title="GET /v1/tokens/balances"
-                code={`curl "https://api.hanzo.ai/v1/tokens/balances?\\
+                code={`curl "${docsConfig.apiUrl}/v1/tokens/balances?\\
   address=0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045&\\
   chains=ethereum,base,arbitrum" \\
-  -H "X-API-Key: YOUR_API_KEY"
+  -H "X-API-Key: ${docsConfig.apiKeyPrefix}YOUR_API_KEY"
 
 {
   "address": "0xd8dA6BF2...",
@@ -147,10 +153,10 @@ export default function DataProductPage() {
               <div className="order-2 lg:order-1">
                 <CodeBlock
                   title="GET /v1/nfts/owned"
-                  code={`curl "https://api.hanzo.ai/v1/nfts/owned?\\
+                  code={`curl "${docsConfig.apiUrl}/v1/nfts/owned?\\
   address=0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045&\\
   chain=ethereum&limit=2" \\
-  -H "X-API-Key: YOUR_API_KEY"
+  -H "X-API-Key: ${docsConfig.apiKeyPrefix}YOUR_API_KEY"
 
 {
   "address": "0xd8dA6BF2...",
@@ -162,7 +168,7 @@ export default function DataProductPage() {
       "standard": "ERC-721",
       "collection": "Bored Ape Yacht Club",
       "name": "BAYC #8520",
-      "image": "https://media.hanzo.ai/ipfs/Qm...",
+      "image": "https://media.${brand.domain}/ipfs/Qm...",
       "attributes": [
         { "trait_type": "Fur", "value": "Dark Brown" },
         { "trait_type": "Eyes", "value": "Bored" }
@@ -239,10 +245,10 @@ export default function DataProductPage() {
               </div>
               <CodeBlock
                 title="GET /v1/transfers"
-                code={`curl "https://api.hanzo.ai/v1/transfers?\\
+                code={`curl "${docsConfig.apiUrl}/v1/transfers?\\
   address=0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045&\\
   chain=ethereum&category=erc20&limit=2" \\
-  -H "X-API-Key: YOUR_API_KEY"
+  -H "X-API-Key: ${docsConfig.apiKeyPrefix}YOUR_API_KEY"
 
 {
   "transfers": [
@@ -271,12 +277,12 @@ export default function DataProductPage() {
         </div>
       </section>
 
-      {/* Why Bootnode Data */}
+      {/* Why Brand Data */}
       <section className="border-b bg-muted/30 py-24">
         <div className="container">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Why developers choose Bootnode Data
+              Why developers choose {brand.name} Data
             </h2>
           </div>
           <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

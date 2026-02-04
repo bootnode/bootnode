@@ -14,11 +14,14 @@ import {
   Rocket,
   Zap,
 } from "lucide-react"
+import { getBrand } from "@/lib/brand"
+
+const brand = getBrand()
 
 export const metadata: Metadata = {
   title: "Careers",
   description:
-    "Join Bootnode and help build the infrastructure powering the next generation of blockchain applications. We are hiring engineers, DevRel, and more.",
+    `Join ${brand.name} and help build the infrastructure powering the next generation of blockchain applications. We are hiring engineers, DevRel, and more.`,
 }
 
 const positions = [
@@ -28,7 +31,7 @@ const positions = [
     location: "Remote (US/EU)",
     type: "Full-time",
     description:
-      "Design and build the core infrastructure that powers Bootnode's multi-chain RPC platform, data indexing pipelines, and webhook delivery system. You will work on high-throughput distributed systems handling billions of daily requests across 100+ blockchain networks.",
+      `Design and build the core infrastructure that powers ${brand.name}'s multi-chain RPC platform, data indexing pipelines, and webhook delivery system. You will work on high-throughput distributed systems handling billions of daily requests across 100+ blockchain networks.`,
     requirements: [
       "5+ years of experience in Go or Python with a focus on backend systems",
       "Deep understanding of distributed systems, databases, and message queues",
@@ -44,7 +47,7 @@ const positions = [
     location: "Remote (US/EU)",
     type: "Full-time",
     description:
-      "Build the Bootnode dashboard, developer portal, and documentation platform. You will create the interfaces that thousands of developers use daily to manage API keys, monitor usage, configure webhooks, and deploy smart wallets.",
+      `Build the ${brand.name} dashboard, developer portal, and documentation platform. You will create the interfaces that thousands of developers use daily to manage API keys, monitor usage, configure webhooks, and deploy smart wallets.`,
     requirements: [
       "5+ years of experience with React and TypeScript",
       "Strong experience with Next.js, server components, and modern React patterns",
@@ -60,7 +63,7 @@ const positions = [
     location: "Remote (Global)",
     type: "Full-time",
     description:
-      "Be the bridge between Bootnode and our developer community. You will write technical content, build sample applications, speak at conferences, and gather feedback that directly shapes our product roadmap. This role combines engineering skill with communication talent.",
+      `Be the bridge between ${brand.name} and our developer community. You will write technical content, build sample applications, speak at conferences, and gather feedback that directly shapes our product roadmap. This role combines engineering skill with communication talent.`,
     requirements: [
       "3+ years of software engineering experience with a public portfolio of technical writing",
       "Deep familiarity with blockchain development (Ethereum, Solana, or other ecosystems)",
@@ -159,7 +162,7 @@ export default function CareersPage() {
       <section className="border-b py-16">
         <div className="container">
           <h2 className="text-2xl font-bold tracking-tight text-center">
-            Why Bootnode
+            Why {brand.name}
           </h2>
           <p className="mt-2 text-center text-muted-foreground">
             We take care of our team so they can focus on building great infrastructure.
@@ -194,10 +197,10 @@ export default function CareersPage() {
               role that fits but are passionate about blockchain infrastructure, reach out
               anyway at{" "}
               <a
-                href="mailto:careers@bootnode.dev"
+                href={`mailto:careers@${brand.domain}`}
                 className="text-primary hover:underline"
               >
-                careers@bootnode.dev
+                careers@{brand.domain}
               </a>
               .
             </p>
@@ -220,7 +223,7 @@ export default function CareersPage() {
                         </div>
                       </div>
                       <Button size="sm" asChild>
-                        <a href={`mailto:careers@bootnode.dev?subject=Application: ${position.title}`}>
+                        <a href={`mailto:careers@${brand.domain}?subject=Application: ${position.title}`}>
                           Apply
                           <ArrowRight className="ml-2 h-4 w-4" />
                         </a>
@@ -260,11 +263,11 @@ export default function CareersPage() {
             </h2>
             <p className="mt-4 text-muted-foreground">
               We are always interested in hearing from talented people. Send us your
-              resume and tell us what you would build at Bootnode.
+              resume and tell us what you would build at {brand.name}.
             </p>
             <div className="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
               <Button size="lg" asChild>
-                <a href="mailto:careers@bootnode.dev">
+                <a href={`mailto:careers@${brand.domain}`}>
                   Send Your Resume
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </a>

@@ -1,5 +1,6 @@
+"use client"
+
 import Link from "next/link"
-import type { Metadata } from "next"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -11,57 +12,54 @@ import {
   Calendar,
   Clock,
 } from "lucide-react"
-
-export const metadata: Metadata = {
-  title: "Blog",
-  description:
-    "Insights on blockchain infrastructure, Web3 development, account abstraction, and building at scale.",
-}
-
-const posts = [
-  {
-    slug: "why-multichain-is-the-future",
-    title: "Why Multi-Chain Is the Future of Web3 Development",
-    summary:
-      "The blockchain ecosystem has fragmented into hundreds of specialized chains. Developers who embrace multi-chain architecture today will build the most resilient and accessible applications. We explore why a unified API approach is essential, how to design apps that work across chains, and the infrastructure patterns that make multi-chain development practical at scale.",
-    date: "January 15, 2026",
-    readTime: "8 min read",
-    category: "Engineering",
-    author: "Bootnode Team",
-  },
-  {
-    slug: "account-abstraction-explained",
-    title: "Account Abstraction in Production: Lessons from ERC-4337",
-    summary:
-      "Account abstraction promises to make blockchain wallets as easy to use as email. After helping hundreds of teams ship ERC-4337 implementations, we share what works, what does not, and how to avoid the most common pitfalls. Topics include gas sponsorship strategies, session key architecture, bundler selection, and the real-world costs of running a paymaster.",
-    date: "December 20, 2025",
-    readTime: "12 min read",
-    category: "Tutorial",
-    author: "Bootnode Team",
-  },
-  {
-    slug: "scaling-rpc-infrastructure",
-    title: "How We Scaled to 10 Billion Daily RPC Requests",
-    summary:
-      "Behind every blockchain application is an RPC layer handling the heavy lifting. We share the architecture and engineering decisions that allow Bootnode to serve over 10 billion API requests per day across 100+ chains with sub-100ms latency and 99.999% uptime. Topics covered include our edge caching strategy, global load balancing, automatic failover, and how we monitor the health of thousands of blockchain nodes.",
-    date: "November 8, 2025",
-    readTime: "15 min read",
-    category: "Engineering",
-    author: "Bootnode Team",
-  },
-  {
-    slug: "webhooks-vs-polling",
-    title: "Webhooks vs. Polling: The Right Way to Track Onchain Events",
-    summary:
-      "Most blockchain applications need to react to onchain events in real time. Developers typically choose between polling RPC endpoints or subscribing to webhooks. We compare both approaches across latency, reliability, cost, and implementation complexity, and show when each approach makes sense. Includes practical examples for tracking token transfers, NFT mints, and smart contract events.",
-    date: "October 3, 2025",
-    readTime: "10 min read",
-    category: "Guide",
-    author: "Bootnode Team",
-  },
-]
+import { getBrand } from "@/lib/brand"
 
 export default function BlogPage() {
+  const brand = getBrand()
+
+  const posts = [
+    {
+      slug: "why-multichain-is-the-future",
+      title: "Why Multi-Chain Is the Future of Web3 Development",
+      summary:
+        "The blockchain ecosystem has fragmented into hundreds of specialized chains. Developers who embrace multi-chain architecture today will build the most resilient and accessible applications. We explore why a unified API approach is essential, how to design apps that work across chains, and the infrastructure patterns that make multi-chain development practical at scale.",
+      date: "January 15, 2026",
+      readTime: "8 min read",
+      category: "Engineering",
+      author: `${brand.name} Team`,
+    },
+    {
+      slug: "account-abstraction-explained",
+      title: "Account Abstraction in Production: Lessons from ERC-4337",
+      summary:
+        "Account abstraction promises to make blockchain wallets as easy to use as email. After helping hundreds of teams ship ERC-4337 implementations, we share what works, what does not, and how to avoid the most common pitfalls. Topics include gas sponsorship strategies, session key architecture, bundler selection, and the real-world costs of running a paymaster.",
+      date: "December 20, 2025",
+      readTime: "12 min read",
+      category: "Tutorial",
+      author: `${brand.name} Team`,
+    },
+    {
+      slug: "scaling-rpc-infrastructure",
+      title: "How We Scaled to 10 Billion Daily RPC Requests",
+      summary:
+        `Behind every blockchain application is an RPC layer handling the heavy lifting. We share the architecture and engineering decisions that allow ${brand.name} to serve over 10 billion API requests per day across 100+ chains with sub-100ms latency and 99.999% uptime. Topics covered include our edge caching strategy, global load balancing, automatic failover, and how we monitor the health of thousands of blockchain nodes.`,
+      date: "November 8, 2025",
+      readTime: "15 min read",
+      category: "Engineering",
+      author: `${brand.name} Team`,
+    },
+    {
+      slug: "webhooks-vs-polling",
+      title: "Webhooks vs. Polling: The Right Way to Track Onchain Events",
+      summary:
+        "Most blockchain applications need to react to onchain events in real time. Developers typically choose between polling RPC endpoints or subscribing to webhooks. We compare both approaches across latency, reliability, cost, and implementation complexity, and show when each approach makes sense. Includes practical examples for tracking token transfers, NFT mints, and smart contract events.",
+      date: "October 3, 2025",
+      readTime: "10 min read",
+      category: "Guide",
+      author: `${brand.name} Team`,
+    },
+  ]
+
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
@@ -75,7 +73,7 @@ export default function BlogPage() {
               Blog
             </Badge>
             <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-              Insights from the Bootnode team
+              Insights from the {brand.name} team
             </h1>
             <p className="mt-6 text-lg text-muted-foreground">
               Deep dives into blockchain infrastructure, Web3 engineering, and the

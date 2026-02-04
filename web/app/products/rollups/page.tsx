@@ -1,3 +1,5 @@
+"use client"
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -20,8 +22,12 @@ import {
   Wrench,
   Zap,
 } from "lucide-react"
+import { getBrand } from "@/lib/brand"
+import { docsConfig } from "@/lib/docs-config"
 
 export default function RollupsProductPage() {
+  const brand = getBrand()
+
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
@@ -44,7 +50,7 @@ export default function RollupsProductPage() {
             <p className="mt-6 max-w-2xl text-lg text-muted-foreground md:text-xl">
               Launch a custom rollup with dedicated block space, your own gas
               token, and a built-in bridge to Ethereum. OP Stack or ZK rollup
-              technology, fully managed by Bootnode.
+              technology, fully managed by {brand.name}.
             </p>
             <div className="mt-10 flex flex-col gap-4 sm:flex-row">
               <Button size="xl" asChild>
@@ -165,7 +171,7 @@ export default function RollupsProductPage() {
               Everything included out of the box
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              Bootnode manages the entire rollup lifecycle: sequencer, prover,
+              {brand.name} manages the entire rollup lifecycle: sequencer, prover,
               bridge, explorer, and monitoring. You focus on your application.
             </p>
           </div>
@@ -173,7 +179,7 @@ export default function RollupsProductPage() {
             <FeatureCard
               icon={<Rocket className="h-6 w-6" />}
               title="Managed Sequencer"
-              description="High-availability sequencer with sub-second block times. Bootnode runs and monitors the sequencer so your chain stays live 24/7 with 99.99% uptime SLA."
+              description={`High-availability sequencer with sub-second block times. ${brand.name} runs and monitors the sequencer so your chain stays live 24/7 with 99.99% uptime SLA.`}
             />
             <FeatureCard
               icon={<Network className="h-6 w-6" />}
@@ -193,7 +199,7 @@ export default function RollupsProductPage() {
             <FeatureCard
               icon={<Code2 className="h-6 w-6" />}
               title="Developer Tools"
-              description="Full RPC endpoint, Hardhat and Foundry support, faucet for testnet tokens, and Bootnode Data APIs pre-configured for your chain from day one."
+              description={`Full RPC endpoint, Hardhat and Foundry support, faucet for testnet tokens, and ${brand.name} Data APIs pre-configured for your chain from day one.`}
             />
             <FeatureCard
               icon={<Gauge className="h-6 w-6" />}
@@ -227,7 +233,7 @@ export default function RollupsProductPage() {
               From zero to mainnet in under a day
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              Bootnode handles the heavy lifting. You define the parameters, we
+              {brand.name} handles the heavy lifting. You define the parameters, we
               deploy the infrastructure.
             </p>
           </div>
@@ -235,12 +241,12 @@ export default function RollupsProductPage() {
             <StepCard
               step="1"
               title="Configure"
-              description="Choose your rollup type (OP Stack or ZK), gas token, block time, and genesis parameters through the Bootnode dashboard."
+              description={`Choose your rollup type (OP Stack or ZK), gas token, block time, and genesis parameters through the ${brand.name} dashboard.`}
             />
             <StepCard
               step="2"
               title="Deploy"
-              description="Bootnode provisions the sequencer, prover, bridge contracts, and RPC infrastructure. Testnet is live within minutes."
+              description={`${brand.name} provisions the sequencer, prover, bridge contracts, and RPC infrastructure. Testnet is live within minutes.`}
             />
             <StepCard
               step="3"
