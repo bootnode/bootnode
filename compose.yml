@@ -64,6 +64,47 @@ services:
       retries: 5
 
   # =============================================================================
+  # SEARCH & VECTOR DATABASES (Planet-Scale Query Layer)
+  # =============================================================================
+
+  # Qdrant - Vector Search for semantic queries (similar contracts, addresses)
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: bootnode-qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant:/qdrant/storage
+    environment:
+      QDRANT__SERVICE__GRPC_PORT: 6334
+      QDRANT__LOG_LEVEL: INFO
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:6333/"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Meilisearch - Full-text search for addresses, tokens, contracts
+  meilisearch:
+    image: getmeili/meilisearch:v1.6
+    container_name: bootnode-meilisearch
+    ports:
+      - "7700:7700"
+    volumes:
+      - meilisearch:/meili_data
+    environment:
+      MEILI_ENV: development
+      MEILI_NO_ANALYTICS: "true"
+      # Set a master key in production!
+      # MEILI_MASTER_KEY: your-master-key
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7700/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # =============================================================================
   # BOOTNODE SERVICES
   # =============================================================================
 
@@ -78,6 +119,9 @@ services:
       DATABASE_URL: postgresql+asyncpg://bootnode:bootnode@postgres:5432/bootnode
       REDIS_URL: redis://redis:6379/0
       DATASTORE_URL: clickhouse://bootnode:bootnode@datastore:8123/bootnode
+      QDRANT_URL: http://qdrant:6333
+      MEILISEARCH_URL: http://meilisearch:7700
+      INDEXER_URL: http://indexer:5000
       JWT_SECRET: dev-jwt-secret-change-in-production
       API_KEY_SALT: dev-api-key-salt
       # Multi-tenant off for local dev
@@ -105,6 +149,10 @@ services:
       postgres:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+      meilisearch:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -179,4 +227,6 @@ volumes:
   postgres:
   redis:
   datastore:
+  qdrant:
+  meilisearch:
   grafana:

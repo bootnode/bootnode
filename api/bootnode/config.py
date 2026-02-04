@@ -80,6 +80,21 @@ class Settings(BaseSettings):
     datastore_url: str = "clickhouse://bootnode:bootnode@localhost:8123/bootnode"
     datastore_pool_size: int = 10
 
+    # Vector Search (Qdrant)
+    qdrant_url: str = "http://localhost:6333"
+    qdrant_api_key: str = ""
+
+    # Full-Text Search (Meilisearch)
+    meilisearch_url: str = "http://localhost:7700"
+    meilisearch_api_key: str = ""
+
+    # Lux Indexer (Omnichain data)
+    indexer_url: str = "http://localhost:5000"
+
+    # Cloudflare (Edge Caching)
+    cloudflare_zone_id: str = ""
+    cloudflare_api_token: str = ""
+
     # Message Queue (Redis-based, @hanzo/mq compatible)
     # Uses the same Redis instance as cache - different db index for isolation
     mq_redis_db: int = 1  # Redis DB index for MQ (separate from cache at db 0)
