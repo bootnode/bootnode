@@ -60,12 +60,12 @@ dev = [
     "mypy>=1.13.0",
     "pre-commit>=4.0.0",
 ]
-# Hanzo SDKs - optional, graceful degradation without them
-# In K8s, the KMS operator injects secrets as env vars
-hanzo = [
-    "hanzo-kms>=1.0.0",
-    "hanzo-iam>=1.0.0",
-]
+# Hanzo SDKs - not published to PyPI yet
+# In K8s, the KMS operator injects secrets as env vars directly
+# hanzo = [
+#     "hanzo-kms>=1.0.0",
+#     "hanzo-iam>=1.0.0",
+# ]
 
 [project.scripts]
 bootnode = "bootnode.cli:main"
