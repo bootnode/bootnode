@@ -226,7 +226,7 @@ X-RateLimit-Reset: 1706400000`}</code>
       "balance": "15230500000",
       "formatted_balance": "15230.50",
       "usd_value": "15230.50",
-      "logo_url": "https://assets.bootnode.dev/tokens/usdc.png"
+      "logo_url": "https://assets.web3.hanzo.ai/tokens/usdc.png"
     },
     {
       "contract": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
@@ -236,7 +236,7 @@ X-RateLimit-Reset: 1706400000`}</code>
       "balance": "8500000000",
       "formatted_balance": "8500.00",
       "usd_value": "8500.00",
-      "logo_url": "https://assets.bootnode.dev/tokens/usdt.png"
+      "logo_url": "https://assets.web3.hanzo.ai/tokens/usdt.png"
     }
   ],
   "page": 1,
@@ -263,7 +263,7 @@ X-RateLimit-Reset: 1706400000`}</code>
   "formatted_total_supply": "26000000000.00",
   "price_usd": "1.00",
   "market_cap_usd": "26000000000.00",
-  "logo_url": "https://assets.bootnode.dev/tokens/usdc.png"
+  "logo_url": "https://assets.web3.hanzo.ai/tokens/usdc.png"
 }`}
             />
           </div>
@@ -290,7 +290,7 @@ X-RateLimit-Reset: 1706400000`}</code>
   "name": "Bored Ape #1234",
   "description": "A unique Bored Ape Yacht Club NFT.",
   "image_url": "ipfs://QmRRPWG96cmgTn2qSzjwr2qvfNEuhunv6FNeMFGa9bx6mQ",
-  "image_gateway_url": "https://ipfs.bootnode.dev/ipfs/QmRRPWG96cmgTn2qSzjwr2qvfNEuhunv6FNeMFGa9bx6mQ",
+  "image_gateway_url": "https://ipfs.web3.hanzo.ai/ipfs/QmRRPWG96cmgTn2qSzjwr2qvfNEuhunv6FNeMFGa9bx6mQ",
   "standard": "ERC721",
   "owner": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
   "traits": [
@@ -321,8 +321,8 @@ X-RateLimit-Reset: 1706400000`}</code>
   "num_owners": 6432,
   "floor_price_eth": "12.50",
   "floor_price_usd": "25000.00",
-  "banner_url": "https://assets.bootnode.dev/collections/bayc-banner.png",
-  "image_url": "https://assets.bootnode.dev/collections/bayc.png",
+  "banner_url": "https://assets.web3.hanzo.ai/collections/bayc-banner.png",
+  "image_url": "https://assets.web3.hanzo.ai/collections/bayc.png",
   "description": "The Bored Ape Yacht Club is a collection of 10,000 unique Bored Ape NFTs."
 }`}
             />

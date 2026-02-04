@@ -23,7 +23,8 @@ export function CodeDemo() {
   const [loading, setLoading] = React.useState(false)
 
   const brand = getBrand()
-  const apiDomain = brand.name === "Hanzo" ? "api.hanzo.ai" : `api.${brand.domain}`
+  // Use api.web3.hanzo.ai for Hanzo branding (brand.name is "Hanzo Web3")
+  const apiDomain = brand.name.includes("Hanzo") ? "api.web3.hanzo.ai" : `api.${brand.domain}`
   const code = `curl -X POST https://${apiDomain}/v1/rpc/${selectedChain.toLowerCase()}/mainnet \\
      -H "Content-Type: application/json" \\
      -H "X-API-Key: your_api_key" \\

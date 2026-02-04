@@ -83,9 +83,10 @@ export default async function ChainDetailPage({
   const mainnet = chain.networks.find((n) => !n.isTestnet)
   const testnets = chain.networks.filter((n) => n.isTestnet)
 
+  const rpcDomain = "rpc.web3.hanzo.ai"
   const rpcEndpoint = chain.type === "svm"
-    ? `https://${chain.slug}.mainnet.rpc.bootnode.dev`
-    : `https://${chain.slug}-mainnet.rpc.bootnode.dev`
+    ? `https://${chain.slug}.mainnet.${rpcDomain}`
+    : `https://${chain.slug}-mainnet.${rpcDomain}`
 
   const curlExample = chain.type === "svm"
     ? `curl -X POST ${rpcEndpoint} \\
@@ -232,8 +233,8 @@ export default async function ChainDetailPage({
                   <p className="mt-2 text-sm text-muted-foreground">
                     RPC: <code className="rounded bg-muted px-1 font-mono text-xs break-all">
                       {chain.type === "svm"
-                        ? `https://${chain.slug}.devnet.rpc.bootnode.dev`
-                        : `https://${chain.slug}-${testnet.id}.rpc.bootnode.dev`}
+                        ? `https://${chain.slug}.devnet.${rpcDomain}`
+                        : `https://${chain.slug}-${testnet.id}.${rpcDomain}`}
                     </code>
                   </p>
                 </CardContent>

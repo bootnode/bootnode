@@ -215,12 +215,12 @@ function LoginForm() {
               disabled={loading}
               onClick={async () => {
                 setMode("login")
-                setEmail("test@bootnode.dev")
+                setEmail("test@hanzo.ai")
                 setPassword("testpass123")
                 setLoading(true)
                 setError("")
                 try {
-                  await login("test@bootnode.dev", "testpass123")
+                  await login("test@hanzo.ai", "testpass123")
                   const returnUrl = searchParams.get("returnUrl") || "/dashboard"
                   router.push(returnUrl)
                 } catch (err) {
@@ -240,7 +240,7 @@ function LoginForm() {
               )}
             </Button>
             <p className="text-[10px] text-muted-foreground mt-2 text-center">
-              test@bootnode.dev / testpass123
+              test@hanzo.ai / testpass123
             </p>
           </div>
         </CardContent>
