@@ -47,6 +47,8 @@ dependencies = [
     "kubernetes>=31.0.0",
     "pydo>=0.8.0",
     "docker>=7.0.0",
+    # ZAP Protocol (native Cap'n Proto RPC)
+    "pycapnp>=2.0.0",
 ]
 
 

@@ -115,6 +115,11 @@ class Settings(BaseSettings):
     bundler_private_key: str = ""
     bundler_beneficiary: str = ""
 
+    # ZAP Server (native Cap'n Proto RPC)
+    zap_enabled: bool = True
+    zap_host: str = "0.0.0.0"
+    zap_port: int = 9999
+
     # Deployment Target
     deploy_target: Literal["docker", "process", "kubernetes"] = "docker"
     deploy_compose_file: str = "infra/compose.yml"

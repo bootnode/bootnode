@@ -236,10 +236,10 @@ console.log("Tokens:", tokens);`}</code>
           <div className="grid gap-3 sm:grid-cols-2">
             {[
               { title: "API Reference", href: "/docs/api", desc: "Full endpoint documentation" },
+              { title: "ZAP Protocol", href: "/docs/zap/quickstart", desc: "Native binary RPC for AI agents" },
               { title: "Smart Wallets", href: "/docs/wallets/quickstart", desc: "Create ERC-4337 smart wallets" },
               { title: "Webhooks", href: "/docs/webhooks/quickstart", desc: "Real-time event notifications" },
               { title: "WebSockets", href: "/docs/websockets/quickstart", desc: "Subscribe to live blockchain data" },
-              { title: "Account Abstraction", href: "/docs/aa/quickstart", desc: "ERC-4337 bundler and paymasters" },
               { title: "SDKs", href: "/docs/sdks", desc: "Client libraries for every language" },
             ].map((item) => (
               <Link

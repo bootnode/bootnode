@@ -15,6 +15,7 @@ from bootnode.core.datastore import datastore_client
 from bootnode.core.kms import inject_secrets
 from bootnode.db.session import engine, init_db
 from bootnode.ws import router as ws_router
+from bootnode.zap import start_zap_server, stop_zap_server
 
 # Load secrets from Hanzo KMS before settings
 inject_secrets()
@@ -24,7 +25,7 @@ settings = get_settings()
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
     """Application lifespan handler."""
     # Startup
     logger.info("Starting Bootnode API", env=settings.app_env)
@@ -38,10 +39,34 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     except Exception as e:
         logger.warning("DataStore not available", error=str(e))
 
+    # Start native ZAP server (Cap'n Proto RPC over TCP)
+    zap_server = None
+    if settings.zap_enabled:
+        try:
+            zap_server = await start_zap_server(
+                host=settings.zap_host,
+                port=settings.zap_port,
+            )
+            logger.info(
+                "ZAP server started",
+                url=f"zap://{settings.zap_host}:{settings.zap_port}",
+            )
+        except Exception as e:
+            logger.warning("ZAP server failed to start", error=str(e))
+
     yield
 
     # Shutdown
     logger.info("Shutting down Bootnode API")
+
+    # Stop ZAP server
+    if zap_server:
+        try:
+            await stop_zap_server()
+            logger.info("ZAP server stopped")
+        except Exception as e:
+            logger.warning("ZAP server stop error", error=str(e))
+
     await engine.dispose()
     await redis_client.close()
     await datastore_client.close()

@@ -16,6 +16,7 @@ export const docsConfig = {
   apiUrl: process.env.NEXT_PUBLIC_API_URL || `https://api.${brand.domain}`,
   dashboardUrl: process.env.NEXT_PUBLIC_DASHBOARD_URL || `https://${brand.domain}`,
   wsUrl: process.env.NEXT_PUBLIC_WS_URL || `wss://ws.${brand.domain}`,
+  zapUrl: process.env.NEXT_PUBLIC_ZAP_URL || `zap://api.${brand.domain}:9999`,
   docsUrl: process.env.NEXT_PUBLIC_DOCS_URL || `https://docs.${brand.domain}`,
   statusUrl: brand.statusUrl,
 
@@ -75,4 +76,17 @@ export function examplePython(method: string): string {
 client = Client(api_key="${docsConfig.apiKeyPrefix}YOUR_API_KEY")
 result = client.rpc.${method}()
 print(result)`
+}
+
+// Example ZAP client snippet
+export function exampleZap(): string {
+  return `from hanzo_zap import Client
+
+async with Client.connect("${docsConfig.zapUrl}") as client:
+    server = await client.init({"name": "my-agent", "version": "1.0"})
+    result = await client.call_tool("rpc_call", {
+        "chain": "ethereum",
+        "method": "eth_blockNumber"
+    })
+    print(f"Block: {int(result['result'], 16)}")`
 }

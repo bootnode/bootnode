@@ -26,7 +26,7 @@ const sections = [
       { name: "Introduction", href: "/docs/intro" },
       { name: "Authentication", href: "/docs/auth" },
       { name: "Making Requests", href: "/docs/requests" },
-      { name: "Error Handling", href: "/docs/errors" },
+      { name: "ZAP Protocol", href: "/docs/zap/quickstart" },
     ],
   },
   {
@@ -82,6 +82,17 @@ const sections = [
       { name: "Paymasters", href: "/docs/gas/paymasters" },
       { name: "Sponsorship", href: "/docs/gas/sponsorship" },
       { name: "Limits", href: "/docs/gas/limits" },
+    ],
+  },
+  {
+    title: "ZAP Protocol",
+    description: "Native binary RPC for AI agents",
+    icon: Zap,
+    items: [
+      { name: "Quickstart", href: "/docs/zap/quickstart" },
+      { name: "Schema", href: "/docs/zap/quickstart#schema" },
+      { name: "Tools", href: "/docs/zap/quickstart#available-tools" },
+      { name: "Resources", href: "/docs/zap/quickstart#available-resources" },
     ],
   },
 ]

@@ -9,9 +9,9 @@ This codebase supports white-labeling for different brands:
 - **Hanzo Web3** (default): web3.hanzo.ai - Enterprise blockchain infrastructure
 - **Lux Cloud**: lux.cloud - Lux Network ecosystem infrastructure
 - **Zoo Labs**: web3.zoo.ngo - Decentralized AI infrastructure
-- **Bootnode**: bootnode.dev - Standalone deployment (legacy)
+- **Bootnode**: bootno.de - Standalone deployment
 
-Brand is auto-detected from domain or via `NEXT_PUBLIC_BRAND` environment variable.
+Brand is auto-detected from domain or via `NEXT_PUBLIC_BRAND` environment variable (set at build time for Next.js).
 
 ## Current State Analysis
 
@@ -169,6 +169,96 @@ WS /v1/ws/{chain}
 {"jsonrpc":"2.0","method":"eth_subscribe","params":["logs",{"address":"0x..."}],"id":3}
 ```
 
+#### Native ZAP Protocol
+
+ZAP (Zero-Copy App Proto) is a high-performance Cap'n Proto-based binary RPC protocol.
+Bootnode implements **native ZAP** - no gateway, direct Cap'n Proto RPC over TCP.
+
+**Connection**
+```
+AI Agent → zap://api.bootnode.dev:9999 (direct Cap'n Proto RPC)
+```
+
+**Schema Files**
+- `bootnode/zap/bootnode.zap` - Clean whitespace-significant syntax (new format)
+- `bootnode/zap/bootnode.capnp` - Compiled Cap'n Proto schema (for pycapnp)
+
+**Python Client Example**
+```python
+from hanzo_zap import Client
+
+async with Client.connect("zap://api.bootnode.dev:9999") as client:
+    # Initialize connection
+    server_info = await client.init({"name": "my-agent", "version": "1.0"})
+
+    # List tools
+    tools = await client.list_tools()
+
+    # Call a tool
+    result = await client.call_tool("rpc_call", {
+        "chain": "ethereum",
+        "method": "eth_blockNumber"
+    })
+```
+
+**REST Endpoints (Discovery)**
+```
+GET /v1/zap/connect       # Connection info & examples
+GET /v1/zap/info          # Server capabilities
+GET /v1/zap/tools         # Available tools
+GET /v1/zap/resources     # Available resources
+GET /v1/zap/schema        # .zap schema (whitespace-significant)
+GET /v1/zap/schema.capnp  # Compiled .capnp schema
+GET /v1/zap/health        # Health check
+```
+
+**Code Generation**
+```bash
+# Get schema and compile
+curl -H "X-API-Key: $KEY" https://api.bootnode.dev/v1/zap/schema > bootnode.zap
+zapc compile bootnode.zap --out=bootnode.capnp
+
+# Generate client code
+zapc generate bootnode.capnp --lang python --out ./gen/
+```
+
+**ZAP Tools (MCP-compatible)**
+| Tool | Description |
+|------|-------------|
+| rpc_call | Execute JSON-RPC on blockchain |
+| get_token_balances | Get ERC-20 token balances for address |
+| get_token_metadata | Get token metadata (name, symbol, decimals) |
+| get_nfts_owned | Get NFTs owned by address |
+| get_nft_metadata | Get NFT metadata and attributes |
+| create_smart_wallet | Create ERC-4337 smart wallet |
+| get_smart_wallet | Get smart wallet details |
+| create_webhook | Create webhook for blockchain events |
+| list_webhooks | List configured webhooks |
+| delete_webhook | Delete webhook by ID |
+| estimate_gas | Get current gas prices |
+
+**ZAP Resources**
+| URI | Description |
+|-----|-------------|
+| bootnode://chains | List of all supported blockchain networks |
+| bootnode://usage | API usage for current billing period |
+| bootnode://config | Current API configuration and limits |
+
+**Server Implementation**
+- Location: `api/bootnode/zap/server.py`
+- Class: `BootnodeZapImpl(bootnode_capnp.Bootnode.Server)`
+- Startup: Automatic in `main.py` lifespan handler
+- Default port: 9999 (configurable via `ZAP_PORT` env var)
+
+**Environment Variables**
+```env
+ZAP_ENABLED=true     # Enable native ZAP server
+ZAP_HOST=0.0.0.0     # Bind address
+ZAP_PORT=9999        # Listen port
+```
+
+See: https://github.com/hanzo-ai/zap
+
 #### Smart Wallets (ERC-4337)
 ```
 POST /v1/wallets/create
@@ -314,7 +404,7 @@ All systems tested and operational:
 | Wallets API | ✅ | Smart wallet creation working |
 | Webhooks API | ✅ | Webhook creation working |
 | Auth/Keys API | ✅ | API key management working |
-| ZAP Protocol | ✅ | Integration active |
+| ZAP Protocol | ✅ | Native ZAP server (zap://:9999) |
 | Infra: Clusters | ✅ | K8s cluster management working |
 | Infra: Volumes | ✅ | Persistent volume management working |
 | Infra: Snapshots | ✅ | Snapshot creation working |
@@ -424,6 +514,7 @@ pnpm test --prefix web
 - pydantic >= 2.0
 - httpx
 - websockets
+- pycapnp >= 2.0 (native ZAP server)
 
 ### Frontend (TypeScript)
 - next >= 15.0
@@ -623,11 +714,15 @@ docker compose --profile bundler up -d
 ```
 
 ### Key Files
-- `api/bootnode/config.py` - Application settings (datastore, redis MQ)
-- `api/bootnode/main.py` - FastAPI application entry
+- `api/bootnode/config.py` - Application settings (datastore, redis MQ, ZAP)
+- `api/bootnode/main.py` - FastAPI application entry (ZAP server startup)
+- `api/bootnode/zap/bootnode.zap` - ZAP schema (whitespace-significant syntax)
+- `api/bootnode/zap/bootnode.capnp` - Compiled Cap'n Proto schema
+- `api/bootnode/zap/server.py` - Native ZAP server implementation
+- `api/bootnode/api/zap.py` - ZAP REST endpoints (discovery)
 - `api/bootnode/core/datastore/client.py` - Hanzo Datastore client
 - `api/bootnode/workers/webhook.py` - Webhook delivery worker (arq/Redis-based)
-- `api/pyproject.toml` - Python dependencies (arq, aiochclient)
+- `api/pyproject.toml` - Python dependencies (arq, aiochclient, pycapnp)
 - `infra/compose.yml` - Full Docker Compose stack (VictoriaMetrics, VMAgent)
 - `infra/config/chains.yaml` - Multi-chain configuration
 - `infra/monitoring/scrape.yml` - VMAgent scrape config

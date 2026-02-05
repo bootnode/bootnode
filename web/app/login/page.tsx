@@ -62,48 +62,27 @@ function LoginForm() {
 
   const brand = useBrand()
 
-  // Production mode: Show IAM login options
+  // Production mode: Redirect directly to Hanzo ID
+  React.useEffect(() => {
+    if (isProduction && !authLoading && !user) {
+      const returnUrl = searchParams.get("returnUrl") || "/dashboard"
+      const callbackUrl = `${window.location.origin}/auth/callback`
+      const hanzoIdUrl = `https://hanzo.id/login?redirect_uri=${encodeURIComponent(callbackUrl)}&state=${encodeURIComponent(returnUrl)}`
+      window.location.href = hanzoIdUrl
+    }
+  }, [isProduction, authLoading, user, searchParams])
+
+  // Show loading while redirecting in production
   if (isProduction) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-background to-muted/20 px-4">
         <Link href="/" className="mb-8">
           <BrandLogo size="large" />
         </Link>
-
-        <Card className="w-full max-w-sm">
-          <CardHeader className="text-center">
-            <CardTitle className="text-xl">Sign in to {brand.name}</CardTitle>
-            <CardDescription>
-              Choose your identity provider to continue
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-3">
-              <HanzoLoginButton org="hanzo" />
-              <Button variant="outline" className="w-full" onClick={() => window.location.href = `${process.env.NEXT_PUBLIC_IAM_URL || "https://iam.hanzo.ai"}/oauth2/authorize?response_type=code&client_id=${process.env.NEXT_PUBLIC_IAM_CLIENT_ID || "bootnode-platform"}&redirect_uri=${encodeURIComponent(window.location.origin + "/auth/callback")}&scope=openid+profile+email&state=zoo`}>
-                Continue with Zoo ID
-              </Button>
-            </div>
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">or</span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <Button variant="outline" size="sm" onClick={() => window.location.href = `${process.env.NEXT_PUBLIC_IAM_URL || "https://iam.hanzo.ai"}/oauth2/authorize?response_type=code&client_id=${process.env.NEXT_PUBLIC_IAM_CLIENT_ID || "bootnode-platform"}&redirect_uri=${encodeURIComponent(window.location.origin + "/auth/callback")}&scope=openid+profile+email&state=lux`}>
-                Lux ID
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => window.location.href = `${process.env.NEXT_PUBLIC_IAM_URL || "https://iam.hanzo.ai"}/oauth2/authorize?response_type=code&client_id=${process.env.NEXT_PUBLIC_IAM_CLIENT_ID || "bootnode-platform"}&redirect_uri=${encodeURIComponent(window.location.origin + "/auth/callback")}&scope=openid+profile+email&state=pars`}>
-                Pars ID
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Redirecting to Hanzo ID...</p>
+        </div>
       </div>
     )
   }
