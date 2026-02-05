@@ -29,7 +29,7 @@ spec:
       serviceAccountName: bootnode-api
       containers:
         - name: api
-          image: hanzoai/bootnode:api-latest
+          image: ghcr.io/hanzoai/bootnode:api-latest
           imagePullPolicy: Always
           ports:
             - name: http
