@@ -8,7 +8,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: hanzoai/bootnode
+  IMAGE_NAME: bootnode/bootnode
 
 jobs:
   test-api:
@@ -210,9 +210,12 @@ jobs:
         run: |
           kubectl apply -f infra/k8s/namespace.yaml
           kubectl apply -f infra/k8s/api-deployment.yaml
-          kubectl apply -f infra/k8s/web-deployment.yaml
+          kubectl apply -f infra/k8s/hanzo-web3-deployment.yaml
+          kubectl apply -f infra/k8s/bootnode-web-deployment.yaml
           kubectl apply -f infra/k8s/ingress.yaml
           kubectl rollout restart deployment/bootnode-api -n bootnode
+          kubectl rollout restart deployment/hanzo-web3 -n bootnode
           kubectl rollout restart deployment/bootnode-web -n bootnode
           kubectl rollout status deployment/bootnode-api -n bootnode --timeout=300s
+          kubectl rollout status deployment/hanzo-web3 -n bootnode --timeout=300s
           kubectl rollout status deployment/bootnode-web -n bootnode --timeout=300s
